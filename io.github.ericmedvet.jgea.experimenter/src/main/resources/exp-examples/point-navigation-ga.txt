@@ -13,36 +13,23 @@ ea.experiment(
                 f = ds.e.n.finalTimePlusD();
                 type = MINIMIZE
             );
-            solver = ea.s.mapElites(
+            solver = ea.s.ga(
                 representation = ea.r.doubleString(crossoverP = 0.0);
                 mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
+                crossoverP = 0.0;
                 nPop = 108;
-                nEval = 10000;
-                descriptors = [
-                    ea.s.me.d.descriptor(
-                        f = ds.e.n.x(of = ds.e.n.finalRobotP(normalized = true));
-                        min = 0;
-                        max = 1;
-                        nOfBins = 10
-                    );
-                    ea.s.me.d.descriptor(
-                        f = ds.e.n.y(of = ds.e.n.finalRobotP(normalized = true));
-                        min = 0;
-                        max = 1;
-                        nOfBins = 10
-                    )
-                ]
+                nEval = 10000
             )
         )];
     listeners = [
         ea.l.tui(
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
             functions = [
-                ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
                 ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
                 ea.f.id(of = ea.f.best());
                 f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
             ];
@@ -53,13 +40,9 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "../pointnav_me_all.csv";
+            filePath = "../pointnav_ga_all.csv";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
                 ea.f.id();
                 f.nTh(of = ea.f.parentIds(); n = 0);
                 f.toBase64(of = ea.function.genotype())
@@ -74,7 +57,7 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
             image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "../pointnav_ga_{index:%04d}.png"
+            filePathTemplate = "../pointnav_ga_vecfield_{index:%04d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
