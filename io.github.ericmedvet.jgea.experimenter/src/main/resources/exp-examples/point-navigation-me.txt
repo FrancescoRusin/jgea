@@ -16,17 +16,17 @@ ea.experiment(
             solver = ea.s.mapElites(
                 representation = ea.r.doubleString(crossoverP = 0.0);
                 mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
-                nPop = 108;
-                nEval = 10000;
+                nPop = 216;
+                nEval = 80000;
                 descriptors = [
                     ea.s.me.d.descriptor(
-                        f = ds.e.n.x(of = ds.e.n.finalRobotP(normalized = true));
+                        f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                         min = 0;
                         max = 1;
                         nOfBins = 10
                     );
                     ea.s.me.d.descriptor(
-                        f = ds.e.n.y(of = ds.e.n.finalRobotP(normalized = true));
+                        f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                         min = 0;
                         max = 1;
                         nOfBins = 10
@@ -36,6 +36,11 @@ ea.experiment(
         )];
     listeners = [
         ea.l.tui(
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
             functions = [
                 ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
                 ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
@@ -74,12 +79,12 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
             image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "../pointnav_ga_{index:%04d}.png"
+            filePathTemplate = "../pointnav_me_{index:%04d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "../pointnav_ga_trajectory_{index:%04d}.png"
+            filePathTemplate = "../pointnav_me_trajectory_{index:%04d}.png"
         )
     ]
 )
