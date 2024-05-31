@@ -82,6 +82,15 @@ public abstract class AbstractPopulationBasedIterativeSolver<
     return results;
   }
 
+  protected static <T> Collection<T> getAll(Collection<Callable<T>> callables, ExecutorService executor)
+      throws SolverException {
+    try {
+      return getAll(executor.invokeAll(callables));
+    } catch (SolverException | InterruptedException e) {
+      throw new SolverException(e);
+    }
+  }
+
   protected static <
           T extends POCPopulationState<I, G, S, Q, P>,
           P extends QualityBasedProblem<S, Q>,

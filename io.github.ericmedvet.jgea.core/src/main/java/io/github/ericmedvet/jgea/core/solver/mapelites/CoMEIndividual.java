@@ -17,69 +17,75 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
+/*
+ * Copyright 2024 eric
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package io.github.ericmedvet.jgea.core.solver.mapelites;
 
 import io.github.ericmedvet.jgea.core.solver.Individual;
+import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.Collection;
-import java.util.List;
 
-public interface MEIndividual<G, S, Q> extends Individual<G, S, Q> {
+public interface CoMEIndividual<G1, G2, S1, S2, S, Q> extends Individual<Pair<G1, G2>, S, Q> {
 
-  List<MapElites.Descriptor.Coordinate> coordinates();
+  MEIndividual<G1, S1, Q> individual1();
 
-  static <G, S, Q> MEIndividual<G, S, Q> from(
-      Individual<G, S, Q> individual, List<MapElites.Descriptor<G, S, Q>> descriptors) {
-    return of(
-        individual.id(),
-        individual.genotype(),
-        individual.solution(),
-        individual.quality(),
-        individual.genotypeBirthIteration(),
-        individual.qualityMappingIteration(),
-        individual.parentIds(),
-        descriptors.stream().map(d -> d.coordinate(individual)).toList());
-  }
+  MEIndividual<G2, S2, Q> individual2();
 
-  static <G, S, Q> MEIndividual<G, S, Q> of(
+  static <G1, G2, S1, S2, S, Q> CoMEIndividual<G1, G2, S1, S2, S, Q> of(
       long id,
-      G genotype,
       S solution,
       Q quality,
       long genotypeBirthIteration,
       long qualityMappingIteration,
       Collection<Long> parentIds,
-      List<MapElites.Descriptor.Coordinate> coordinates) {
-    record HardIndividual<G, S, Q>(
+      MEIndividual<G1, S1, Q> individual1,
+      MEIndividual<G2, S2, Q> individual2) {
+    record HardIndividual<G1, G2, S1, S2, S, Q>(
         long id,
-        G genotype,
+        Pair<G1, G2> genotype,
         S solution,
         Q quality,
         long genotypeBirthIteration,
         long qualityMappingIteration,
         Collection<Long> parentIds,
-        List<MapElites.Descriptor.Coordinate> coordinates)
-        implements MEIndividual<G, S, Q> {}
+        MEIndividual<G1, S1, Q> individual1,
+        MEIndividual<G2, S2, Q> individual2)
+        implements CoMEIndividual<G1, G2, S1, S2, S, Q> {}
     return new HardIndividual<>(
         id,
-        genotype,
+        new Pair<>(individual1.genotype(), individual2.genotype()),
         solution,
         quality,
         genotypeBirthIteration,
         qualityMappingIteration,
         parentIds,
-        coordinates);
+        individual1,
+        individual2);
   }
 
-  default MEIndividual<G, S, Q> updatedWithQuality(Q q) {
+  default CoMEIndividual<G2, G1, S2, S1, S, Q> swapped() {
     return of(
         id(),
-        genotype(),
         solution(),
-        q,
+        quality(),
         genotypeBirthIteration(),
         qualityMappingIteration(),
         parentIds(),
-        coordinates());
+        individual2(),
+        individual1());
   }
 }

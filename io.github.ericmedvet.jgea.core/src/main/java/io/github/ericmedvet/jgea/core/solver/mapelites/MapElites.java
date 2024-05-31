@@ -39,6 +39,7 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class MapElites<G, S, Q>
     extends AbstractPopulationBasedIterativeSolver<
@@ -78,7 +79,7 @@ public class MapElites<G, S, Q>
     }
   }
 
-  private static <I extends Individual<G, S, Q>, G, S, Q> I chooseBest(
+  protected static <I extends Individual<G, S, Q>, G, S, Q> I chooseBest(
       I newIndividual, I existingIndividual, PartialComparator<? super I> partialComparator) {
     if (existingIndividual == null) {
       return newIndividual;
@@ -103,12 +104,13 @@ public class MapElites<G, S, Q>
             .map(g -> new ChildGenotype<G>(counter.getAndIncrement(), g, List.of()))
             .toList(),
         (cg, s, r) -> MEIndividual.from(
-            Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()), s),
+            Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()),
+            s.descriptors()),
         newState,
         random,
         executor));
     return newState.updatedWithIteration(
-        populationSize, populationSize, mapOfElites(newIndividuals, partialComparator(problem)));
+        populationSize, populationSize, mapOfElites(newIndividuals, Map.of(), partialComparator(problem)));
   }
 
   @Override
@@ -127,18 +129,22 @@ public class MapElites<G, S, Q>
                 counter.getAndIncrement(), mutation.mutate(p.genotype(), random), List.of(p.id())))
             .toList(),
         (cg, s, r) -> MEIndividual.from(
-            Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()), s),
+            Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()),
+            s.descriptors()),
         state,
         random,
         executor));
     return state.updatedWithIteration(
-        populationSize, populationSize, mapOfElites(newIndividuals, partialComparator(state.problem())));
+        populationSize,
+        populationSize,
+        mapOfElites(newIndividuals, state.mapOfElites(), partialComparator(state.problem())));
   }
 
-  private Map<List<Integer>, MEIndividual<G, S, Q>> mapOfElites(
+  protected static <G, S, Q> Map<List<Integer>, MEIndividual<G, S, Q>> mapOfElites(
       Collection<MEIndividual<G, S, Q>> individuals,
+      Map<List<Integer>, MEIndividual<G, S, Q>> map,
       PartialComparator<? super Individual<G, S, Q>> partialComparator) {
-    return individuals.stream()
+    return Stream.concat(individuals.stream(), map.values().stream())
         .map(i -> Map.entry(
             i.coordinates().stream().map(Descriptor.Coordinate::bin).toList(), i))
         .collect(Collectors.toMap(
