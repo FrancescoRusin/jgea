@@ -1,0 +1,70 @@
+ea.experiment(
+    runs = (randomGenerator = (seed = [-5:1:-1]) * [m.defaultRG()]) *
+        [ea.run(
+            name = "pointnav_ga_poly";
+            problem = ea.p.numEnvTo(
+                dT = 0.1;
+                finalT = 20;
+                environment = ds.e.pointNavigation(
+                    arena = E_MAZE;
+                    initialRobotXRange = m.range(min = 0.5; max = 0.5);
+                    initialRobotYRange = m.range(min = 0.75; max = 0.75);
+                    robotMaxV = 0.05
+                );
+                stopCondition = predicate.lt(f = ds.e.n.distanceFromTarget(); t = 0.01);
+                f = ds.e.n.finalTimePlusD();
+                type = MINIMIZE
+            );
+            solver = ea.s.ga(
+                representation = ea.r.doubleString(crossoverP = 0.0);
+                mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial2d(degree = 3));
+                crossoverP = 0.0;
+                nPop = 200;
+                nEval = 80000
+            )
+        )];
+    listeners = [
+        ea.l.tui(
+            defaultFunctions = [
+                ea.f.nOfIterations();
+                ea.f.nOfEvals();
+                ea.f.elapsedSecs()
+            ];
+            functions = [
+                ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
+                ea.f.id(of = ea.f.best());
+                f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
+            ];
+            runKeys = [
+                ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
+                ea.misc.sEntry(key = "solver"; value = "{solver.name}");
+                ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
+            ]
+        );
+        ea.l.allCsv(
+            filePath = "../pointnav_ga_poly_all.csv";
+            individualFunctions = [
+                ea.f.simQuality(of = ea.f.quality());
+                ea.f.id();
+                f.nTh(of = ea.f.parentIds(); n = 0);
+                f.toBase64(of = ea.function.genotype())
+            ];
+            functions = [ea.f.elapsedSecs()];
+            runKeys = [
+                ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
+                ea.misc.sEntry(key = "solver"; value = "{solver.name}");
+                ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
+            ]
+        );
+        ea.l.runLastIterationImageSaver(
+            function = ea.f.solution(of = ea.f.best());
+            image = ds.d.vectorField(arena = E_MAZE);
+            filePathTemplate = "../{name:%s}_vecfield_{index:%04d}.png"
+        );
+        ea.l.runLastIterationImageSaver(
+            function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
+            image = ds.d.pointNavigation();
+            filePathTemplate = "../{name:%s}_trajectory_{index:%04d}.png"
+        )
+    ]
+)
