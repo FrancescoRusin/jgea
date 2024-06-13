@@ -74,7 +74,7 @@ public class MapElites<G, S, Q>
     public Coordinate coordinate(Individual<G, S, Q> individual) {
       double value = function.apply(individual);
       return new Coordinate(
-          Math.min(Math.max(0, (int) Math.ceil((value - min) / (max - min) * (double) nOfBins)), nOfBins - 1),
+          Math.min(Math.max(0, (int) Math.floor((value - min) / (max - min) * (double) nOfBins)), nOfBins - 1),
           value);
     }
   }

@@ -1,5 +1,5 @@
 ea.experiment(
-    runs = (randomGenerator = (seed = [-5:1:-1]) * [m.defaultRG()]) *
+    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         [ea.run(
             name = "pointnav_ga_poly";
             problem = ea.p.numEnvTo(
@@ -42,11 +42,13 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "../pointnav_ga_poly_all.csv";
+            filePath = "/home/francescorusin/Desktop/Work/MapElites/Poly/pointnav_ga_poly_all.csv";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
                 ea.f.id();
                 f.nTh(of = ea.f.parentIds(); n = 0);
+                ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                 f.toBase64(of = ea.function.genotype())
             ];
             functions = [ea.f.elapsedSecs()];
@@ -59,12 +61,12 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
             image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "../{name:%s}_vecfield_{index:%04d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Drawings/GA/{name:%s}_vecfield_{index:%04d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "../{name:%s}_trajectory_{index:%04d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Drawings/GA/{name:%s}_trajectory_{index:%04d}.png"
         )
     ]
 )

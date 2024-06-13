@@ -3,6 +3,7 @@ ea.experiment(
         [ea.run(
             problem = ea.p.numEnvTo(
                 dT = 0.1;
+                finalT = 100;
                 environment = ds.e.pointNavigation(
                     arena = E_MAZE;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
@@ -17,7 +18,7 @@ ea.experiment(
                 representation = ea.r.doubleString(crossoverP = 0.0);
                 mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                 crossoverP = 0.0;
-                nPop = 108;
+                nPop = 100;
                 nEval = 10000
             )
         )];

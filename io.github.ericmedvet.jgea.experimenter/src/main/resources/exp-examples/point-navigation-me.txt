@@ -3,21 +3,22 @@ ea.experiment(
         [ea.run(
             problem = ea.p.numEnvTo(
                 dT = 0.1;
+                finalT = 20;
                 environment = ds.e.pointNavigation(
                     arena = E_MAZE;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
                 );
-                stopCondition = predicate.lt(f = ds.e.n.distanceFromTarget(); t = 0.01);
+                stopCondition = predicate.lt(f = ds.e.n.distanceFromTarget(); t = 0.05);
                 f = ds.e.n.finalTimePlusD();
                 type = MINIMIZE
             );
             solver = ea.s.mapElites(
                 representation = ea.r.doubleString(crossoverP = 0.0);
-                mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
-                nPop = 216;
-                nEval = 80000;
+                mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 5.0));
+                nPop = 200;
+                nEval = 40000;
                 descriptors = [
                     ea.s.me.d.descriptor(
                         f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -37,12 +38,12 @@ ea.experiment(
     listeners = [
         ea.l.tui(
             defaultFunctions = [
+                ea.f.size(of = ea.f.all());
                 ea.f.nOfIterations();
                 ea.f.nOfEvals();
                 ea.f.elapsedSecs()
             ];
             functions = [
-                ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
                 ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
@@ -59,6 +60,7 @@ ea.experiment(
         );
         ea.l.allCsv(
             filePath = "../pointnav_me_all.csv";
+            doubleFormat = "%f";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
@@ -69,7 +71,10 @@ ea.experiment(
                 f.nTh(of = ea.f.parentIds(); n = 0);
                 f.toBase64(of = ea.function.genotype())
             ];
-            functions = [ea.f.elapsedSecs()];
+            functions = [
+                ea.f.size(of = ea.f.all());
+                ea.f.elapsedSecs()
+            ];
             runKeys = [
                 ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
                 ea.misc.sEntry(key = "solver"; value = "{solver.name}");
@@ -79,12 +84,12 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
             image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "../pointnav_me_{index:%04d}.png"
+            filePathTemplate = "../pointnav_me_vecfield_{problem.f}_{index:%04d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "../pointnav_me_trajectory_{index:%04d}.png"
+            filePathTemplate = "../pointnav_me_trajectory_{problem.f}_{index:%04d}.png"
         )
     ]
 )
