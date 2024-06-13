@@ -6,7 +6,7 @@ ea.experiment(
                 dT = 0.1;
                 finalT = 20;
                 environment = ds.e.pointNavigation(
-                    arena = E_MAZE;
+                    arena = DECIMAL_MAZE;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
@@ -25,13 +25,13 @@ ea.experiment(
                         f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                         min = 0;
                         max = 1;
-                        nOfBins = 20
+                        nOfBins = 10
                     );
                     ea.s.me.d.descriptor(
                         f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                         min = 0;
                         max = 1;
-                        nOfBins = 20
+                        nOfBins = 10
                     )
                 ]
             )
@@ -60,7 +60,7 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "../pointnav_me_poly_all.csv";
+            filePath = "/home/francescorusin/Desktop/Work/MapElites/Poly/Decimal_crop/pointnav_me_poly_all.csv";
             doubleFormat = "%f";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
@@ -82,12 +82,12 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
             image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "../{name:%s}_vecfield_{index:%04d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Decimal_crop/Drawings/{name:%s}_vecfield_{index:%1d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "../{name:%s}_trajectory_{index:%04d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Decimal_crop/Drawings/{name:%s}_trajectory_{index:%1d}.png"
         )
     ]
 )
