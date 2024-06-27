@@ -81,7 +81,7 @@ ea.experiment(
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
-            image = ds.d.vectorField(arena = E_MAZE);
+            image = ds.d.vectorField(arena = DECIMAL_MAZE);
             filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Decimal_crop/Drawings/{name:%s}_vecfield_{index:%1d}.png"
         );
         ea.l.runLastIterationImageSaver(
