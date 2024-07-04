@@ -1,12 +1,12 @@
 ea.experiment(
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         [ea.run(
-            name = "pointnav_me_nn";
+            name = "pointnav_barrier_nn";
             problem = ea.p.numEnvTo(
                 dT = 0.1;
                 finalT = 20;
                 environment = ds.e.pointNavigation(
-                    arena = DECIMAL_MAZE;
+                    arena = A_BARRIER;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
@@ -60,7 +60,7 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "/home/francescorusin/Desktop/Work/MapElites/NN/pointnav_me_poly_all.csv";
+            filePath = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/pointnav_barrier_poly_all.csv";
             doubleFormat = "%f";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
@@ -81,13 +81,13 @@ ea.experiment(
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
-            image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/NN/Drawings/{name:%s}_vecfield_{index:%1d}.png"
+            image = ds.d.vectorField(arena = A_BARRIER);
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/{name:%s}_vecfield_{index:%1d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/NN/Drawings/{name:%s}_trajectory_{index:%1d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/{name:%s}_trajectory_{index:%1d}.png"
         )
     ]
 )
