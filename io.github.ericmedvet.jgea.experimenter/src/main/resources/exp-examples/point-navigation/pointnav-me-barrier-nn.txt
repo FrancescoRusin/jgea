@@ -60,7 +60,7 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Csv/pointnav_barrier_poly_all.csv";
+            filePath = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Csv/pointnav_barrier_nn_all.csv";
             doubleFormat = "%f";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
