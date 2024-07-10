@@ -1,12 +1,12 @@
 ea.experiment(
     runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
         [ea.run(
-            name = "pointnav_ga_poly";
+            name = "pointnav_maze_tree";
             problem = ea.p.numEnvTo(
                 dT = 0.1;
                 finalT = 20;
                 environment = ds.e.pointNavigation(
-                    arena = E_MAZE;
+                    arena = DECIMAL_MAZE;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
@@ -15,23 +15,41 @@ ea.experiment(
                 f = ds.e.n.finalTimePlusD();
                 type = MINIMIZE
             );
-            solver = ea.s.ga(
-                representation = ea.r.doubleString(crossoverP = 0.0);
-                mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial2d(degree = 3));
-                crossoverP = 0.0;
+            solver = ea.s.mapElites(
+                representation = ea.representation.multiSRTree(crossoverP = 0.0);
+                mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
                 nPop = 200;
-                nEval = 80000
+                nEval = 80000;
+                descriptors = [
+                    ea.s.me.d.descriptor(
+                        f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                        min = 0;
+                        max = 1;
+                        nOfBins = 10
+                    );
+                    ea.s.me.d.descriptor(
+                        f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                        min = 0;
+                        max = 1;
+                        nOfBins = 10
+                    )
+                ]
             )
         )];
     listeners = [
         ea.l.tui(
             defaultFunctions = [
+                ea.f.size(of = ea.f.all());
                 ea.f.nOfIterations();
                 ea.f.nOfEvals();
                 ea.f.elapsedSecs()
             ];
             functions = [
                 ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
                 ea.f.id(of = ea.f.best());
                 f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
             ];
@@ -42,13 +60,16 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            filePath = "/home/francescorusin/Desktop/Work/MapElites/Poly/pointnav_ga_poly_all.csv";
+            filePath = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Csv/pointnav_maze_tree_all.csv";
+            doubleFormat = "%f";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
                 ea.f.id();
                 f.nTh(of = ea.f.parentIds(); n = 0);
-                ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
-                ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                 f.toBase64(of = ea.function.genotype())
             ];
             functions = [ea.f.elapsedSecs()];
@@ -60,13 +81,13 @@ ea.experiment(
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.solution(of = ea.f.best());
-            image = ds.d.vectorField(arena = E_MAZE);
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Drawings/GA/{name:%s}_vecfield_{index:%04d}.png"
+            image = ds.d.vectorField(arena = DECIMAL_MAZE);
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/Maze/{name:%s}_vecfield_{index:%1d}.png"
         );
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.pointNavigation();
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Poly/Drawings/GA/{name:%s}_trajectory_{index:%04d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/Maze/{name:%s}_trajectory_{index:%1d}.png"
         )
     ]
 )
