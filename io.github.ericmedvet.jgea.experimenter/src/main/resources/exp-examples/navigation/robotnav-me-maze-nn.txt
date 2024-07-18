@@ -82,7 +82,7 @@ ea.experiment(
         ea.l.runLastIterationImageSaver(
             function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
             image = ds.d.navigation();
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/Maze/{name:%s}_trajectory_{index:%1d}.png"
+            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/NN/{name:%s}_trajectory_{index:%1d}.png"
         )
     ]
 )
