@@ -17,7 +17,7 @@ ea.experiment(
             );
             solver = ea.s.mapElites(
                 representation = ea.r.doubleString(crossoverP = 0.0);
-                mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial2d(degree = 3));
+                mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
                 nPop = 200;
                 nEval = 80000;
                 descriptors = [
