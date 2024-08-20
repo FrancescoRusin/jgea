@@ -16,7 +16,6 @@ $descBrainUsage2 = f.mathOp(of = f.pairSecond(of = ea.f.genotype()); op = add; a
   f.size(of = f.filter(of = f.distinct(of = ea.f.treeLeaves(of = f.nTh(n = 0))); condition = predicate.matches(f = f.toString(); regex = "i[0-9]+")));
   f.size(of = f.filter(of = f.distinct(of = ea.f.treeLeaves(of = f.nTh(n = 1))); condition = predicate.matches(f = f.toString(); regex = "i[0-9]+")))
 ])
-$telegram = ea.c.telegram(botIdFilePath = "/home/eric/Documenti/experiments/tlg.txt"; chatId = "207490209")
 
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
@@ -113,8 +112,7 @@ ea.experiment(
       of = ea.acc.lastBest();
       preprocessor = ea.f.toVideo(video = ea.misc.toVideo(drawer = ds.d.navigation()); of = ea.f.simOutcome(of = ea.f.quality()));
       consumers = [
-        ea.c.saver(path = "../{name}-best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}");
-        $telegram
+        ea.c.saver(path = "../{name}-best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}")
       ];
       condition = predicate.inS(f = ea.f.runKey(key = "run.randomGenerator.seed"); values = ["1"])
     );
@@ -122,8 +120,7 @@ ea.experiment(
       of = ea.acc.lastBest();
       preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
       consumers = [
-        ea.c.saver(path = "../{name}-best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}");
-        $telegram
+        ea.c.saver(path = "../{name}-best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}")
       ]
     );
     ea.l.saveForRun(
