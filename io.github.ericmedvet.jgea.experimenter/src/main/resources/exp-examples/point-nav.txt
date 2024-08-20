@@ -1,9 +1,9 @@
 ea.experiment(
   runs = (randomGenerator = (seed = [1]) * [m.defaultRG()]) *
     (problem = [
-        ea.p.numEnvTo(environment = ds.e.pointNavigation(arena = E_MAZE; robotMaxV = 0.05); f = ds.e.n.minD(); finalT = 30)
+        ea.p.numEnvTo(environment = ds.e.pointNavigation(arena = E_MAZE; robotMaxV = 0.05); f = ds.e.n.minD(); finalT = 10)
       ]) *
-      (solver = (nEval = [10000]) * [
+      (solver = (nEval = [2000]) * [
         ea.s.mapElites(
           name = "me-ne-10-4";
           representation = ea.r.doubleString();
@@ -49,37 +49,50 @@ ea.experiment(
         ea.f.id(of = ea.f.best());
         f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
       ];
-      runKeys = [
-        ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
-        ea.misc.sEntry(key = "solver"; value = "{solver.name}");
-        ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
-      ]
+      onlyLast = true
     );
-    ea.l.runLastIterationImageSaver(
-      function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
-      image = ds.d.pointNavigation();
-      filePathTemplate = "../traj-point-nav-{solver.name}-{randomGenerator.seed:%04d}.png"
+    ea.l.lastPopulationSaver(
+      filePathTemplate = "../last-pop-{solver.name}-{randomGenerator.seed:%04d}"
     );
-    ea.l.runLastIterationImageSaver(
-      function = ea.f.solution(of = ea.f.best());
-      image = ds.d.vectorField(arena = E_MAZE);
-      filePathTemplate = "../field-point-nav-{solver.name}-{randomGenerator.seed:%04d}.png"
+    ea.l.runSaver(
+      filePathTemplate = "../best-traj-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.acc.lastBest();
+      processors = [ea.f.toImage(image = ds.d.pointNavigation(); of = ea.f.simOutcome(of = ea.f.quality()))]
+    );
+    ea.l.runSaver(
+      filePathTemplate = "../trajs-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.acc.bests();
+      processors = [ea.f.toImagesVideo(image = ds.d.pointNavigation(); of = f.each(mapF = ea.f.simOutcome(of = ea.f.quality())))]
+    );
+    ea.l.runSaver(
+      filePathTemplate = "../best-video-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.acc.lastBest();
+      processors = [ea.f.toVideo(video = ea.misc.toVideo(drawer = ds.d.pointNavigation()); of = ea.f.simOutcome(of = ea.f.quality()))]
+    );
+    ea.l.runSaver(
+      filePathTemplate = "../best-field-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.acc.lastBest();
+      processors = [ea.f.toImage(image = ds.d.vectorField(arena = E_MAZE); of = ea.f.solution())]
     );
     ea.l.runPlotSaver(
-      w = 1500; h = 350;
-      filePathTemplate = "../archives-point-nav-{solver.name}-{randomGenerator.seed:%04d}.png";
-      type = univariate_grid;
-      plot = ea.plot.single.me(values = [ea.f.simQuality(of = ea.f.quality())]);
+      filePathTemplate = "../archives-point-nav-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.plot.single.me(values = [ea.f.simQuality(of = ea.f.quality())]);
+      condition = predicate.all(conditions = [
+        predicate.inS(f = ea.f.runString(s = "{randomGenerator.seed}"); values = ["1"])
+      ])
+    );
+    ea.l.runPlotSaver(
+      filePathTemplate = "../archives-point-nav-{solver.name}-{randomGenerator.seed:%04d}";
+      of = ea.plot.single.me(values = [ea.f.simQuality(of = ea.f.quality())]; condition = predicate.ltEq(t = 1));
+      processors = [ea.f.videoPlotter()];
       condition = predicate.all(conditions = [
         predicate.inS(f = ea.f.runString(s = "{randomGenerator.seed}"); values = ["1"])
       ])
     );
     ea.l.expPlotSaver(
-      filePath = "../point-nav-fitness.png";
-      freeScales = true;
-      w = 500; h = 500;
-      type = lines;
-      plot = ea.plot.multi.quality(y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best())))
+      filePath = "../point-nav-fitness";
+      processors = [ea.f.imagePlotter(); ea.f.csvPlotter()];
+      of = ea.plot.multi.quality(y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best())))
     )
   ]
 )

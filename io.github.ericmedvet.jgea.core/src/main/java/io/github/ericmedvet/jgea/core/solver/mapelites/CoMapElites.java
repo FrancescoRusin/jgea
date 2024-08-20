@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver.mapelites;
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.DAGPartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
@@ -29,6 +30,7 @@ import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.Pair;
+import java.util.*;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -116,7 +118,7 @@ public class CoMapElites<G1, G2, S1, S2, S, Q>
       List<Integer> coords,
       Map<List<Integer>, X> mapOfElites,
       Distance<List<Integer>> distance,
-      double threshold) {
+      double threshold) { // problem here
     return mapOfElites.entrySet().stream()
         .filter(e -> distance.apply(e.getKey(), coords) < threshold)
         .map(Map.Entry::getValue)
@@ -154,10 +156,10 @@ public class CoMapElites<G1, G2, S1, S2, S, Q>
                   .formatted(thisDescriptors.size(), otherDescriptors.size()));
         }
         if (IntStream.range(0, thisDescriptors.size())
-                .filter(i -> thisDescriptors.get(i).nOfBins()
-                    != otherDescriptors.get(i).nOfBins())
-                .count()
-            > 0) {
+            .filter(i -> thisDescriptors.get(i).nOfBins()
+                != otherDescriptors.get(i).nOfBins())
+            .findAny()
+            .isPresent()) {
           throw new IllegalArgumentException("Descriptors are not compatible: different number of bins");
         }
         yield thisCoords;
@@ -226,20 +228,23 @@ public class CoMapElites<G1, G2, S1, S2, S, Q>
       ChildGenotype<G2> cg2,
       CoMEPopulationState<G1, G2, S1, S2, S, Q, QualityBasedProblem<S, Q>> state,
       AtomicLong counter) {
-    S1 s1 = solutionMapper1.apply(cg1.genotype());
-    S2 s2 = solutionMapper2.apply(cg2.genotype());
-    S s = solutionMerger.apply(s1, s2);
-    Q q = state.problem().qualityFunction().apply(s);
-    return () -> CoMEIndividual.of(
-        counter.getAndIncrement(),
-        s,
-        q,
-        state.nOfIterations(),
-        state.nOfIterations(),
-        List.of(),
-        MEIndividual.from(Individual.from(cg1, solutionMapper1, ss1 -> q, state.nOfIterations()), descriptors1),
-        MEIndividual.from(
-            Individual.from(cg2, solutionMapper2, ss2 -> q, state.nOfIterations()), descriptors2));
+    return () -> {
+      S1 s1 = solutionMapper1.apply(cg1.genotype());
+      S2 s2 = solutionMapper2.apply(cg2.genotype());
+      S s = solutionMerger.apply(s1, s2);
+      Q q = state.problem().qualityFunction().apply(s);
+      return CoMEIndividual.of(
+          counter.getAndIncrement(),
+          s,
+          q,
+          state.nOfIterations(),
+          state.nOfIterations(),
+          List.of(),
+          MEIndividual.from(
+              Individual.from(cg1, solutionMapper1, ss1 -> q, state.nOfIterations()), descriptors1),
+          MEIndividual.from(
+              Individual.from(cg2, solutionMapper2, ss2 -> q, state.nOfIterations()), descriptors2));
+    };
   }
 
   @Override
@@ -327,12 +332,23 @@ public class CoMapElites<G1, G2, S1, S2, S, Q>
     List<CoMEIndividual<G1, G2, S1, S2, S, Q>> coMEIndividuals2 = reproduction2.stream()
         .flatMap(p2 -> p2.second().stream().map(CoMEIndividual::swapped))
         .toList();
+    // combine all individuals into a single collection
+    List<CoMEIndividual<G1, G2, S1, S2, S, Q>> allIndividuals = Stream.of(
+            state.pocPopulation().all(), coMEIndividuals1, coMEIndividuals2)
+        .flatMap(Collection::stream)
+        .toList();
+    // trim population
+    PartiallyOrderedCollection<CoMEIndividual<G1, G2, S1, S2, S, Q>> orderedPopulation =
+        new DAGPartiallyOrderedCollection<>(allIndividuals, partialComparator(state.problem()));
+    while (orderedPopulation.size() > populationSize) {
+      Collection<CoMEIndividual<G1, G2, S1, S2, S, Q>> lastIndividuals = orderedPopulation.lasts();
+      orderedPopulation.remove(lastIndividuals.stream().findFirst().orElseThrow());
+    }
     // return state
     return state.updatedWithIteration(
         nOfOffspring * 2L,
         coMEIndividuals1.size() + coMEIndividuals2.size(),
-        Stream.concat(coMEIndividuals1.stream(), coMEIndividuals2.stream())
-            .toList(),
+        orderedPopulation.all(),
         state.mapOfElites1()
             .updated(
                 reproduction1.stream().map(Pair::first).toList(),

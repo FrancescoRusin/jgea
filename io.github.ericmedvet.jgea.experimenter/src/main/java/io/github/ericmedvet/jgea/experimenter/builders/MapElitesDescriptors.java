@@ -21,6 +21,7 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.mapelites.MapElites;
+import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import java.util.function.Function;
@@ -30,8 +31,9 @@ public class MapElitesDescriptors {
   private MapElitesDescriptors() {}
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <G, S, Q> MapElites.Descriptor<G, S, Q> descriptor(
-      @Param("f") Function<Individual<G, S, Q>, Double> f,
+      @Param("f") Function<Individual<G, S, Q>, Number> f,
       @Param(value = "min", dD = 0d) double min,
       @Param(value = "max", dD = 1d) double max,
       @Param(value = "nOfBins", dI = 20) int nOfBins) {

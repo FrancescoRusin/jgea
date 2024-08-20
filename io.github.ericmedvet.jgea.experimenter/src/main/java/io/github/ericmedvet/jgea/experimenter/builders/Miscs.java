@@ -21,6 +21,9 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.jsdynsym.control.Simulation;
+import io.github.ericmedvet.jsdynsym.control.SimulationOutcomeDrawer;
+import io.github.ericmedvet.jviz.core.drawer.VideoBuilder;
 import java.awt.*;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -66,5 +69,10 @@ public class Miscs {
   @SuppressWarnings("unused")
   public static Map.Entry<String, String> sEntry(@Param("key") String key, @Param("value") String value) {
     return Map.entry(key, value);
+  }
+
+  @SuppressWarnings("unused")
+  public static <S> VideoBuilder<Simulation.Outcome<S>> toVideo(@Param("drawer") SimulationOutcomeDrawer<S> drawer) {
+    return drawer.videoBuilder();
   }
 }

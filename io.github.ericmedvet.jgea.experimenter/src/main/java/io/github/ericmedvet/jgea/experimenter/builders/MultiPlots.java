@@ -21,9 +21,7 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.experimenter.listener.plot.AggregatedXYDataSeriesMRPAF;
 import io.github.ericmedvet.jgea.experimenter.listener.plot.DistributionMRPAF;
-import io.github.ericmedvet.jnb.core.Alias;
-import io.github.ericmedvet.jnb.core.Discoverable;
-import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.jnb.core.*;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.util.List;
 import java.util.function.Function;
@@ -40,16 +38,19 @@ public class MultiPlots {
           """
               xy(
                 xSubplot = ea.f.runString(name = none; s = "_");
-                ySubplot = ea.f.runString(name = problem; s = "{problem.name}");
-                line = ea.f.runString(name = solver; s = "{solver.name}");
+                ySubplot = ea.f.runString(name = problem; s = "{run.problem.name}");
+                line = ea.f.runString(name = solver; s = "{run.solver.name}");
                 x = f.quantized(of = ea.f.nOfEvals(); q = 500)
               )
               """) // spotless:on
   @Alias(
       name = "quality",
+      passThroughParams = {
+        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+      },
       value = // spotless:off
       """
-          xyExp(y = ea.f.quality(of = ea.f.best()))
+          xyExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
   @Alias(
       name = "uniqueness",
@@ -88,17 +89,20 @@ public class MultiPlots {
           """
               yBoxplot(
                 xSubplot = ea.f.runString(name = none; s = "_");
-                ySubplot = ea.f.runString(name = problem; s = "{problem.name}");
-                box = ea.f.runString(name = solver; s = "{solver.name}");
+                ySubplot = ea.f.runString(name = problem; s = "{run.problem.name}");
+                box = ea.f.runString(name = solver; s = "{run.solver.name}");
                 predicateValue = ea.f.rate(of = ea.f.progress());
                 condition = predicate.gtEq(t = 1)
               )
               """) // spotless:on
   @Alias(
       name = "qualityBoxplot",
+      passThroughParams = {
+        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+      },
       value = // spotless:off
       """
-          yBoxplotExp(y = ea.f.quality(of = ea.f.best()))
+          yBoxplotExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
   @Alias(
       name = "uniquenessBoxplot",

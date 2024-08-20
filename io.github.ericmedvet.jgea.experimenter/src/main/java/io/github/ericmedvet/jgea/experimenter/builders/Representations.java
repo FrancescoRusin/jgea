@@ -37,8 +37,10 @@ import io.github.ericmedvet.jgea.core.representation.sequence.numeric.UniformDou
 import io.github.ericmedvet.jgea.core.representation.tree.*;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.experimenter.Representation;
+import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -48,38 +50,41 @@ public class Representations {
   private Representations() {}
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static Function<BitString, Representation<BitString>> bitString(
-      @Param(value = "crossoverP", dD = 0.8d) double crossoverP,
       @Param(value = "pMutRate", dD = 1d) double pMutRate) {
     return g -> new Representation<>(
         new BitStringFactory(g.size()),
         new BitStringFlipMutation(pMutRate / (double) g.size()),
-        new BitStringUniformCrossover().andThen(new BitStringFlipMutation(pMutRate / (double) g.size())));
+        Crossover.from(new BitStringUniformCrossover()
+            .andThen(new BitStringFlipMutation(pMutRate / (double) g.size()))));
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static Function<List<Double>, Representation<List<Double>>> doubleString(
       @Param(value = "initialMinV", dD = -1d) double initialMinV,
       @Param(value = "initialMaxV", dD = 1d) double initialMaxV,
-      @Param(value = "crossoverP", dD = 0.8d) double crossoverP,
       @Param(value = "sigmaMut", dD = 0.35d) double sigmaMut) {
     return g -> new Representation<>(
         new FixedLengthListFactory<>(g.size(), new UniformDoubleFactory(initialMinV, initialMaxV)),
         new GaussianMutation(sigmaMut),
-        new SegmentGeometricCrossover().andThen(new GaussianMutation(sigmaMut)));
+        Crossover.from(new SegmentGeometricCrossover().andThen(new GaussianMutation(sigmaMut))));
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static Function<IntString, Representation<IntString>> intString(
-      @Param(value = "crossoverP", dD = 0.8d) double crossoverP,
       @Param(value = "pMutRate", dD = 1d) double pMutRate) {
     return g -> new Representation<>(
         new UniformIntStringFactory(g.lowerBound(), g.upperBound(), g.size()),
         new IntStringFlipMutation(pMutRate / (double) g.size()),
-        new IntStringUniformCrossover().andThen(new IntStringFlipMutation(pMutRate / (double) g.size())));
+        Crossover.from(new IntStringUniformCrossover()
+            .andThen(new IntStringFlipMutation(pMutRate / (double) g.size()))));
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static Function<List<Tree<Element>>, Representation<List<Tree<Element>>>> multiSRTree(
       @Param(
               value = "constants",
@@ -90,8 +95,7 @@ public class Representations {
               dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"})
           List<Element.Operator> operators,
       @Param(value = "minTreeH", dI = 4) int minTreeH,
-      @Param(value = "maxTreeH", dI = 10) int maxTreeH,
-      @Param(value = "crossoverP", dD = 0.8d) double crossoverP) {
+      @Param(value = "maxTreeH", dI = 10) int maxTreeH) {
     return g -> {
       List<Element.Variable> variables = g.stream()
           .map(t -> t.visitDepth().stream()
@@ -132,6 +136,14 @@ public class Representations {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <G1, G2> Function<Pair<G1, G2>, Representation<Pair<G1, G2>>> pair(
+      @Param("first") Function<G1, Representation<G1>> r1, @Param("second") Function<G2, Representation<G2>> r2) {
+    return p -> Representation.pair(r1.apply(p.first()), r2.apply(p.second()));
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Function<Tree<Element>, Representation<Tree<Element>>> srTree(
       @Param(
               value = "constants",
@@ -142,8 +154,7 @@ public class Representations {
               dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"})
           List<Element.Operator> operators,
       @Param(value = "minTreeH", dI = 4) int minTreeH,
-      @Param(value = "maxTreeH", dI = 10) int maxTreeH,
-      @Param(value = "crossoverP", dD = 0.8d) double crossoverP) {
+      @Param(value = "maxTreeH", dI = 10) int maxTreeH) {
     return g -> {
       List<Element.Variable> variables = g.visitDepth().stream()
           .filter(e -> e instanceof Element.Variable)

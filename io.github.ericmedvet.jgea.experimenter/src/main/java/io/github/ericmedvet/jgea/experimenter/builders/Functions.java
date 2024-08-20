@@ -24,13 +24,12 @@ import io.github.ericmedvet.jgea.core.problem.Problem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
+import io.github.ericmedvet.jgea.core.representation.tree.Tree;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.POCPopulationState;
 import io.github.ericmedvet.jgea.core.solver.State;
-import io.github.ericmedvet.jgea.core.solver.mapelites.Archive;
-import io.github.ericmedvet.jgea.core.solver.mapelites.MEIndividual;
-import io.github.ericmedvet.jgea.core.solver.mapelites.MEPopulationState;
-import io.github.ericmedvet.jgea.core.solver.mapelites.MapElites;
+import io.github.ericmedvet.jgea.core.solver.cabea.GridPopulationState;
+import io.github.ericmedvet.jgea.core.solver.mapelites.*;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Progress;
 import io.github.ericmedvet.jgea.core.util.Sized;
@@ -38,17 +37,31 @@ import io.github.ericmedvet.jgea.core.util.TextPlotter;
 import io.github.ericmedvet.jgea.experimenter.Run;
 import io.github.ericmedvet.jgea.experimenter.Utils;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
+import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
 import io.github.ericmedvet.jnb.datastructure.Grid;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import io.github.ericmedvet.jsdynsym.control.Simulation;
+import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
+import io.github.ericmedvet.jviz.core.drawer.Video;
+import io.github.ericmedvet.jviz.core.drawer.VideoBuilder;
+import io.github.ericmedvet.jviz.core.plot.*;
+import io.github.ericmedvet.jviz.core.plot.csv.DistributionPlotCsvBuilder;
+import io.github.ericmedvet.jviz.core.plot.csv.LandscapePlotCsvBuilder;
+import io.github.ericmedvet.jviz.core.plot.csv.UnivariateGridPlotCsvBuilder;
+import io.github.ericmedvet.jviz.core.plot.csv.XYDataSeriesPlotCsvBuilder;
+import io.github.ericmedvet.jviz.core.plot.image.*;
+import io.github.ericmedvet.jviz.core.plot.image.Configuration;
+import io.github.ericmedvet.jviz.core.plot.video.*;
+import io.github.ericmedvet.jviz.core.util.VideoUtils;
+import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 @Discoverable(prefixTemplate = "ea.function|f")
 public class Functions {
@@ -56,6 +69,7 @@ public class Functions {
   private Functions() {}
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<G, S, Q>, G, S, Q> NamedFunction<X, Collection<I>> all(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<I, G, S, Q, ?>> beforeF) {
     Function<POCPopulationState<I, G, S, Q, ?>, Collection<I>> f =
@@ -64,14 +78,25 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, G> FormattedNamedFunction<X, Double> archiveCoverage(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Archive<G>> beforeF,
+      @Param(value = "format", dS = "%4.2f") String format) {
+    Function<Archive<G>, Double> f = a -> (double) a.asMap().size() / (double) a.capacity();
+    return FormattedNamedFunction.from(f, format, "archive.coverage").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X, G> NamedFunction<X, Grid<G>> archiveToGrid(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Archive<G>> beforeF) {
     Function<Archive<G>, Grid<G>> f =
         a -> Grid.create(a.binUpperBounds().get(0), a.binUpperBounds().get(1), (x, y) -> a.get(List.of(x, y)));
-    return NamedFunction.from(f, "meGrid").compose(beforeF);
+    return NamedFunction.from(f, "archive.to.grid").compose(beforeF);
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<G, S, Q>, G, S, Q> NamedFunction<X, I> best(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<I, G, S, Q, ?>> beforeF) {
     Function<POCPopulationState<I, G, S, Q, ?>, I> f =
@@ -80,6 +105,61 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, G, S, Q> NamedFunction<X, Archive<MEIndividual<G, S, Q>>> coMeArchive1(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, CoMEPopulationState<G, ?, S, ?, ?, Q, ?>> beforeF) {
+    Function<CoMEPopulationState<G, ?, S, ?, ?, Q, ?>, Archive<MEIndividual<G, S, Q>>> f =
+        CoMEPopulationState::mapOfElites1;
+    return NamedFunction.from(f, "coMeArchive1").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, G, S, Q> NamedFunction<X, Archive<MEIndividual<G, S, Q>>> coMeArchive2(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, CoMEPopulationState<?, G, ?, S, ?, Q, ?>> beforeF) {
+    Function<CoMEPopulationState<?, G, ?, S, ?, Q, ?>, Archive<MEIndividual<G, S, Q>>> f =
+        CoMEPopulationState::mapOfElites2;
+    return NamedFunction.from(f, "coMeArchive2").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, P extends XYPlot<D>, D> NamedFunction<X, String> csvPlotter(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, P> beforeF,
+      @Param(value = "columnNameJoiner", dS = ".") String columnNameJoiner,
+      @Param(value = "doubleFormat", dS = "%.3e") String doubleFormat,
+      @Param(value = "delimiter", dS = "\t") String delimiter,
+      @Param(value = "missingDataString", dS = "nan") String missingDataString,
+      @Param(value = "mode", dS = "paper_friendly")
+          io.github.ericmedvet.jviz.core.plot.csv.Configuration.Mode mode) {
+    io.github.ericmedvet.jviz.core.plot.csv.Configuration configuration =
+        new io.github.ericmedvet.jviz.core.plot.csv.Configuration(
+            columnNameJoiner,
+            doubleFormat,
+            delimiter,
+            List.of(new io.github.ericmedvet.jviz.core.plot.csv.Configuration.Replacement("\\W+", ".")),
+            missingDataString);
+    Function<P, String> f = p -> {
+      if (p instanceof DistributionPlot dp) {
+        return new DistributionPlotCsvBuilder(configuration, mode).apply(dp);
+      }
+      if (p instanceof LandscapePlot lsp) {
+        return new LandscapePlotCsvBuilder(configuration, mode).apply(lsp);
+      }
+      if (p instanceof XYDataSeriesPlot xyp) {
+        return new XYDataSeriesPlotCsvBuilder(configuration, mode).apply(xyp);
+      }
+      if (p instanceof UnivariateGridPlot ugp) {
+        return new UnivariateGridPlotCsvBuilder(configuration, mode).apply(ugp);
+      }
+      throw new IllegalArgumentException(
+          "Unsupported type of plot %s".formatted(p.getClass().getSimpleName()));
+    };
+    return NamedFunction.from(f, "csv.plotter").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Double> elapsedSecs(
       @Param(value = "of", dNPM = "f.identity()") Function<X, State<?, ?>> beforeF,
       @Param(value = "format", dS = "%6.1f") String format) {
@@ -88,6 +168,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<G, S, Q>, G, S, Q> NamedFunction<X, Collection<I>> firsts(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<I, G, S, Q, ?>> beforeF) {
     Function<POCPopulationState<I, G, S, Q, ?>, Collection<I>> f =
@@ -96,6 +177,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, G> FormattedNamedFunction<X, G> genotype(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<G, ?, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
@@ -104,6 +186,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, TextPlotter.Miniplot> hist(
       @Param(value = "nOfBins", dI = 8) int nOfBins,
       @Param(value = "of", dNPM = "f.identity()") Function<X, Collection<Number>> beforeF) {
@@ -113,6 +196,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Double> hypervolume2D(
       @Param("minReference") List<Double> minReference,
       @Param("maxReference") List<Double> maxReference,
@@ -123,6 +207,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Long> id(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%6d") String format) {
@@ -131,6 +216,52 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, P extends XYPlot<D>, D> NamedFunction<X, BufferedImage> imagePlotter(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, P> beforeF,
+      @Param(value = "w", dI = -1) int w,
+      @Param(value = "h", dI = -1) int h,
+      @Param("freeScales") boolean freeScales,
+      @Param("secondary") boolean secondary) {
+    UnaryOperator<ImageBuilder.ImageInfo> iiAdapter =
+        ii -> new ImageBuilder.ImageInfo(w == -1 ? ii.w() : w, h == -1 ? ii.h() : h);
+    Configuration configuration = freeScales ? Configuration.FREE_SCALES : Configuration.DEFAULT;
+    Function<P, BufferedImage> f = p -> {
+      if (p instanceof DistributionPlot dp) {
+        BoxPlotDrawer d = new BoxPlotDrawer(
+            configuration, Configuration.BoxPlot.DEFAULT, Configuration.Colors.DEFAULT.dataColors());
+        return d.build(iiAdapter.apply(d.imageInfo(dp)), dp);
+      }
+      if (p instanceof LandscapePlot lsp) {
+        LandscapePlotDrawer d = new LandscapePlotDrawer(
+            configuration, Configuration.LandscapePlot.DEFAULT, Configuration.Colors.DEFAULT.dataColors());
+        return d.build(iiAdapter.apply(d.imageInfo(lsp)), lsp);
+      }
+      if (p instanceof XYDataSeriesPlot xyp) {
+        AbstractXYDataSeriesPlotDrawer d = (!secondary)
+            ? new LinesPlotDrawer(
+                configuration,
+                Configuration.LinesPlot.DEFAULT,
+                Configuration.Colors.DEFAULT.dataColors())
+            : new PointsPlotDrawer(
+                configuration,
+                Configuration.PointsPlot.DEFAULT,
+                Configuration.Colors.DEFAULT.dataColors());
+        return d.build(iiAdapter.apply(d.imageInfo(xyp)), xyp);
+      }
+      if (p instanceof UnivariateGridPlot ugp) {
+        UnivariateGridPlotDrawer d =
+            new UnivariateGridPlotDrawer(configuration, Configuration.UnivariateGridPlot.DEFAULT);
+        return d.build(iiAdapter.apply(d.imageInfo(ugp)), ugp);
+      }
+      throw new IllegalArgumentException(
+          "Unsupported type of plot %s".formatted(p.getClass().getSimpleName()));
+    };
+    return NamedFunction.from(f, "image.plotter").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<G, S, Q>, G, S, Q> NamedFunction<X, Collection<I>> lasts(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<I, G, S, Q, ?>> beforeF) {
     Function<POCPopulationState<I, G, S, Q, ?>, Collection<I>> f =
@@ -139,13 +270,15 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, G, S, Q> NamedFunction<X, Archive<MEIndividual<G, S, Q>>> meArchive(
       @Param(value = "of", dNPM = "f.identity()") Function<X, MEPopulationState<G, S, Q, ?>> beforeF) {
     Function<MEPopulationState<G, S, Q, ?>, Archive<MEIndividual<G, S, Q>>> f = MEPopulationState::mapOfElites;
-    return NamedFunction.from(f, "meGrid").compose(beforeF);
+    return NamedFunction.from(f, "meArchive").compose(beforeF);
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Integer> meBin(
       @Param(value = "of", dNPM = "f.identity()") Function<X, MapElites.Descriptor.Coordinate> beforeF,
       @Param(value = "format", dS = "%3d") String format) {
@@ -154,6 +287,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, List<MapElites.Descriptor.Coordinate>> meCoordinates(
       @Param(value = "of", dNPM = "f.identity()") Function<X, MEIndividual<?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
@@ -162,6 +296,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Double> meValue(
       @Param(value = "of", dNPM = "f.identity()") Function<X, MapElites.Descriptor.Coordinate> beforeF,
       @Param(value = "format", dS = "%.2f") String format) {
@@ -170,6 +305,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<G, S, Q>, G, S, Q> NamedFunction<X, Collection<I>> mids(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<I, G, S, Q, ?>> beforeF) {
     Function<POCPopulationState<I, G, S, Q, ?>, Collection<I>> f =
@@ -178,6 +314,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Long> nOfBirths(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, ?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%5d") String format) {
@@ -186,6 +323,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Long> nOfEvals(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, ?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%5d") String format) {
@@ -194,6 +332,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Long> nOfIterations(
       @Param(value = "of", dNPM = "f.identity()") Function<X, State<?, ?>> beforeF,
       @Param(value = "format", dS = "%4d") String format) {
@@ -202,6 +341,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, P extends MultiTargetProblem<S>, S> FormattedNamedFunction<X, Double> overallTargetDistance(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, S, ?, P>> beforeF,
       @Param(value = "format", dS = "%.2f") String format) {
@@ -216,6 +356,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Collection<Long>> parentIds(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
@@ -224,6 +365,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, P extends MultiTargetProblem<S>, S> FormattedNamedFunction<X, List<Double>> popTargetDistances(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, S, ?, P>> beforeF,
       @Param(value = "format", dS = "%.2f") String format) {
@@ -238,6 +380,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, P extends Problem<S>, S> NamedFunction<X, P> problem(
       @Param(value = "of", dNPM = "f.identity()") Function<X, State<P, S>> beforeF) {
     Function<State<P, S>, P> f = State::problem;
@@ -245,6 +388,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> NamedFunction<X, Progress> progress(
       @Param(value = "of", dNPM = "f.identity()") Function<X, State<?, ?>> beforeF) {
     Function<State<?, ?>, Progress> f = State::progress;
@@ -252,6 +396,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, Q> FormattedNamedFunction<X, Q> quality(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, ?, Q>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
@@ -260,6 +405,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> NamedFunction<X, Double> rate(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Progress> beforeF) {
     Function<Progress, Double> f = Progress::rate;
@@ -267,25 +413,29 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, String> runKey(
-      @Param("runKey") Map.Entry<String, String> runKey,
+      @Param(value = "name", iS = "{key}") String name,
+      @Param("key") String key,
       @Param(value = "of", dNPM = "f.identity()") Function<X, Run<?, ?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
-    Function<Run<?, ?, ?, ?>, String> f = run -> Utils.interpolate(runKey.getValue(), run);
-    return FormattedNamedFunction.from(f, format, runKey.getKey()).compose(beforeF);
+    Function<Run<?, ?, ?, ?>, String> f = run -> Utils.interpolate("{%s}".formatted(key), null, run);
+    return FormattedNamedFunction.from(f, format, name).compose(beforeF);
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, String> runString(
       @Param(value = "name", iS = "{s}") String name,
       @Param("s") String s,
       @Param(value = "of", dNPM = "f.identity()") Function<X, Run<?, ?, ?, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
-    Function<Run<?, ?, ?, ?>, String> f = run -> Utils.interpolate(s, run);
+    Function<Run<?, ?, ?, ?>, String> f = run -> Utils.interpolate(s, null, run);
     return FormattedNamedFunction.from(f, format, name).compose(beforeF);
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, B, O extends Simulation.Outcome<B>> FormattedNamedFunction<X, O> simOutcome(
       @Param(value = "of", dNPM = "f.identity()")
           Function<X, SimulationBasedProblem.QualityOutcome<B, O, ?>> beforeF,
@@ -295,6 +445,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, Q> FormattedNamedFunction<X, Q> simQuality(
       @Param(value = "of", dNPM = "f.identity()")
           Function<X, SimulationBasedProblem.QualityOutcome<?, ?, Q>> beforeF,
@@ -304,6 +455,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Integer> size(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Object> beforeF,
       @Param(value = "format", dS = "%d") String format) {
@@ -327,6 +479,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, S> FormattedNamedFunction<X, S> solution(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, S, ?>> beforeF,
       @Param(value = "format", dS = "%s") String format) {
@@ -335,6 +488,15 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, G, S, Q> NamedFunction<X, Grid<Individual<G, S, Q>>> stateGrid(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, GridPopulationState<G, S, Q, ?>> beforeF) {
+    Function<GridPopulationState<G, S, Q, ?>, Grid<Individual<G, S, Q>>> f = GridPopulationState::gridPopulation;
+    return NamedFunction.from(f, "grid").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X, Z> NamedFunction<X, Z> supplied(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Supplier<Z>> beforeF) {
     Function<Supplier<Z>, Z> f = Supplier::get;
@@ -342,6 +504,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, P extends MultiTargetProblem<S>, S> FormattedNamedFunction<X, List<Double>> targetDistances(
       @Param("problem") P problem,
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, S, ?>> beforeF,
@@ -353,6 +516,7 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <X, Z> NamedFunction<X, List<Double>> toDoubleString(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Z> beforeF) {
     Function<Z, List<Double>> f = z -> {
@@ -380,6 +544,87 @@ public class Functions {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, D> NamedFunction<X, BufferedImage> toImage(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, D> beforeF,
+      @Param("image") ImageBuilder<D> imageBuilder,
+      @Param(value = "w", dI = -1) int w,
+      @Param(value = "h", dI = -1) int h) {
+    UnaryOperator<ImageBuilder.ImageInfo> iiAdapter =
+        ii -> new ImageBuilder.ImageInfo(w == -1 ? ii.w() : w, h == -1 ? ii.h() : h);
+    Function<D, BufferedImage> f = d -> imageBuilder.build(iiAdapter.apply(imageBuilder.imageInfo(d)), d);
+    return NamedFunction.from(f, "to.image[%s]".formatted(imageBuilder)).compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, D> NamedFunction<X, Video> toImagesVideo(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, List<D>> beforeF,
+      @Param("image") ImageBuilder<D> imageBuilder,
+      @Param(value = "w", dI = -1) int w,
+      @Param(value = "h", dI = -1) int h,
+      @Param(value = "frameRate", dD = 10) double frameRate,
+      @Param(value = "encoder", dS = "default") VideoUtils.EncoderFacility encoder) {
+    UnaryOperator<VideoBuilder.VideoInfo> viAdapter =
+        vi -> new VideoBuilder.VideoInfo(w == -1 ? vi.w() : w, h == -1 ? vi.h() : h, encoder);
+    VideoBuilder<List<D>> videoBuilder = VideoBuilder.from(imageBuilder, Function.identity(), frameRate);
+    Function<List<D>, Video> f = ds -> videoBuilder.build(viAdapter.apply(videoBuilder.videoInfo(ds)), ds);
+    return NamedFunction.from(f, "to.images.video[%s]".formatted(imageBuilder))
+        .compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, D> NamedFunction<X, Video> toVideo(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, D> beforeF,
+      @Param("video") VideoBuilder<D> videoBuilder,
+      @Param(value = "w", dI = -1) int w,
+      @Param(value = "h", dI = -1) int h,
+      @Param(value = "encoder", dS = "default") VideoUtils.EncoderFacility encoder) {
+    UnaryOperator<VideoBuilder.VideoInfo> viAdapter =
+        vi -> new VideoBuilder.VideoInfo(w == -1 ? vi.w() : w, h == -1 ? vi.h() : h, encoder);
+    Function<D, Video> f = d -> videoBuilder.build(viAdapter.apply(videoBuilder.videoInfo(d)), d);
+    return NamedFunction.from(f, "to.video[%s]".formatted(videoBuilder)).compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, C> FormattedNamedFunction<X, Integer> treeDepth(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Tree<C>> beforeF,
+      @Param(value = "format", dS = "%3d") String format) {
+    Function<Tree<C>, Integer> f = Tree::depth;
+    return FormattedNamedFunction.from(f, format, "tree.depth").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, C> FormattedNamedFunction<X, Collection<C>> treeLabels(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Tree<C>> beforeF,
+      @Param(value = "format", dS = "%s") String format) {
+    Function<Tree<C>, Collection<C>> f = Tree::visitDepth;
+    return FormattedNamedFunction.from(f, format, "tree.labels").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, C> FormattedNamedFunction<X, Collection<C>> treeLeaves(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Tree<C>> beforeF,
+      @Param(value = "format", dS = "%s") String format) {
+    Function<Tree<C>, Collection<C>> f = Tree::visitLeaves;
+    return FormattedNamedFunction.from(f, format, "tree.leaves").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, C> FormattedNamedFunction<X, Integer> treeSize(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Tree<C>> beforeF,
+      @Param(value = "format", dS = "%3d") String format) {
+    Function<Tree<C>, Integer> f = Tree::size;
+    return FormattedNamedFunction.from(f, format, "tree.size").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X, I extends Individual<?, S, Q>, S, Q, P extends ProblemWithValidation<S, Q>>
       FormattedNamedFunction<X, Q> validationQuality(
           @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, S, Q, P>> beforeF,
@@ -392,5 +637,62 @@ public class Functions {
     return FormattedNamedFunction.from(
             f, format, "validation.quality[%s]".formatted(NamedFunction.name(individualF)))
         .compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, P extends XYPlot<D>, D> NamedFunction<X, Video> videoPlotter(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, P> beforeF,
+      @Param(value = "w", dI = -1) int w,
+      @Param(value = "h", dI = -1) int h,
+      @Param(value = "encoder", dS = "default") VideoUtils.EncoderFacility encoder,
+      @Param(value = "frameRate", dD = 10) double frameRate,
+      @Param("freeScales") boolean freeScales,
+      @Param("secondary") boolean secondary) {
+    UnaryOperator<VideoBuilder.VideoInfo> viAdapter =
+        vi -> new VideoBuilder.VideoInfo(w == -1 ? vi.w() : w, h == -1 ? vi.h() : h, encoder);
+    Configuration iConfiguration = freeScales ? Configuration.FREE_SCALES : Configuration.DEFAULT;
+    io.github.ericmedvet.jviz.core.plot.video.Configuration vConfiguration =
+        io.github.ericmedvet.jviz.core.plot.video.Configuration.DEFAULT;
+    Function<P, Video> f = p -> {
+      if (p instanceof DistributionPlot dp) {
+        BoxPlotVideoBuilder vb = new BoxPlotVideoBuilder(
+            vConfiguration,
+            iConfiguration,
+            Configuration.BoxPlot.DEFAULT,
+            Configuration.Colors.DEFAULT.dataColors());
+        return vb.build(viAdapter.apply(vb.videoInfo(dp)), dp);
+      }
+      if (p instanceof LandscapePlot lsp) {
+        LandscapePlotVideoBuilder vb = new LandscapePlotVideoBuilder(
+            vConfiguration,
+            iConfiguration,
+            Configuration.LandscapePlot.DEFAULT,
+            Configuration.Colors.DEFAULT.dataColors());
+        return vb.build(viAdapter.apply(vb.videoInfo(lsp)), lsp);
+      }
+      if (p instanceof XYDataSeriesPlot xyp) {
+        AbstractXYDataSeriesPlotVideoBuilder vb = (!secondary)
+            ? new LinesPlotVideoBuilder(
+                vConfiguration,
+                iConfiguration,
+                Configuration.LinesPlot.DEFAULT,
+                Configuration.Colors.DEFAULT.dataColors())
+            : new PointsPlotVideoBuilder(
+                vConfiguration,
+                iConfiguration,
+                Configuration.PointsPlot.DEFAULT,
+                Configuration.Colors.DEFAULT.dataColors());
+        return vb.build(viAdapter.apply(vb.videoInfo(xyp)), xyp);
+      }
+      if (p instanceof UnivariateGridPlot ugp) {
+        UnivariatePlotVideoBuilder vb = new UnivariatePlotVideoBuilder(
+            vConfiguration, iConfiguration, Configuration.UnivariateGridPlot.DEFAULT);
+        return vb.build(viAdapter.apply(vb.videoInfo(ugp)), ugp);
+      }
+      throw new IllegalArgumentException(
+          "Unsupported type of plot %s".formatted(p.getClass().getSimpleName()));
+    };
+    return NamedFunction.from(f, "video.plotter").compose(beforeF);
   }
 }

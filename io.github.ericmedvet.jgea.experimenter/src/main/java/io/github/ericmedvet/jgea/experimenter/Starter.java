@@ -23,13 +23,15 @@ package io.github.ericmedvet.jgea.experimenter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import io.github.ericmedvet.jnb.core.BuilderException;
-import io.github.ericmedvet.jnb.core.NamedBuilder;
-import java.io.*;
+import io.github.ericmedvet.jnb.core.*;
+import io.github.ericmedvet.jnb.core.parsing.StringParser;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class Starter {
 
@@ -127,8 +129,8 @@ public class Starter {
         L.severe("Cannot find default experiment description: %s"
             .formatted(configuration.exampleExperimentDescriptionResourceName));
       } else {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-          expDescription = br.lines().collect(Collectors.joining());
+        try {
+          expDescription = new String(inputStream.readAllBytes());
         } catch (IOException e) {
           L.severe("Cannot read default experiment description: %s".formatted(e));
         }
@@ -136,8 +138,8 @@ public class Starter {
     } else if (!configuration.experimentDescriptionFilePath.isEmpty()) {
       L.config(String.format(
           "Using provided experiment description: %s", configuration.experimentDescriptionFilePath));
-      try (BufferedReader br = new BufferedReader(new FileReader(configuration.experimentDescriptionFilePath))) {
-        expDescription = br.lines().collect(Collectors.joining());
+      try {
+        expDescription = Files.readString(Path.of(configuration.experimentDescriptionFilePath));
       } catch (IOException e) {
         L.severe("Cannot read provided experiment description at %s: %s"
             .formatted(configuration.experimentDescriptionFilePath, e));
@@ -147,10 +149,20 @@ public class Starter {
       L.info("No experiment provided");
       System.exit(-1);
     }
+    // parse and add name
+    Experiment experiment = (Experiment) nb.build(expDescription);
+    if (experiment.name().isEmpty()) {
+      Path path = Path.of(
+          configuration.experimentDescriptionFilePath.isEmpty()
+              ? configuration.exampleExperimentDescriptionResourceName
+              : configuration.experimentDescriptionFilePath);
+      NamedParamMap expNPM = StringParser.parse(expDescription)
+          .and("name", ParamMap.Type.STRING, path.getFileName().toString());
+      experiment = (Experiment) nb.build(expNPM);
+    }
     // check if just check
     if (configuration.check) {
       try {
-        Experiment experiment = (Experiment) nb.build(expDescription);
         System.out.println("Experiment description is valid");
         System.out.printf("\t%d runs%n", experiment.runs().size());
         System.out.printf("\t%d listeners%n", experiment.listeners().size());
@@ -166,8 +178,13 @@ public class Starter {
     }
     // prepare and run experimenter
     try {
-      Experimenter experimenter = new Experimenter(nb, configuration.nOfConcurrentRuns, configuration.nOfThreads);
-      experimenter.run(expDescription, configuration.verbose);
+      L.info("Running experiment '%s' with %d runs and %d listeners"
+          .formatted(
+              experiment.name(),
+              experiment.runs().size(),
+              experiment.listeners().size()));
+      Experimenter experimenter = new Experimenter(configuration.nOfConcurrentRuns, configuration.nOfThreads);
+      experimenter.run(experiment, configuration.verbose);
     } catch (BuilderException e) {
       L.severe("Cannot run experiment: %s%n".formatted(e));
       if (configuration.verbose) {
