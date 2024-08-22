@@ -42,12 +42,18 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
 
   Archive<MEIndividual<G2, S2, Q>> mapOfElites2();
 
+  CoMEStrategy strategy1();
+
+  CoMEStrategy strategy2();
+
   static <G1, G2, S1, S2, S, Q, P extends QualityBasedProblem<S, Q>>
       CoMEPopulationState<G1, G2, S1, S2, S, Q, P> empty(
           P problem,
           Predicate<State<?, ?>> stopCondition,
           List<MapElites.Descriptor<G1, S1, Q>> descriptors1,
-          List<MapElites.Descriptor<G2, S2, Q>> descriptors2) {
+          List<MapElites.Descriptor<G2, S2, Q>> descriptors2,
+          CoMEStrategy strategy1,
+          CoMEStrategy strategy2) {
     return of(
         LocalDateTime.now(),
         0,
@@ -62,7 +68,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
         new Archive<>(
             descriptors1.stream().map(MapElites.Descriptor::nOfBins).toList()),
         new Archive<>(
-            descriptors2.stream().map(MapElites.Descriptor::nOfBins).toList()));
+            descriptors2.stream().map(MapElites.Descriptor::nOfBins).toList()),
+        strategy1,
+        strategy2);
   }
 
   static <G1, G2, S1, S2, S, Q, P extends QualityBasedProblem<S, Q>> CoMEPopulationState<G1, G2, S1, S2, S, Q, P> of(
@@ -77,7 +85,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
       List<MapElites.Descriptor<G1, S1, Q>> descriptors1,
       List<MapElites.Descriptor<G2, S2, Q>> descriptors2,
       Archive<MEIndividual<G1, S1, Q>> mapOfElites1,
-      Archive<MEIndividual<G2, S2, Q>> mapOfElites2) {
+      Archive<MEIndividual<G2, S2, Q>> mapOfElites2,
+      CoMEStrategy strategy1,
+      CoMEStrategy strategy2) {
     PartialComparator<? super CoMEIndividual<G1, G2, S1, S2, S, Q>> comparator =
         (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
     record HardState<G1, G2, S1, S2, S, Q, P extends QualityBasedProblem<S, Q>>(
@@ -92,7 +102,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
         List<MapElites.Descriptor<G1, S1, Q>> descriptors1,
         List<MapElites.Descriptor<G2, S2, Q>> descriptors2,
         Archive<MEIndividual<G1, S1, Q>> mapOfElites1,
-        Archive<MEIndividual<G2, S2, Q>> mapOfElites2)
+        Archive<MEIndividual<G2, S2, Q>> mapOfElites2,
+        CoMEStrategy strategy1,
+        CoMEStrategy strategy2)
         implements CoMEPopulationState<G1, G2, S1, S2, S, Q, P> {}
     return new HardState<>(
         startingDateTime,
@@ -106,7 +118,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
         descriptors1,
         descriptors2,
         mapOfElites1,
-        mapOfElites2);
+        mapOfElites2,
+        strategy1,
+        strategy2);
   }
 
   default CoMEPopulationState<G1, G2, S1, S2, S, Q, P> updatedWithIteration(
@@ -114,7 +128,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
       long nOfNewQualityEvaluations,
       Collection<CoMEIndividual<G1, G2, S1, S2, S, Q>> individuals,
       Archive<MEIndividual<G1, S1, Q>> mapOfElites1,
-      Archive<MEIndividual<G2, S2, Q>> mapOfElites2) {
+      Archive<MEIndividual<G2, S2, Q>> mapOfElites2,
+      CoMEStrategy strategy1,
+      CoMEStrategy strategy2) {
     return of(
         startingDateTime(),
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
@@ -127,7 +143,9 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
         descriptors1(),
         descriptors2(),
         mapOfElites1,
-        mapOfElites2);
+        mapOfElites2,
+        strategy1,
+        strategy2);
   }
 
   @Override
@@ -144,6 +162,8 @@ public interface CoMEPopulationState<G1, G2, S1, S2, S, Q, P extends QualityBase
         descriptors1(),
         descriptors2(),
         mapOfElites1(),
-        mapOfElites2());
+        mapOfElites2(),
+        strategy1(),
+        strategy2());
   }
 }
