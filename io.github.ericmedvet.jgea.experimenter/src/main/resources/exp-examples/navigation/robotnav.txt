@@ -10,7 +10,6 @@ ea.experiment(
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
                 );
-                stopCondition = predicate.not(condition = predicate.always());
                 f = ds.e.n.avgD();
                 type = MINIMIZE
             )
@@ -19,7 +18,7 @@ ea.experiment(
             ea.run(
                 name = "robotnav_maze_nn";
                 solver = ea.s.mapElites(
-                    representation = ea.r.doubleString(crossoverP = 0.0);
+                    representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                     nPop = 200;
                     nEval = 80000;
@@ -42,10 +41,10 @@ ea.experiment(
             ea.run(
                 name = "robotnav_maze_poly";
                 solver = ea.s.mapElites(
-                    representation = ea.r.doubleString(crossoverP = 0.0);
+                    representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
                     nPop = 200;
-                    nEval = 80000;
+                    nEval = 100000;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -65,7 +64,7 @@ ea.experiment(
             ea.run(
                 name = "robotnav_maze_tree";
                 solver = ea.s.mapElites(
-                    representation = ea.representation.multiSRTree(crossoverP = 0.0);
+                    representation = ea.representation.multiSRTree();
                     mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
                     nPop = 200;
                     nEval = 80000;
@@ -102,16 +101,10 @@ ea.experiment(
                 ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
                 ea.f.id(of = ea.f.best());
                 f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
-            ];
-            runKeys = [
-                ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
-                ea.misc.sEntry(key = "solver"; value = "{solver.name}");
-                ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
             ]
         );
         ea.l.allCsv(
-            filePath = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Csv/robotnav_maze_all.csv";
-            doubleFormat = "%f";
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_maze_all.csv";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
@@ -123,16 +116,25 @@ ea.experiment(
                 f.toBase64(of = ea.function.genotype())
             ];
             functions = [ea.f.elapsedSecs()];
-            runKeys = [
-                ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
-                ea.misc.sEntry(key = "solver"; value = "{solver.name}");
-                ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
+            runFunctions = [];
+            deferred = true;
+            onlyLast = false
+        );
+        ea.l.savePlotForRun(
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}_archive_{run.randomGenerator.seed:%1d}";
+            plot = ea.plot.single.me(q = ea.f.simQuality());
+            condition = predicate.always()
+        );
+        ea.l.onRunDone(
+            of = ea.acc.lastBest();
+            preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
+            consumers = [
+                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-best-trajectory-{run.randomGenerator.seed:%1d}")
             ]
         );
-        ea.l.runLastIterationImageSaver(
-            function = ea.f.simOutcome(of = ea.f.quality(of = ea.f.best()));
-            image = ds.d.navigation();
-            filePathTemplate = "/home/francescorusin/Desktop/Work/MapElites/Current/Decimal_crop/Drawings/NN/{name:%s}_trajectory_{index:%1d}.png"
+        ea.l.savePlotForExp(
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness";
+            plot = ea.plot.multi.quality(q = ea.f.simQuality())
         )
     ]
 )
