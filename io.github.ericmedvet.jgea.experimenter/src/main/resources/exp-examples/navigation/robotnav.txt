@@ -1,5 +1,5 @@
 ea.experiment(
-    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+    runs = (randomGenerator = (seed = [-3:1:-1]) * [m.defaultRG()]) *
         (
             problem = ea.p.numEnvTo(
                 dT = 0.1;
@@ -21,7 +21,7 @@ ea.experiment(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                     nPop = 200;
-                    nEval = 80000;
+                    nEval = 1000;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -44,7 +44,7 @@ ea.experiment(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
                     nPop = 200;
-                    nEval = 100000;
+                    nEval = 1000;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -67,7 +67,7 @@ ea.experiment(
                     representation = ea.representation.multiSRTree();
                     mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
                     nPop = 200;
-                    nEval = 80000;
+                    nEval = 1000;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -121,7 +121,7 @@ ea.experiment(
             onlyLast = false
         );
         ea.l.savePlotForRun(
-            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}_archive_{run.randomGenerator.seed:%1d}";
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.name}-archive{run.randomGenerator.seed:%1d}";
             plot = ea.plot.single.me(q = ea.f.simQuality());
             condition = predicate.always()
         );
@@ -129,7 +129,7 @@ ea.experiment(
             of = ea.acc.lastBest();
             preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
             consumers = [
-                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-best-trajectory-{run.randomGenerator.seed:%1d}")
+                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.name}-best-trajectory{run.randomGenerator.seed:%1d}")
             ]
         );
         ea.l.savePlotForExp(
