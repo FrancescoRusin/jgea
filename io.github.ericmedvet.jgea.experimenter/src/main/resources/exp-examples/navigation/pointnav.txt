@@ -3,20 +3,21 @@ ea.experiment(
         (
             problem = ea.p.numEnvTo(
                 dT = 0.1;
-                finalT = 30;
-                environment = ds.e.navigation(
+                finalT = 20;
+                environment = ds.e.pointNavigation(
                     arena = DECIMAL_MAZE;
                     initialRobotXRange = m.range(min = 0.5; max = 0.5);
                     initialRobotYRange = m.range(min = 0.75; max = 0.75);
                     robotMaxV = 0.05
                 );
+                stopCondition = predicate.not(of = predicate.always());
                 f = ds.e.n.avgD();
                 type = MINIMIZE
             )
         ) *
         [
             ea.run(
-                name = "robotnav_maze_nn";
+                name = "pointnav_maze_nn";
                 solver = ea.s.mapElites(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
@@ -39,7 +40,7 @@ ea.experiment(
                 )
             );
             ea.run(
-                name = "robotnav_maze_poly";
+                name = "pointnav_maze_poly";
                 solver = ea.s.mapElites(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
@@ -62,7 +63,7 @@ ea.experiment(
                 )
             );
             ea.run(
-                name = "robotnav_maze_tree";
+                name = "pointnav_maze_tree";
                 solver = ea.s.mapElites(
                     representation = ea.representation.multiSRTree();
                     mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
@@ -104,7 +105,7 @@ ea.experiment(
             ]
         );
         ea.l.allCsv(
-            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_maze_all.csv";
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/pointnav_maze_all.csv";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
