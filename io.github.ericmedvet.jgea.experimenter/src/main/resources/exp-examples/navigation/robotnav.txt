@@ -1,3 +1,4 @@
+$nEval = 1000
 ea.experiment(
     runs = (randomGenerator = (seed = [-3:1:-1]) * [m.defaultRG()]) *
         (
@@ -21,7 +22,7 @@ ea.experiment(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                     nPop = 200;
-                    nEval = 1000;
+                    nEval = $nEval;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -44,7 +45,7 @@ ea.experiment(
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
                     nPop = 200;
-                    nEval = 1000;
+                    nEval = $nEval;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -67,7 +68,7 @@ ea.experiment(
                     representation = ea.representation.multiSRTree();
                     mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
                     nPop = 200;
-                    nEval = 1000;
+                    nEval = $nEval;
                     descriptors = [
                         ea.s.me.d.descriptor(
                             f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
@@ -132,9 +133,44 @@ ea.experiment(
                 ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.name}-best-trajectory{run.randomGenerator.seed:%1d}")
             ]
         );
-        ea.l.savePlotForExp(
-            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness";
-            plot = ea.plot.multi.quality(q = ea.f.simQuality())
+        ea.l.onExpDone(
+            of = ea.plot.multi.xy(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
+                y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
+                line = ea.f.runString(s = "{run.solver.mapper}")
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
+                    of = ea.f.csvPlotter()
+                )
+            ]
+        );
+        ea.l.onExpDone(
+            of = ea.plot.multi.yBoxplot(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
+                box = ea.f.runString(s = "{run.solver.mapper}");
+                predicateValue = ea.f.rate(of = ea.f.progress());
+                condition = predicate.gtEq(t = 1)
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
+                    of = ea.f.csvPlotter()
+                )
+            ]
         )
     ]
 )
