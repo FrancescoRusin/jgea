@@ -128,7 +128,7 @@ ea.experiment(
         );
         ea.l.onRunDone(
             of = ea.acc.lastBest();
-            preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
+            preprocessor = ea.f.toImage(image = ds.d.pointNavigation(); of = ea.f.simOutcome(of = ea.f.quality()));
             consumers = [
                 ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.name}-best-trajectory{run.randomGenerator.seed:%1d}")
             ]
