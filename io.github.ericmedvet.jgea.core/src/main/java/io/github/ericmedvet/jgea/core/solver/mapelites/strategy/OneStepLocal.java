@@ -17,6 +17,6 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.solver.mapelites;
+package io.github.ericmedvet.jgea.core.solver.mapelites.strategy;
 
-public class M1Strategy {}
+public class OneStepLocal {}

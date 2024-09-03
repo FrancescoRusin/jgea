@@ -28,6 +28,7 @@ import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
+import io.github.ericmedvet.jgea.core.solver.mapelites.strategy.CoMEStrategy;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.Pair;
@@ -182,10 +183,9 @@ public class CoMapElites<G1, G2, S1, S2, S, Q>
       List<Integer> thisCoords = iT.coordinates().stream()
           .map(MapElites.Descriptor.Coordinate::bin)
           .toList();
-      List<Integer> otherCoords = getClosestCoordinate(
-          denormalizeCoords(
-              strategy.getOtherCoords(normalizeCoords(thisCoords, thisDescriptors)), otherDescriptors),
-          otherArchive.asMap()); // collaborator choice
+      List<Integer> otherCoords = denormalizeCoords(
+          strategy.getOtherCoords(normalizeCoords(thisCoords, thisDescriptors)), otherDescriptors);
+      otherCoords = getClosestCoordinate(otherCoords, otherArchive.asMap());
       Collection<MEIndividual<GO, SO, Q>> neighbors =
           findNeighbors(otherCoords, otherArchive.asMap(), CoMapElites::euclideanDistance, neighborRadius);
       List<CoMEIndividual<GT, GO, ST, SO, S, Q>> localCompositeIndividuals = neighbors.stream()
