@@ -140,7 +140,7 @@ ea.experiment(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
                 y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
-                box = ea.f.runString(s = "{run.solver.mapper}");
+                box = ea.f.runString(s = "{run.solver.name}");
                 predicateValue = ea.f.rate(of = ea.f.progress());
                 condition = predicate.gtEq(t = 1)
             );

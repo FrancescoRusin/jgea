@@ -122,7 +122,7 @@ ea.experiment(
                 ySubplot = ea.f.runString(s = "_");
                 x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
                 y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
-                line = ea.f.runString(s = "{run.solver.mapper}")
+                line = ea.f.runString(s = "{run.solver.name}")
             );
             consumers = [
                 ea.c.saver(
@@ -140,7 +140,7 @@ ea.experiment(
                 xSubplot = ea.f.runString(s = "_");
                 ySubplot = ea.f.runString(s = "_");
                 y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
-                box = ea.f.runString(s = "{run.solver.mapper}");
+                box = ea.f.runString(s = "{run.solver.name}");
                 predicateValue = ea.f.rate(of = ea.f.progress());
                 condition = predicate.gtEq(t = 1)
             );
