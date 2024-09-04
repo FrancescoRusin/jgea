@@ -17,8 +17,8 @@ ea.experiment(
         ) *
         [
             ea.run(
-                name = "robotnav_maze_nn";
                 solver = ea.s.mapElites(
+                    name = "robotnav-maze-nn";
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                     nPop = 200;
@@ -40,8 +40,8 @@ ea.experiment(
                 )
             );
             ea.run(
-                name = "robotnav_maze_poly";
                 solver = ea.s.mapElites(
+                    name = "robotnav-maze-poly";
                     representation = ea.r.doubleString();
                     mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
                     nPop = 200;
@@ -63,8 +63,8 @@ ea.experiment(
                 )
             );
             ea.run(
-                name = "robotnav_maze_tree";
                 solver = ea.s.mapElites(
+                    name = "robotnav-maze-tree";
                     representation = ea.representation.multiSRTree();
                     mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
                     nPop = 200;
@@ -87,25 +87,8 @@ ea.experiment(
             )
         ];
     listeners = [
-        ea.l.tui(
-            defaultFunctions = [
-                ea.f.size(of = ea.f.all());
-                ea.f.nOfIterations();
-                ea.f.nOfEvals();
-                ea.f.elapsedSecs()
-            ];
-            functions = [
-                ea.f.simQuality(of = ea.f.quality(of = ea.f.best()); format = "%9.5f");
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
-                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 0));
-                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
-                ea.f.id(of = ea.f.best());
-                f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
-            ]
-        );
         ea.l.allCsv(
-            path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Csv/robotnav_maze_all.csv";
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_maze_all.csv";
             individualFunctions = [
                 ea.f.simQuality(of = ea.f.quality());
                 ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
@@ -122,7 +105,7 @@ ea.experiment(
             onlyLast = false
         );
         ea.l.savePlotForRun(
-            path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{run.solver.mapper}-archive{run.randomGenerator.seed:%1d}";
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.solver.name}-archive{run.randomGenerator.seed:%1d}";
             plot = ea.plot.single.me(q = ea.f.simQuality());
             condition = predicate.always()
         );
@@ -130,7 +113,7 @@ ea.experiment(
             of = ea.acc.lastBest();
             preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
             consumers = [
-                ea.c.saver(path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{run.solver.mapper}-best-trajectory{run.randomGenerator.seed:%1d}")
+                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.solver.name}-best-trajectory{run.randomGenerator.seed:%1d}")
             ]
         );
         ea.l.onExpDone(
@@ -139,15 +122,15 @@ ea.experiment(
                 ySubplot = ea.f.runString(s = "_");
                 x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
                 y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
-                line = ea.f.runString(s = "{run.solver.mapper}")
+                line = ea.f.runString(s = "{run.solver.name}")
             );
             consumers = [
                 ea.c.saver(
-                    path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{name}-fitness-graph";
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{name}-fitness-graph";
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
                     of = ea.f.csvPlotter()
                 )
             ]
@@ -163,11 +146,11 @@ ea.experiment(
             );
             consumers = [
                 ea.c.saver(
-                    path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{name}-fitness-box";
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
                     of = ea.f.imagePlotter()
                 );
                 ea.c.saver(
-                    path = "C:/Users/Francesco/Desktop/Università/Dottorato/Ricerca/STN/Drawings/{name}-fitness-box";
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
                     of = ea.f.csvPlotter()
                 )
             ]
