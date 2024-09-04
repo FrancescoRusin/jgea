@@ -20,15 +20,18 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
+import io.github.ericmedvet.jgea.core.util.IntRange;
+import io.github.ericmedvet.jgea.problem.ca.MRCAMorphogenesis;
 import io.github.ericmedvet.jgea.problem.grid.CharShapeApproximation;
+import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jgea.problem.synthetic.IntOneMax;
 import io.github.ericmedvet.jgea.problem.synthetic.MultiModalIntOneMax;
 import io.github.ericmedvet.jgea.problem.synthetic.MultiObjectiveIntOneMax;
 import io.github.ericmedvet.jgea.problem.synthetic.OneMax;
 import io.github.ericmedvet.jgea.problem.synthetic.numerical.*;
-import io.github.ericmedvet.jnb.core.Cacheable;
-import io.github.ericmedvet.jnb.core.Discoverable;
-import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.jnb.core.*;
+import io.github.ericmedvet.jnb.datastructure.DoubleRange;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -187,5 +190,52 @@ public class SyntheticProblems {
   public static Sphere sphere(
       @Param(value = "name", iS = "sphere-{p}") String name, @Param(value = "p", dI = 100) int p) {
     return new Sphere(p);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  @Alias(
+      name = "mrCaStringMorphogenesis",
+      passThroughParams = {
+        @PassThroughParam(name = "s", value = "x", type = ParamMap.Type.STRING),
+        @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT),
+        @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
+      },
+      value = // spotless:off
+          """
+              mrCaMorphogenesis(
+                target = ea.misc.imgFromString(s = $s; w = $w; h = $h);
+                name = "ca-string"
+              )
+              """) // spotless:on
+  @Alias(
+      name = "mrCaNamedImageMorphogenesis",
+      passThroughParams = {
+        @PassThroughParam(name = "iName", type = ParamMap.Type.STRING),
+        @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT),
+        @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
+      },
+      value = // spotless:off
+          """
+              mrCaMorphogenesis(
+                target = ea.misc.imgByName(name = $iName; w = $w; h = $h);
+                name = "ca-nImg";
+                gray = false
+              )
+              """) // spotless:on
+  public static MRCAMorphogenesis mrCaMorphogenesis(
+      @Param(value = "name", iS = "ca-target-[{minConvergenceStep}-{maxConvergenceStep}]") String name,
+      @Param("target") BufferedImage target,
+      @Param(value = "gray", dB = true) boolean gray,
+      @Param(value = "fromStep", dI = 40) int fromStep,
+      @Param(value = "toStep", dI = 60) int toStep,
+      @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
+      @Param(value = "targetRange", dNPM = "m.range(min=0;max=1)") DoubleRange targetRange) {
+    return new MRCAMorphogenesis(
+        gray ? ImageUtils.toGrayGrid(target) : ImageUtils.toRGBGrid(target),
+        new IntRange(fromStep, toStep),
+        gray ? MRCAMorphogenesis.StateDistance.L1_1 : MRCAMorphogenesis.StateDistance.L1_3,
+        caStateRange,
+        targetRange);
   }
 }

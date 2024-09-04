@@ -36,6 +36,8 @@ import io.github.ericmedvet.jgea.core.representation.tree.Tree;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.TreeBasedMultivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.TreeBasedUnivariateRealFunction;
+import io.github.ericmedvet.jgea.core.util.Naming;
+import io.github.ericmedvet.jgea.problem.ca.MultivariateRealGridCellularAutomaton;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -352,6 +354,66 @@ public class Mappers {
   }
 
   @SuppressWarnings("unused")
+  public static <X> InvertibleMapper<X, MultivariateRealGridCellularAutomaton> nmrfToMrca(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, NamedMultivariateRealFunction> beforeM,
+      @Param(value = "nOfAdditionalChannels", dI = 1) int nOfAdditionalChannels,
+      @Param(
+              value = "kernels",
+              dSs = {"identity", "laplacian", "sobel_edges"})
+          List<MultivariateRealGridCellularAutomaton.Kernel> kernels,
+      @Param(value = "initializer", dS = "center_all")
+          MultivariateRealGridCellularAutomaton.Initializer initializer,
+      @Param(value = "range", dNPM = "m.range(min=-1;max=1)") DoubleRange range,
+      @Param(value = "additiveCoefficient", dD = 1d) double additiveCoefficient,
+      @Param(value = "alivenessThreshold", dD = 0d) double alivenessThreshold,
+      @Param(value = "toroidal") boolean toroidal) {
+    List<Grid<Double>> kernelGrids = kernels.stream()
+        .map(MultivariateRealGridCellularAutomaton.Kernel::get)
+        .flatMap(List::stream)
+        .toList();
+    return beforeM.andThen(InvertibleMapper.from(
+        (mrca, nmrf) -> {
+          int minStateSize = MultivariateRealGridCellularAutomaton.minStateSize(mrca.getInitialStates());
+          int nOfInputs = (minStateSize + nOfAdditionalChannels) * kernelGrids.size();
+          int nOfOutputs = minStateSize + nOfAdditionalChannels;
+          if (nmrf.nOfInputs() != nOfInputs) {
+            throw new IllegalArgumentException("Wrong input size for the MRF: %d expected, %d found"
+                .formatted(nOfInputs, nmrf.nOfInputs()));
+          }
+          if (nmrf.nOfOutputs() != nOfOutputs) {
+            throw new IllegalArgumentException("Wrong output size for the MRF: %d expected, %d found"
+                .formatted(nOfOutputs, nmrf.nOfOutputs()));
+          }
+          return new MultivariateRealGridCellularAutomaton(
+              initializer.initialize(
+                  mrca.getInitialStates().w(),
+                  mrca.getInitialStates().h(),
+                  minStateSize + nOfAdditionalChannels,
+                  range),
+              range,
+              kernelGrids,
+              nmrf,
+              additiveCoefficient,
+              alivenessThreshold,
+              toroidal);
+        },
+        mrca -> {
+          int minStateSize = MultivariateRealGridCellularAutomaton.minStateSize(mrca.getInitialStates());
+          int nOfInputs = (minStateSize + nOfAdditionalChannels) * kernelGrids.size();
+          int nOfOutputs = minStateSize + nOfAdditionalChannels;
+          List<String> varNames = MultivariateRealFunction.varNames("c", nOfOutputs);
+          return NamedMultivariateRealFunction.from(
+              MultivariateRealFunction.from(vs -> new double[nOfOutputs], nOfInputs, nOfOutputs),
+              IntStream.range(0, kernelGrids.size())
+                  .mapToObj(i -> varNames.stream().map(n -> "%s_k%d".formatted(n, i)))
+                  .flatMap(Function.identity())
+                  .toList(),
+              varNames);
+        },
+        "nmrfToMrCA[addChannels=%d;kernels=%d]".formatted(nOfAdditionalChannels, kernelGrids.size())));
+  }
+
+  @SuppressWarnings("unused")
   @Cacheable
   public static <X> InvertibleMapper<X, NumericalDynamicalSystem<?>> nmrfToNds(
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, NamedMultivariateRealFunction> beforeM) {
@@ -384,6 +446,19 @@ public class Mappers {
         (eNds, nds) -> new Noised<>(nds, inputSigma, outputSigma, randomGenerator),
         eNds -> eNds,
         "noised[in=%.2f;out=%.2f]".formatted(inputSigma, outputSigma)));
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X> InvertibleMapper<X, NamedMultivariateRealFunction> noisedNmrf(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, NamedMultivariateRealFunction> beforeM,
+      @Param(value = "sigma", dD = 0) double sigma,
+      @Param(value = "randomGenerator", dNPM = "m.defaultRG()") RandomGenerator randomGenerator) {
+    return beforeM.andThen(InvertibleMapper.from(
+        (eNmrf, nmrf) -> nmrf.andThen(Naming.named("noised[out=%.2f]".formatted(sigma), (DoubleUnaryOperator)
+            v -> v + randomGenerator.nextGaussian() * sigma)),
+        eNmrf -> eNmrf,
+        "noised[out=%.2f]".formatted(sigma)));
   }
 
   @SuppressWarnings("unused")
