@@ -1,0 +1,159 @@
+$nEval = 100000
+ea.experiment(
+    runs = (randomGenerator = (seed = [-10:1:-1]) * [m.defaultRG()]) *
+        (
+            problem = ea.p.numEnvTo(
+                dT = 0.1;
+                finalT = 30;
+                environment = ds.e.navigation(
+                    arena = BLOCKY_MAZE;
+                    initialRobotXRange = m.range(min = 0.5; max = 0.5);
+                    initialRobotYRange = m.range(min = 0.75; max = 0.75);
+                    robotMaxV = 0.05
+                );
+                f = ds.e.n.avgD();
+                type = MINIMIZE
+            )
+        ) *
+        [
+            ea.run(
+                solver = ea.s.mapElites(
+                    name = "robotnav-blocky-nn";
+                    representation = ea.r.doubleString();
+                    mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
+                    nPop = 200;
+                    nEval = $nEval;
+                    descriptors = [
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        );
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        )
+                    ]
+                )
+            );
+            ea.run(
+                solver = ea.s.mapElites(
+                    name = "robotnav-blocky-poly";
+                    representation = ea.r.doubleString();
+                    mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
+                    nPop = 200;
+                    nEval = $nEval;
+                    descriptors = [
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        );
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        )
+                    ]
+                )
+            );
+            ea.run(
+                solver = ea.s.mapElites(
+                    name = "robotnav-blocky-tree";
+                    representation = ea.representation.multiSRTree();
+                    mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
+                    nPop = 200;
+                    nEval = $nEval;
+                    descriptors = [
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        );
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        )
+                    ]
+                )
+            )
+        ];
+    listeners = [
+        ea.l.allCsv(
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Csv/robotnav_blocky_all.csv";
+            individualFunctions = [
+                ea.f.simQuality(of = ea.f.quality());
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
+                ea.f.meBin(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
+                ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
+                ea.f.id();
+                f.nTh(of = ea.f.parentIds(); n = 0);
+                f.toBase64(of = ea.function.genotype())
+            ];
+            functions = [ea.f.elapsedSecs()];
+            runFunctions = [];
+            deferred = true;
+            onlyLast = false
+        );
+        ea.l.savePlotForRun(
+            path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.solver.name}-archive{run.randomGenerator.seed:%1d}";
+            plot = ea.plot.single.me(q = ea.f.simQuality());
+            condition = predicate.always()
+        );
+        ea.l.onRunDone(
+            of = ea.acc.lastBest();
+            preprocessor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.simOutcome(of = ea.f.quality()));
+            consumers = [
+                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{run.solver.name}-best-trajectory{run.randomGenerator.seed:%1d}")
+            ]
+        );
+        ea.l.onExpDone(
+            of = ea.plot.multi.xy(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                x = f.quantized(of = ea.f.nOfEvals(); q = 1000);
+                y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
+                line = ea.f.runString(s = "{run.solver.name}")
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-graph";
+                    of = ea.f.csvPlotter()
+                )
+            ]
+        );
+        ea.l.onExpDone(
+            of = ea.plot.multi.yBoxplot(
+                xSubplot = ea.f.runString(s = "_");
+                ySubplot = ea.f.runString(s = "_");
+                y = ea.f.simQuality(of = ea.f.quality(of = ea.f.best()));
+                box = ea.f.runString(s = "{run.solver.name}");
+                predicateValue = ea.f.rate(of = ea.f.progress());
+                condition = predicate.gtEq(t = 1)
+            );
+            consumers = [
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
+                    of = ea.f.imagePlotter()
+                );
+                ea.c.saver(
+                    path = "/home/francescorusin/Desktop/Work/MapElites/Current/Full_redo/Drawings/{name}-fitness-box";
+                    of = ea.f.csvPlotter()
+                )
+            ]
+        )
+    ]
+)
