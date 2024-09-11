@@ -16,7 +16,7 @@ ea.experiment(
                 type = MINIMIZE
             );
             solver = ea.s.mapElites(
-                representation = ea.r.doubleString(crossoverP = 0.0);
+                representation = ea.r.doubleString();
                 mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 2.0));
                 nPop = 200;
                 nEval = 80000;
@@ -52,11 +52,6 @@ ea.experiment(
                 ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(of = ea.f.best()); n = 1));
                 ea.f.id(of = ea.f.best());
                 f.nTh(of = ea.f.parentIds(of = ea.f.best()); n = 0)
-            ];
-            runKeys = [
-                ea.misc.sEntry(key = "problem.name"; value = "{problem.name}");
-                ea.misc.sEntry(key = "solver"; value = "{solver.name}");
-                ea.misc.sEntry(key = "seed"; value = "{randomGenerator.seed}")
             ]
         );
         ea.l.allCsv(
