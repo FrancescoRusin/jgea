@@ -41,8 +41,7 @@ ea.experiment(
                 ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                 ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
                 ea.f.id();
-                f.nTh(of = ea.f.parentIds(); n = 0);
-                f.toBase64(of = ea.function.genotype())
+                f.nTh(of = ea.f.parentIds(); n = 0)
             ];
             functions = [ea.f.elapsedSecs()];
             runFunctions = [];
