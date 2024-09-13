@@ -96,8 +96,7 @@ ea.experiment(
                 ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 0));
                 ea.f.meValue(of = f.nTh(of = ea.f.meCoordinates(); n = 1));
                 ea.f.id();
-                f.nTh(of = ea.f.parentIds(); n = 0);
-                f.toBase64(of = ea.function.genotype())
+                f.nTh(of = ea.f.parentIds(); n = 0)
             ];
             functions = [ea.f.elapsedSecs()];
             runFunctions = [];
