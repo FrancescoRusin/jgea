@@ -23,12 +23,12 @@ import io.github.ericmedvet.jgea.experimenter.listener.net.NetUtils;
 import java.io.Serializable;
 
 public record ProcessInfo(String processName, String username, long usedMemory, long maxMemory)
-    implements Serializable {
-  public static ProcessInfo local() {
-    return new ProcessInfo(
-        NetUtils.getProcessName(),
-        NetUtils.getUserName(),
-        NetUtils.getProcessUsedMemory(),
-        NetUtils.getProcessMaxMemory());
-  }
+        implements Serializable {
+    public static ProcessInfo local() {
+        return new ProcessInfo(
+                NetUtils.getProcessName(),
+                NetUtils.getUserName(),
+                NetUtils.getProcessUsedMemory(),
+                NetUtils.getProcessMaxMemory());
+    }
 }

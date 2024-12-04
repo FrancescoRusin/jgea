@@ -25,31 +25,31 @@ import java.util.random.RandomGenerator;
 
 public class IntStringFlipMutation implements Mutation<IntString> {
 
-  private final double p;
+    private final double p;
 
-  public IntStringFlipMutation(double p) {
-    this.p = p;
-  }
-
-  @Override
-  public IntString mutate(IntString parent, RandomGenerator random) {
-    if (parent.lowerBound() == parent.upperBound()) {
-      return parent;
+    public IntStringFlipMutation(double p) {
+        this.p = p;
     }
-    return new IntString(
-        parent.genes().stream()
-            .map(n -> {
-              if (random.nextDouble() < p) {
-                int newN = random.nextInt(parent.lowerBound(), parent.upperBound() - 1);
-                if (newN >= n) {
-                  newN = newN + 1;
-                }
-                return newN;
-              }
-              return n;
-            })
-            .toList(),
-        parent.lowerBound(),
-        parent.upperBound());
-  }
+
+    @Override
+    public IntString mutate(IntString parent, RandomGenerator random) {
+        if (parent.lowerBound() == parent.upperBound()) {
+            return parent;
+        }
+        return new IntString(
+                parent.genes().stream()
+                        .map(n -> {
+                            if (random.nextDouble() < p) {
+                                int newN = random.nextInt(parent.lowerBound(), parent.upperBound() - 1);
+                                if (newN >= n) {
+                                    newN = newN + 1;
+                                }
+                                return newN;
+                            }
+                            return n;
+                        })
+                        .toList(),
+                parent.lowerBound(),
+                parent.upperBound());
+    }
 }

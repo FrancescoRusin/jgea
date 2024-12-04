@@ -31,41 +31,41 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class GroupedTablesAccumulatorFactory<K, V, E, R>
-    implements AccumulatorFactory<E, Map<List<K>, Table<Integer, String, V>>, R> {
+        implements AccumulatorFactory<E, Map<List<K>, Table<Integer, String, V>>, R> {
 
-  protected final Map<List<K>, Table<Integer, String, V>> data;
-  private final List<Function<? super R, ? extends K>> rFunctions;
-  private final List<Function<? super E, ? extends V>> eFunctions;
+    protected final Map<List<K>, Table<Integer, String, V>> data;
+    private final List<Function<? super R, ? extends K>> rFunctions;
+    private final List<Function<? super E, ? extends V>> eFunctions;
 
-  public GroupedTablesAccumulatorFactory(
-      List<Function<? super R, ? extends K>> rFunctions, List<Function<? super E, ? extends V>> eFunctions) {
-    this.rFunctions = rFunctions;
-    this.eFunctions = eFunctions;
-    data = new LinkedHashMap<>();
-  }
-
-  @Override
-  public Accumulator<E, Map<List<K>, Table<Integer, String, V>>> build(R r) {
-    List<K> ks = rFunctions.stream().map(nf -> (K) nf.apply(r)).toList();
-    Table<Integer, String, V> table;
-    synchronized (data) {
-      table = data.getOrDefault(ks, new HashMapTable<>());
-      data.putIfAbsent(ks, table);
+    public GroupedTablesAccumulatorFactory(
+            List<Function<? super R, ? extends K>> rFunctions, List<Function<? super E, ? extends V>> eFunctions) {
+        this.rFunctions = rFunctions;
+        this.eFunctions = eFunctions;
+        data = new LinkedHashMap<>();
     }
-    return new Accumulator<>() {
-      @Override
-      public Map<List<K>, Table<Integer, String, V>> get() {
-        return data;
-      }
 
-      @Override
-      public void listen(E e) {
+    @Override
+    public Accumulator<E, Map<List<K>, Table<Integer, String, V>>> build(R r) {
+        List<K> ks = rFunctions.stream().map(nf -> (K) nf.apply(r)).toList();
+        Table<Integer, String, V> table;
         synchronized (data) {
-          table.addRow(
-              table.nRows(),
-              eFunctions.stream().collect(Collectors.toMap(NamedFunction::name, f -> f.apply(e))));
+            table = data.getOrDefault(ks, new HashMapTable<>());
+            data.putIfAbsent(ks, table);
         }
-      }
-    };
-  }
+        return new Accumulator<>() {
+            @Override
+            public Map<List<K>, Table<Integer, String, V>> get() {
+                return data;
+            }
+
+            @Override
+            public void listen(E e) {
+                synchronized (data) {
+                    table.addRow(
+                            table.nRows(),
+                            eFunctions.stream().collect(Collectors.toMap(NamedFunction::name, f -> f.apply(e))));
+                }
+            }
+        };
+    }
 }

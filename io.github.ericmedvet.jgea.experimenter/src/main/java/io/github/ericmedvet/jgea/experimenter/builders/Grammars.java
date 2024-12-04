@@ -35,37 +35,37 @@ import java.util.List;
 @Discoverable(prefixTemplate = "ea.grammar")
 public class Grammars {
 
-  private Grammars() {}
+    private Grammars() {}
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static <N> StringGrammar<N> fromProblem(@Param("problem") GrammarBasedProblem<N, ?> problem) {
-    return problem.getGrammar();
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static GridGrammar<Character> gridBundled(@Param("name") String name) {
-    try {
-      return GridGrammar.load(GridGrammar.class.getResourceAsStream("/grammars/2d/" + name + ".bnf"))
-          .map(s -> s == null ? null : s.charAt(0));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static <N> StringGrammar<N> fromProblem(@Param("problem") GrammarBasedProblem<N, ?> problem) {
+        return problem.getGrammar();
     }
-  }
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static StringGrammar<String> regression(
-      @Param(
-              value = "constants",
-              dDs = {0.1, 1, 10})
-          List<Double> constants,
-      @Param(
-              value = "operators",
-              dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"})
-          List<Element.Operator> operators,
-      @Param("problem") SyntheticUnivariateRegressionProblem problem) {
-    return new SymbolicRegressionGrammar(operators, problem.example().xVarNames(), constants);
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static GridGrammar<Character> gridBundled(@Param("name") String name) {
+        try {
+            return GridGrammar.load(GridGrammar.class.getResourceAsStream("/grammars/2d/" + name + ".bnf"))
+                    .map(s -> s == null ? null : s.charAt(0));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static StringGrammar<String> regression(
+            @Param(
+                            value = "constants",
+                            dDs = {0.1, 1, 10})
+                    List<Double> constants,
+            @Param(
+                            value = "operators",
+                            dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"})
+                    List<Element.Operator> operators,
+            @Param("problem") SyntheticUnivariateRegressionProblem problem) {
+        return new SymbolicRegressionGrammar(operators, problem.example().xVarNames(), constants);
+    }
 }

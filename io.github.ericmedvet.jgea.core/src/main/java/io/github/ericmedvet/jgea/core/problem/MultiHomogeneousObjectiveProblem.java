@@ -26,10 +26,10 @@ import java.util.List;
 
 public interface MultiHomogeneousObjectiveProblem<S, O> extends QualityBasedProblem<S, List<O>> {
 
-  List<Comparator<O>> comparators();
+    List<Comparator<O>> comparators();
 
-  @Override
-  default PartialComparator<List<O>> qualityComparator() {
-    return new ParetoDominance<>(comparators());
-  }
+    @Override
+    default PartialComparator<List<O>> qualityComparator() {
+        return new ParetoDominance<>(comparators());
+    }
 }

@@ -23,18 +23,18 @@ import io.github.ericmedvet.jgea.core.util.TextPlotter;
 import io.github.ericmedvet.jgea.experimenter.listener.tui.util.TuiDrawer;
 
 public record HorizontalBarCell(int l, double min, double max, double value) implements Cell {
-  @Override
-  public void draw(TuiDrawer td, int width) {
-    td.drawString(
-        0,
-        0,
-        TextPlotter.horizontalBar(value, min, max, l, false).content(),
-        td.getConfiguration().primaryPlotColor(),
-        td.getConfiguration().secondaryPlotColor());
-  }
+    @Override
+    public void draw(TuiDrawer td, int width) {
+        td.drawString(
+                0,
+                0,
+                TextPlotter.horizontalBar(value, min, max, l, false).content(),
+                td.getConfiguration().primaryPlotColor(),
+                td.getConfiguration().secondaryPlotColor());
+    }
 
-  @Override
-  public int preferredWidth() {
-    return l;
-  }
+    @Override
+    public int preferredWidth() {
+        return l;
+    }
 }

@@ -29,25 +29,25 @@ import java.util.random.RandomGenerator;
 
 public class ShallowDFAFactory<C> implements IndependentFactory<Graph<DeterministicFiniteAutomaton.State, Set<C>>> {
 
-  private final int nOfStates;
-  private final Set<C> arcLabels;
+    private final int nOfStates;
+    private final Set<C> arcLabels;
 
-  public ShallowDFAFactory(int nOfStates, Set<C> arcLabels) {
-    this.nOfStates = nOfStates;
-    this.arcLabels = arcLabels;
-  }
-
-  @Override
-  public Graph<DeterministicFiniteAutomaton.State, Set<C>> build(RandomGenerator random) {
-    Graph<DeterministicFiniteAutomaton.State, Set<C>> g = new LinkedHashGraph<>();
-    DeterministicFiniteAutomaton.State[] states = new DeterministicFiniteAutomaton.State[nOfStates];
-    for (int i = 0; i < nOfStates; i++) {
-      states[i] = new DeterministicFiniteAutomaton.State(i, i == nOfStates - 1);
-      g.addNode(states[i]);
-      if (i > 0) {
-        g.setArcValue(states[i - 1], states[i], Set.of(Misc.pickRandomly(arcLabels, random)));
-      }
+    public ShallowDFAFactory(int nOfStates, Set<C> arcLabels) {
+        this.nOfStates = nOfStates;
+        this.arcLabels = arcLabels;
     }
-    return g;
-  }
+
+    @Override
+    public Graph<DeterministicFiniteAutomaton.State, Set<C>> build(RandomGenerator random) {
+        Graph<DeterministicFiniteAutomaton.State, Set<C>> g = new LinkedHashGraph<>();
+        DeterministicFiniteAutomaton.State[] states = new DeterministicFiniteAutomaton.State[nOfStates];
+        for (int i = 0; i < nOfStates; i++) {
+            states[i] = new DeterministicFiniteAutomaton.State(i, i == nOfStates - 1);
+            g.addNode(states[i]);
+            if (i > 0) {
+                g.setArcValue(states[i - 1], states[i], Set.of(Misc.pickRandomly(arcLabels, random)));
+            }
+        }
+        return g;
+    }
 }

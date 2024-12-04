@@ -45,60 +45,60 @@ import java.util.function.Function;
 
 @Discoverable(prefixTemplate = "ea.accumulator|acc|a")
 public class Accumulators {
-  private Accumulators() {}
+    private Accumulators() {}
 
-  @Alias(
-      name = "bests",
-      value = // spotless:off
+    @Alias(
+            name = "bests",
+            value = // spotless:off
           """
               all(
                 eFunction = ea.f.best()
               )
               """) // spotless:on
-  @Alias(
-      name = "first",
-      value = // spotless:off
+    @Alias(
+            name = "first",
+            value = // spotless:off
           """
               all(
                 listFunction = f.nTh(n = 1)
               )
               """) // spotless:on
-  @Alias(
-      name = "last",
-      value = // spotless:off
+    @Alias(
+            name = "last",
+            value = // spotless:off
           """
               all(
                 listFunction = f.nTh(n = -1)
               )
               """) // spotless:on
-  @Alias(
-      name = "lastBest",
-      value = // spotless:off
+    @Alias(
+            name = "lastBest",
+            value = // spotless:off
           """
               last(
                 eFunction = ea.f.best()
               )
               """) // spotless:on
-  @SuppressWarnings("unused")
-  public static <E, F, O, R> AccumulatorFactory<E, O, R> all(
-      @Param(value = "eFunction", dNPM = "f.identity()") Function<E, F> eFunction,
-      @Param(value = "listFunction", dNPM = "f.identity()") Function<List<F>, O> listFunction) {
-    return AccumulatorFactory.<E, F, R>collector(eFunction).then(listFunction);
-  }
+    @SuppressWarnings("unused")
+    public static <E, F, O, R> AccumulatorFactory<E, O, R> all(
+            @Param(value = "eFunction", dNPM = "f.identity()") Function<E, F> eFunction,
+            @Param(value = "listFunction", dNPM = "f.identity()") Function<List<F>, O> listFunction) {
+        return AccumulatorFactory.<E, F, R>collector(eFunction).then(listFunction);
+    }
 
-  @SuppressWarnings("unused")
-  public static <G>
-      AccumulatorFactory<POCPopulationState<?, G, ?, ?, ?>, NamedParamMap, Run<?, G, ?, ?>> lastPopulationMap(
-          @Param(value = "serializerF", dNPM = "f.toBase64()") Function<Object, String> serializer) {
-    return AccumulatorFactory.last((s, run) -> new MapNamedParamMap(
-        "ea.runOutcome",
-        Map.ofEntries(
-            Map.entry(new MapNamedParamMap.TypedKey("index", ParamMap.Type.INT), run.index()),
-            Map.entry(new MapNamedParamMap.TypedKey("run", ParamMap.Type.NAMED_PARAM_MAP), run.map()),
-            Map.entry(
-                new MapNamedParamMap.TypedKey("serializedGenotypes", ParamMap.Type.STRINGS),
-                s.pocPopulation().all().stream()
-                    .map(i -> serializer.apply(i.genotype()))
-                    .toList()))));
-  }
+    @SuppressWarnings("unused")
+    public static <G>
+            AccumulatorFactory<POCPopulationState<?, G, ?, ?, ?>, NamedParamMap, Run<?, G, ?, ?>> lastPopulationMap(
+                    @Param(value = "serializerF", dNPM = "f.toBase64()") Function<Object, String> serializer) {
+        return AccumulatorFactory.last((s, run) -> new MapNamedParamMap(
+                "ea.runOutcome",
+                Map.ofEntries(
+                        Map.entry(new MapNamedParamMap.TypedKey("index", ParamMap.Type.INT), run.index()),
+                        Map.entry(new MapNamedParamMap.TypedKey("run", ParamMap.Type.NAMED_PARAM_MAP), run.map()),
+                        Map.entry(
+                                new MapNamedParamMap.TypedKey("serializedGenotypes", ParamMap.Type.STRINGS),
+                                s.pocPopulation().all().stream()
+                                        .map(i -> serializer.apply(i.genotype()))
+                                        .toList()))));
+    }
 }

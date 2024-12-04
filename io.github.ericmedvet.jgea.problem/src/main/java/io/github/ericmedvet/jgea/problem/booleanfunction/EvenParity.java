@@ -32,64 +32,64 @@ import java.util.List;
 import java.util.function.Function;
 
 public class EvenParity
-    implements GrammarBasedProblem<String, List<Tree<Element>>>,
-        ComparableQualityBasedProblem<List<Tree<Element>>, Double> {
+        implements GrammarBasedProblem<String, List<Tree<Element>>>,
+                ComparableQualityBasedProblem<List<Tree<Element>>, Double> {
 
-  private final StringGrammar<String> grammar;
-  private final Function<Tree<String>, List<Tree<Element>>> solutionMapper;
-  private final Function<List<Tree<Element>>, Double> fitnessFunction;
+    private final StringGrammar<String> grammar;
+    private final Function<Tree<String>, List<Tree<Element>>> solutionMapper;
+    private final Function<List<Tree<Element>>, Double> fitnessFunction;
 
-  public EvenParity(final int size) throws IOException {
-    grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/boolean-parity-var.bnf"));
-    List<List<String>> vars = new ArrayList<>();
-    for (int i = 0; i < size; i++) {
-      vars.add(Collections.singletonList("c" + i));
+    public EvenParity(final int size) throws IOException {
+        grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/boolean-parity-var.bnf"));
+        List<List<String>> vars = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            vars.add(Collections.singletonList("c" + i));
+        }
+        grammar.rules().put("<v>", vars);
+        solutionMapper = new FormulaMapper();
+        TargetFunction targetFunction = new TargetFunction(size);
+        fitnessFunction = new BooleanFunctionFitness(
+                targetFunction, BooleanUtils.buildCompleteObservations(targetFunction.varNames));
     }
-    grammar.rules().put("<v>", vars);
-    solutionMapper = new FormulaMapper();
-    TargetFunction targetFunction = new TargetFunction(size);
-    fitnessFunction = new BooleanFunctionFitness(
-        targetFunction, BooleanUtils.buildCompleteObservations(targetFunction.varNames));
-  }
 
-  private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
+    private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
 
-    private final String[] varNames;
+        private final String[] varNames;
 
-    public TargetFunction(int size) {
-      varNames = new String[size];
-      for (int i = 0; i < size; i++) {
-        varNames[i] = "c" + i;
-      }
+        public TargetFunction(int size) {
+            varNames = new String[size];
+            for (int i = 0; i < size; i++) {
+                varNames[i] = "c" + i;
+            }
+        }
+
+        @Override
+        public boolean[] apply(boolean[] arguments) {
+            int count = 0;
+            for (boolean argument : arguments) {
+                count = count + (argument ? 1 : 0);
+            }
+            return new boolean[] {(count % 2) == 1};
+        }
+
+        @Override
+        public String[] varNames() {
+            return varNames;
+        }
     }
 
     @Override
-    public boolean[] apply(boolean[] arguments) {
-      int count = 0;
-      for (boolean argument : arguments) {
-        count = count + (argument ? 1 : 0);
-      }
-      return new boolean[] {(count % 2) == 1};
+    public StringGrammar<String> getGrammar() {
+        return grammar;
     }
 
     @Override
-    public String[] varNames() {
-      return varNames;
+    public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
+        return solutionMapper;
     }
-  }
 
-  @Override
-  public StringGrammar<String> getGrammar() {
-    return grammar;
-  }
-
-  @Override
-  public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
-    return solutionMapper;
-  }
-
-  @Override
-  public Function<List<Tree<Element>>, Double> qualityFunction() {
-    return fitnessFunction;
-  }
+    @Override
+    public Function<List<Tree<Element>>, Double> qualityFunction() {
+        return fitnessFunction;
+    }
 }

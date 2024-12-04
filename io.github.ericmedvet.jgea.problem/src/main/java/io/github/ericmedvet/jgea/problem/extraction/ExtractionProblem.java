@@ -29,51 +29,51 @@ import java.util.*;
 
 public class ExtractionProblem<S> implements MultiHomogeneousObjectiveProblem<Extractor<S>, Double> {
 
-  private final ExtractionFitness<S> fitnessFunction;
-  private final ExtractionFitness<S> validationFunction;
+    private final ExtractionFitness<S> fitnessFunction;
+    private final ExtractionFitness<S> validationFunction;
 
-  public ExtractionProblem(
-      Set<Extractor<S>> extractors, List<S> sequence, int folds, int i, ExtractionFitness.Metric... metrics) {
-    Pair<List<S>, Set<IntRange>> validationDataset = buildDataset(extractors, sequence, folds, i, false);
-    fitnessFunction = new ExtractionFitness<>(
-        buildDataset(extractors, sequence, folds, i, true).first(),
-        buildDataset(extractors, sequence, folds, i, true).second(),
-        metrics);
-    validationFunction = new ExtractionFitness<>(validationDataset.first(), validationDataset.second(), metrics);
-  }
-
-  private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
-      Set<Extractor<S>> extractors, List<S> sequence, int folds, int i, boolean takeAllButIth) {
-    List<S> builtSequence = new ArrayList<>();
-    double foldLength = (double) sequence.size() / (double) folds;
-    for (int n = 0; n < folds; n++) {
-      List<S> piece = sequence.subList(
-          (int) Math.round(foldLength * (double) n),
-          (n == folds - 1) ? sequence.size() : ((int) Math.round(foldLength * (double) (n + 1))));
-      if (takeAllButIth && (n != i)) {
-        builtSequence.addAll(piece);
-      } else if (!takeAllButIth && (n == i)) {
-        builtSequence.addAll(piece);
-      }
+    public ExtractionProblem(
+            Set<Extractor<S>> extractors, List<S> sequence, int folds, int i, ExtractionFitness.Metric... metrics) {
+        Pair<List<S>, Set<IntRange>> validationDataset = buildDataset(extractors, sequence, folds, i, false);
+        fitnessFunction = new ExtractionFitness<>(
+                buildDataset(extractors, sequence, folds, i, true).first(),
+                buildDataset(extractors, sequence, folds, i, true).second(),
+                metrics);
+        validationFunction = new ExtractionFitness<>(validationDataset.first(), validationDataset.second(), metrics);
     }
-    Set<IntRange> desiredExtractions = extractors.stream()
-        .map(e -> e.extractNonOverlapping(builtSequence))
-        .reduce(Misc::union)
-        .orElse(Set.of());
-    return new Pair<>(builtSequence, desiredExtractions);
-  }
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    return Collections.nCopies(fitnessFunction.getMetrics().size(), Double::compareTo);
-  }
+    private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
+            Set<Extractor<S>> extractors, List<S> sequence, int folds, int i, boolean takeAllButIth) {
+        List<S> builtSequence = new ArrayList<>();
+        double foldLength = (double) sequence.size() / (double) folds;
+        for (int n = 0; n < folds; n++) {
+            List<S> piece = sequence.subList(
+                    (int) Math.round(foldLength * (double) n),
+                    (n == folds - 1) ? sequence.size() : ((int) Math.round(foldLength * (double) (n + 1))));
+            if (takeAllButIth && (n != i)) {
+                builtSequence.addAll(piece);
+            } else if (!takeAllButIth && (n == i)) {
+                builtSequence.addAll(piece);
+            }
+        }
+        Set<IntRange> desiredExtractions = extractors.stream()
+                .map(e -> e.extractNonOverlapping(builtSequence))
+                .reduce(Misc::union)
+                .orElse(Set.of());
+        return new Pair<>(builtSequence, desiredExtractions);
+    }
 
-  @Override
-  public ExtractionFitness<S> qualityFunction() {
-    return fitnessFunction;
-  }
+    @Override
+    public List<Comparator<Double>> comparators() {
+        return Collections.nCopies(fitnessFunction.getMetrics().size(), Double::compareTo);
+    }
 
-  public ExtractionFitness<S> validationQualityFunction() {
-    return validationFunction;
-  }
+    @Override
+    public ExtractionFitness<S> qualityFunction() {
+        return fitnessFunction;
+    }
+
+    public ExtractionFitness<S> validationQualityFunction() {
+        return validationFunction;
+    }
 }

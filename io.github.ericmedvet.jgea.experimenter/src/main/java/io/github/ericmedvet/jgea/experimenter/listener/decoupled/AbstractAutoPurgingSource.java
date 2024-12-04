@@ -27,24 +27,24 @@ import java.util.Map;
 
 public abstract class AbstractAutoPurgingSource<K, V> implements Source<K, V> {
 
-  protected final Map<Pair<LocalDateTime, K>, V> map;
-  private LocalDateTime lastPullLocalDateTime = LocalDateTime.MIN;
+    protected final Map<Pair<LocalDateTime, K>, V> map;
+    private LocalDateTime lastPullLocalDateTime = LocalDateTime.MIN;
 
-  public AbstractAutoPurgingSource() {
-    this.map = new LinkedHashMap<>();
-  }
-
-  @Override
-  public Map<Pair<LocalDateTime, K>, V> pull(LocalDateTime t) {
-    Map<Pair<LocalDateTime, K>, V> outMap;
-    synchronized (map) {
-      List<Pair<LocalDateTime, K>> toRemovePs = map.keySet().stream()
-          .filter(p -> p.first().isBefore(lastPullLocalDateTime))
-          .toList();
-      toRemovePs.forEach(map::remove);
-      outMap = new LinkedHashMap<>(map);
+    public AbstractAutoPurgingSource() {
+        this.map = new LinkedHashMap<>();
     }
-    lastPullLocalDateTime = t;
-    return outMap;
-  }
+
+    @Override
+    public Map<Pair<LocalDateTime, K>, V> pull(LocalDateTime t) {
+        Map<Pair<LocalDateTime, K>, V> outMap;
+        synchronized (map) {
+            List<Pair<LocalDateTime, K>> toRemovePs = map.keySet().stream()
+                    .filter(p -> p.first().isBefore(lastPullLocalDateTime))
+                    .toList();
+            toRemovePs.forEach(map::remove);
+            outMap = new LinkedHashMap<>(map);
+        }
+        lastPullLocalDateTime = t;
+        return outMap;
+    }
 }

@@ -35,111 +35,111 @@ import java.util.logging.Logger;
 
 public class Experimenter {
 
-  private static final Logger L = Logger.getLogger(Experimenter.class.getName());
+    private static final Logger L = Logger.getLogger(Experimenter.class.getName());
 
-  private final ExecutorService experimentExecutorService;
-  private final ExecutorService runExecutorService;
-  private final ExecutorService listenerExecutorService;
-  private final boolean closeListeners;
+    private final ExecutorService experimentExecutorService;
+    private final ExecutorService runExecutorService;
+    private final ExecutorService listenerExecutorService;
+    private final boolean closeListeners;
 
-  private Experimenter(
-      ExecutorService experimentExecutorService,
-      ExecutorService runExecutorService,
-      ExecutorService listenerExecutorService,
-      boolean closeListeners) {
-    this.experimentExecutorService = experimentExecutorService;
-    this.runExecutorService = runExecutorService;
-    this.listenerExecutorService = listenerExecutorService;
-    this.closeListeners = closeListeners;
-  }
+    private Experimenter(
+            ExecutorService experimentExecutorService,
+            ExecutorService runExecutorService,
+            ExecutorService listenerExecutorService,
+            boolean closeListeners) {
+        this.experimentExecutorService = experimentExecutorService;
+        this.runExecutorService = runExecutorService;
+        this.listenerExecutorService = listenerExecutorService;
+        this.closeListeners = closeListeners;
+    }
 
-  @SuppressWarnings("unused")
-  public Experimenter(
-      ExecutorService experimentExecutorService,
-      ExecutorService runExecutorService,
-      ExecutorService listenerExecutorService) {
-    this(experimentExecutorService, runExecutorService, listenerExecutorService, false);
-  }
+    @SuppressWarnings("unused")
+    public Experimenter(
+            ExecutorService experimentExecutorService,
+            ExecutorService runExecutorService,
+            ExecutorService listenerExecutorService) {
+        this(experimentExecutorService, runExecutorService, listenerExecutorService, false);
+    }
 
-  @SuppressWarnings("unused")
-  public Experimenter(int nOfConcurrentRuns, int nOfThreads) {
-    this(
-        Executors.newFixedThreadPool(nOfConcurrentRuns),
-        Executors.newFixedThreadPool(nOfThreads),
-        Executors.newCachedThreadPool(),
-        true);
-  }
+    @SuppressWarnings("unused")
+    public Experimenter(int nOfConcurrentRuns, int nOfThreads) {
+        this(
+                Executors.newFixedThreadPool(nOfConcurrentRuns),
+                Executors.newFixedThreadPool(nOfThreads),
+                Executors.newCachedThreadPool(),
+                true);
+    }
 
-  public void run(Experiment experiment, boolean verbose) {
-    ProjectInfoProvider.of(getClass()).ifPresent(pi -> L.info("Starting %s".formatted(pi)));
-    // preapare factories
-    List<? extends ListenerFactory<? super POCPopulationState<?, ?, ?, ?, ?>, Run<?, ?, ?, ?>>> factories =
-        experiment.listeners().stream()
-            .map(l -> l.apply(experiment, listenerExecutorService))
-            .toList();
-    ListenerFactory<? super POCPopulationState<?, ?, ?, ?, ?>, Run<?, ?, ?, ?>> factory =
-        ListenerFactory.all(factories);
-    List<ProgressMonitor> progressMonitors = factories.stream()
-        .filter(f -> f instanceof ProgressMonitor)
-        .map(f -> (ProgressMonitor) f)
-        .toList();
-    ProgressMonitor progressMonitor = progressMonitors.isEmpty()
-        ? new ScreenProgressMonitor(System.out)
-        : ProgressMonitor.all(progressMonitors);
-    // start experiments
-    record RunOutcome(Run<?, ?, ?, ?> run, Future<Collection<?>> future) {}
-    List<RunOutcome> runOutcomes = experiment.runs().stream()
-        .map(run -> new RunOutcome(run, experimentExecutorService.submit(() -> {
-          progressMonitor.notify(
-              run.index(),
-              experiment.runs().size(),
-              "Starting:%n%s".formatted(MapNamedParamMap.prettyToString(run.map(), 40)));
-          Instant startingT = Instant.now();
-          Collection<?> solutions = run.run(runExecutorService, factory.build(run));
-          double elapsedT = Duration.between(startingT, Instant.now()).toMillis() / 1000d;
-          String msg = String.format(
-              "Run %d of %d done in %.2fs, found %d solutions",
-              run.index() + 1, experiment.runs().size(), elapsedT, solutions.size());
-          L.fine(msg);
-          progressMonitor.notify(run.index() + 1, experiment.runs().size(), msg);
-          return solutions;
-        })))
-        .toList();
-    // wait for results
-    runOutcomes.forEach(runOutcome -> {
-      try {
-        runOutcome.future().get();
-      } catch (InterruptedException | ExecutionException e) {
-        L.warning(String.format("Cannot solve %s: %s", runOutcome.run().map(), e));
-        if (verbose) {
-          //noinspection CallToPrintStackTrace
-          e.printStackTrace();
+    public void run(Experiment experiment, boolean verbose) {
+        ProjectInfoProvider.of(getClass()).ifPresent(pi -> L.info("Starting %s".formatted(pi)));
+        // preapare factories
+        List<? extends ListenerFactory<? super POCPopulationState<?, ?, ?, ?, ?>, Run<?, ?, ?, ?>>> factories =
+                experiment.listeners().stream()
+                        .map(l -> l.apply(experiment, listenerExecutorService))
+                        .toList();
+        ListenerFactory<? super POCPopulationState<?, ?, ?, ?, ?>, Run<?, ?, ?, ?>> factory =
+                ListenerFactory.all(factories);
+        List<ProgressMonitor> progressMonitors = factories.stream()
+                .filter(f -> f instanceof ProgressMonitor)
+                .map(f -> (ProgressMonitor) f)
+                .toList();
+        ProgressMonitor progressMonitor = progressMonitors.isEmpty()
+                ? new ScreenProgressMonitor(System.out)
+                : ProgressMonitor.all(progressMonitors);
+        // start experiments
+        record RunOutcome(Run<?, ?, ?, ?> run, Future<Collection<?>> future) {}
+        List<RunOutcome> runOutcomes = experiment.runs().stream()
+                .map(run -> new RunOutcome(run, experimentExecutorService.submit(() -> {
+                    progressMonitor.notify(
+                            run.index(),
+                            experiment.runs().size(),
+                            "Starting:%n%s".formatted(MapNamedParamMap.prettyToString(run.map(), 40)));
+                    Instant startingT = Instant.now();
+                    Collection<?> solutions = run.run(runExecutorService, factory.build(run));
+                    double elapsedT = Duration.between(startingT, Instant.now()).toMillis() / 1000d;
+                    String msg = String.format(
+                            "Run %d of %d done in %.2fs, found %d solutions",
+                            run.index() + 1, experiment.runs().size(), elapsedT, solutions.size());
+                    L.fine(msg);
+                    progressMonitor.notify(run.index() + 1, experiment.runs().size(), msg);
+                    return solutions;
+                })))
+                .toList();
+        // wait for results
+        runOutcomes.forEach(runOutcome -> {
+            try {
+                runOutcome.future().get();
+            } catch (InterruptedException | ExecutionException e) {
+                L.warning(String.format("Cannot solve %s: %s", runOutcome.run().map(), e));
+                if (verbose) {
+                    //noinspection CallToPrintStackTrace
+                    e.printStackTrace();
+                }
+            }
+        });
+        if (closeListeners) {
+            L.info("Closing");
+            experimentExecutorService.shutdown();
+            runExecutorService.shutdown();
+            listenerExecutorService.shutdown();
+            while (true) {
+                try {
+                    if (listenerExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
         }
-      }
-    });
-    if (closeListeners) {
-      L.info("Closing");
-      experimentExecutorService.shutdown();
-      runExecutorService.shutdown();
-      listenerExecutorService.shutdown();
-      while (true) {
         try {
-          if (listenerExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
-            break;
-          }
-        } catch (InterruptedException e) {
-          // ignore
+            factory.shutdown();
+        } catch (Throwable e) {
+            L.warning(String.format("Listener %s cannot shutdown() event: %s", factory, e));
+            if (verbose) {
+                //noinspection CallToPrintStackTrace
+                e.printStackTrace();
+            }
         }
-      }
     }
-    try {
-      factory.shutdown();
-    } catch (Throwable e) {
-      L.warning(String.format("Listener %s cannot shutdown() event: %s", factory, e));
-      if (verbose) {
-        //noinspection CallToPrintStackTrace
-        e.printStackTrace();
-      }
-    }
-  }
 }

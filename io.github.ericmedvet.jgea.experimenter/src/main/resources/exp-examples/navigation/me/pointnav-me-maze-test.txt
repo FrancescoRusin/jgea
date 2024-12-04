@@ -1,0 +1,63 @@
+$nEval = 100000
+ea.experiment(
+    runs = (randomGenerator = (seed = [-1]) * [m.defaultRG()]) *
+        (
+            problem = ea.p.numEnvTo(
+                dT = 0.1;
+                finalT = 30;
+                environment = ds.e.pointNavigation(
+                    arena = BLOCKY_MAZE;
+                    initialRobotXRange = m.range(min = 0.5; max = 0.5);
+                    initialRobotYRange = m.range(min = 0.75; max = 0.75);
+                    robotMaxV = 0.05
+                );
+                f = ds.e.n.avgD();
+                type = MINIMIZE
+            )
+        ) *
+        [
+            ea.run(
+                solver = ea.s.mapElites(
+                    name = "pointnav-blocky-poly";
+                    representation = ea.r.doubleString();
+                    mapper = ea.m.dsToNpnds(npnds = ds.num.mdPolynomial(degree = 3));
+                    nPop = 200;
+                    nEval = $nEval;
+                    descriptors = [
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.x(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        );
+                        ea.s.me.d.descriptor(
+                            f = ds.e.n.y(of = ds.e.n.finalRobotP(of = ea.f.simOutcome(of = ea.f.quality())));
+                            min = 0;
+                            max = 1;
+                            nOfBins = 10
+                        )
+                    ]
+                )
+            )
+        ];
+    listeners = [
+        ea.l.allCsv(
+            path = "/home/francescorusin/Desktop/Work/MapElites/blocky_success.csv";
+            individualFunctions = [
+                ea.f.simQuality(of = ea.f.quality());
+                f.toBase64(of = ea.function.genotype())
+            ];
+            functions = [];
+            runFunctions = [];
+            deferred = true;
+            onlyLast = false
+        );
+        ea.l.onRunDone(
+            of = ea.acc.lastBest();
+            preprocessor = ea.f.toImage(image = ds.d.pointNavigation(); of = ea.f.simOutcome(of = ea.f.quality()));
+            consumers = [
+                ea.c.saver(path = "/home/francescorusin/Desktop/Work/MapElites/{run.solver.name}-best-trajectory")
+            ]
+        )
+    ]
+)

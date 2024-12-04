@@ -29,12 +29,12 @@ import java.util.function.Predicate;
 
 @Discoverable(prefixTemplate = "ea.plot.multi|m")
 public class MultiPlots {
-  private MultiPlots() {}
+    private MultiPlots() {}
 
-  @SuppressWarnings("unused")
-  @Alias(
-      name = "xyExp",
-      value = // spotless:off
+    @SuppressWarnings("unused")
+    @Alias(
+            name = "xyExp",
+            value = // spotless:off
           """
               xy(
                 xSubplot = ea.f.runString(name = none; s = "_");
@@ -43,49 +43,49 @@ public class MultiPlots {
                 x = f.quantized(of = ea.f.nOfEvals(); q = 500)
               )
               """) // spotless:on
-  @Alias(
-      name = "quality",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "quality",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
       """
           xyExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
-  @Alias(
-      name = "uniqueness",
-      value = // spotless:off
+    @Alias(
+            name = "uniqueness",
+            value = // spotless:off
           """
               xyExp(y = f.uniqueness(of = f.each(mapF = ea.f.genotype(); of = ea.f.all())))
               """) // spotless:on
-  public static <E, R> AggregatedXYDataSeriesMRPAF<E, R, String> xy(
-      @Param("xSubplot") Function<? super R, String> xSubplotFunction,
-      @Param("ySubplot") Function<? super R, String> ySubplotFunction,
-      @Param("line") Function<? super R, String> lineFunction,
-      @Param("x") Function<? super E, ? extends Number> xFunction,
-      @Param("y") Function<? super E, ? extends Number> yFunction,
-      @Param(value = "valueAggregator", dNPM = "f.median()") Function<List<Number>, Number> valueAggregator,
-      @Param(value = "minAggregator", dNPM = "f.percentile(p=25)") Function<List<Number>, Number> minAggregator,
-      @Param(value = "maxAggregator", dNPM = "f.percentile(p=75)") Function<List<Number>, Number> maxAggregator,
-      @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
-    return new AggregatedXYDataSeriesMRPAF<>(
-        xSubplotFunction,
-        ySubplotFunction,
-        lineFunction,
-        xFunction,
-        yFunction,
-        valueAggregator,
-        minAggregator,
-        maxAggregator,
-        xRange,
-        yRange);
-  }
+    public static <E, R> AggregatedXYDataSeriesMRPAF<E, R, String> xy(
+            @Param("xSubplot") Function<? super R, String> xSubplotFunction,
+            @Param("ySubplot") Function<? super R, String> ySubplotFunction,
+            @Param("line") Function<? super R, String> lineFunction,
+            @Param("x") Function<? super E, ? extends Number> xFunction,
+            @Param("y") Function<? super E, ? extends Number> yFunction,
+            @Param(value = "valueAggregator", dNPM = "f.median()") Function<List<Number>, Number> valueAggregator,
+            @Param(value = "minAggregator", dNPM = "f.percentile(p=25)") Function<List<Number>, Number> minAggregator,
+            @Param(value = "maxAggregator", dNPM = "f.percentile(p=75)") Function<List<Number>, Number> maxAggregator,
+            @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
+            @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+        return new AggregatedXYDataSeriesMRPAF<>(
+                xSubplotFunction,
+                ySubplotFunction,
+                lineFunction,
+                xFunction,
+                yFunction,
+                valueAggregator,
+                minAggregator,
+                maxAggregator,
+                xRange,
+                yRange);
+    }
 
-  @SuppressWarnings("unused")
-  @Alias(
-      name = "yBoxplotExp",
-      value = // spotless:off
+    @SuppressWarnings("unused")
+    @Alias(
+            name = "yBoxplotExp",
+            value = // spotless:off
           """
               yBoxplot(
                 xSubplot = ea.f.runString(name = none; s = "_");
@@ -95,30 +95,30 @@ public class MultiPlots {
                 condition = predicate.gtEq(t = 1)
               )
               """) // spotless:on
-  @Alias(
-      name = "qualityBoxplot",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "qualityBoxplot",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
       """
           yBoxplotExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
-  @Alias(
-      name = "uniquenessBoxplot",
-      value = // spotless:off
+    @Alias(
+            name = "uniquenessBoxplot",
+            value = // spotless:off
           """
               yBoxplotExp(y = f.uniqueness(of = f.each(mapF = ea.f.genotype(); of = ea.f.all())))
               """) // spotless:on
-  public static <E, R, X> DistributionMRPAF<E, R, String, X> yBoxplot(
-      @Param("xSubplot") Function<? super R, String> xSubplotFunction,
-      @Param("ySubplot") Function<? super R, String> ySubplotFunction,
-      @Param("box") Function<? super R, String> boxFunction,
-      @Param("y") Function<? super E, ? extends Number> yFunction,
-      @Param("predicateValue") Function<E, X> predicateValueFunction,
-      @Param(value = "condition", dNPM = "predicate.gtEq(t=1)") Predicate<X> condition,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
-    return new DistributionMRPAF<>(
-        xSubplotFunction, ySubplotFunction, boxFunction, yFunction, predicateValueFunction, condition, yRange);
-  }
+    public static <E, R, X> DistributionMRPAF<E, R, String, X> yBoxplot(
+            @Param("xSubplot") Function<? super R, String> xSubplotFunction,
+            @Param("ySubplot") Function<? super R, String> ySubplotFunction,
+            @Param("box") Function<? super R, String> boxFunction,
+            @Param("y") Function<? super E, ? extends Number> yFunction,
+            @Param("predicateValue") Function<E, X> predicateValueFunction,
+            @Param(value = "condition", dNPM = "predicate.gtEq(t=1)") Predicate<X> condition,
+            @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+        return new DistributionMRPAF<>(
+                xSubplotFunction, ySubplotFunction, boxFunction, yFunction, predicateValueFunction, condition, yRange);
+    }
 }

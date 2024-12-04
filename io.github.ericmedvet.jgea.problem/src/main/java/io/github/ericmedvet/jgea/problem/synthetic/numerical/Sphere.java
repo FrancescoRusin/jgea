@@ -22,7 +22,7 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 public class Sphere extends AbstractNumericalProblem {
 
-  public Sphere(int p) {
-    super(p, vs -> vs.stream().mapToDouble(v -> v * v).sum());
-  }
+    public Sphere(int p) {
+        super(p, vs -> vs.stream().mapToDouble(v -> v * v).sum());
+    }
 }

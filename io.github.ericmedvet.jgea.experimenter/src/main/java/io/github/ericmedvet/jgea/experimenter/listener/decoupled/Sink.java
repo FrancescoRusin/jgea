@@ -23,11 +23,11 @@ import java.time.LocalDateTime;
 
 public interface Sink<K, V> {
 
-  void push(LocalDateTime t, K k, V v);
+    void push(LocalDateTime t, K k, V v);
 
-  default void push(K k, V v) {
-    push(LocalDateTime.now(), k, v);
-  }
+    default void push(K k, V v) {
+        push(LocalDateTime.now(), k, v);
+    }
 
-  default void close() {}
+    default void close() {}
 }

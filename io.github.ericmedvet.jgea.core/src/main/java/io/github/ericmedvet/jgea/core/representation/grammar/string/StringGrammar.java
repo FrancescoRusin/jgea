@@ -27,82 +27,82 @@ import java.util.regex.Pattern;
 
 public class StringGrammar<T> implements Serializable, Grammar<T, List<T>> {
 
-  public static final String RULE_ASSIGNMENT_STRING = "::=";
-  public static final String RULE_OPTION_SEPARATOR_STRING = "|";
-  private final Map<T, List<List<T>>> rules;
-  private T startingSymbol;
+    public static final String RULE_ASSIGNMENT_STRING = "::=";
+    public static final String RULE_OPTION_SEPARATOR_STRING = "|";
+    private final Map<T, List<List<T>>> rules;
+    private T startingSymbol;
 
-  public StringGrammar() {
-    rules = new LinkedHashMap<>();
-  }
-
-  public static StringGrammar<String> load(InputStream inputStream) throws IOException {
-    return load(inputStream, "UTF-8");
-  }
-
-  public static StringGrammar<String> load(InputStream inputStream, String charset) throws IOException {
-    StringGrammar<String> grammar = new StringGrammar<>();
-    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, charset));
-    String line;
-    while ((line = br.readLine()) != null) {
-      String[] components = line.split(Pattern.quote(RULE_ASSIGNMENT_STRING));
-      String toReplaceSymbol = components[0].trim();
-      String[] optionStrings = components[1].split(Pattern.quote(RULE_OPTION_SEPARATOR_STRING));
-      if (grammar.startingSymbol() == null) {
-        grammar.setStartingSymbol(toReplaceSymbol);
-      }
-      List<List<String>> options = new ArrayList<>();
-      for (String optionString : optionStrings) {
-        List<String> symbols = new ArrayList<>();
-        for (String symbol : optionString.split("\\s+")) {
-          if (!symbol.trim().isEmpty()) {
-            symbols.add(symbol.trim());
-          }
-        }
-        if (!symbols.isEmpty()) {
-          options.add(symbols);
-        }
-      }
-      grammar.rules().put(toReplaceSymbol, options);
+    public StringGrammar() {
+        rules = new LinkedHashMap<>();
     }
-    br.close();
-    return grammar;
-  }
 
-  public Map<T, List<List<T>>> rules() {
-    return rules;
-  }
-
-  public T startingSymbol() {
-    return startingSymbol;
-  }
-
-  @Override
-  public Collection<T> usedSymbols(List<T> ts) {
-    return ts;
-  }
-
-  public void setStartingSymbol(T startingSymbol) {
-    this.startingSymbol = startingSymbol;
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    for (Map.Entry<T, List<List<T>>> rule : rules.entrySet()) {
-      sb.append(rule.getKey())
-          .append(" ")
-          .append(rule.getKey().equals(startingSymbol) ? "*" : "")
-          .append(RULE_ASSIGNMENT_STRING + " ");
-      for (List<T> option : rule.getValue()) {
-        for (T symbol : option) {
-          sb.append(symbol).append(" ");
-        }
-        sb.append(RULE_OPTION_SEPARATOR_STRING + " ");
-      }
-      sb.delete(sb.length() - 2 - RULE_OPTION_SEPARATOR_STRING.length(), sb.length());
-      sb.append("\n");
+    public static StringGrammar<String> load(InputStream inputStream) throws IOException {
+        return load(inputStream, "UTF-8");
     }
-    return sb.toString();
-  }
+
+    public static StringGrammar<String> load(InputStream inputStream, String charset) throws IOException {
+        StringGrammar<String> grammar = new StringGrammar<>();
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, charset));
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] components = line.split(Pattern.quote(RULE_ASSIGNMENT_STRING));
+            String toReplaceSymbol = components[0].trim();
+            String[] optionStrings = components[1].split(Pattern.quote(RULE_OPTION_SEPARATOR_STRING));
+            if (grammar.startingSymbol() == null) {
+                grammar.setStartingSymbol(toReplaceSymbol);
+            }
+            List<List<String>> options = new ArrayList<>();
+            for (String optionString : optionStrings) {
+                List<String> symbols = new ArrayList<>();
+                for (String symbol : optionString.split("\\s+")) {
+                    if (!symbol.trim().isEmpty()) {
+                        symbols.add(symbol.trim());
+                    }
+                }
+                if (!symbols.isEmpty()) {
+                    options.add(symbols);
+                }
+            }
+            grammar.rules().put(toReplaceSymbol, options);
+        }
+        br.close();
+        return grammar;
+    }
+
+    public Map<T, List<List<T>>> rules() {
+        return rules;
+    }
+
+    public T startingSymbol() {
+        return startingSymbol;
+    }
+
+    @Override
+    public Collection<T> usedSymbols(List<T> ts) {
+        return ts;
+    }
+
+    public void setStartingSymbol(T startingSymbol) {
+        this.startingSymbol = startingSymbol;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<T, List<List<T>>> rule : rules.entrySet()) {
+            sb.append(rule.getKey())
+                    .append(" ")
+                    .append(rule.getKey().equals(startingSymbol) ? "*" : "")
+                    .append(RULE_ASSIGNMENT_STRING + " ");
+            for (List<T> option : rule.getValue()) {
+                for (T symbol : option) {
+                    sb.append(symbol).append(" ");
+                }
+                sb.append(RULE_OPTION_SEPARATOR_STRING + " ");
+            }
+            sb.delete(sb.length() - 2 - RULE_OPTION_SEPARATOR_STRING.length(), sb.length());
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

@@ -32,105 +32,105 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public interface OpenAIESState<S, Q>
-    extends ListPopulationState<
-        Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> {
+        extends ListPopulationState<
+                Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> {
 
-  double[] center();
+    double[] center();
 
-  double[] m();
+    double[] m();
 
-  double[] v();
+    double[] v();
 
-  static <S, Q> OpenAIESState<S, Q> of(
-      LocalDateTime startingDateTime,
-      long elapsedMillis,
-      long nOfIterations,
-      TotalOrderQualityBasedProblem<S, Q> problem,
-      Predicate<State<?, ?>> stopCondition,
-      long nOfBirths,
-      long nOfQualityEvaluations,
-      Collection<Individual<List<Double>, S, Q>> listPopulation,
-      double[] center,
-      double[] m,
-      double[] v) {
-    record HardState<S, Q>(
-        LocalDateTime startingDateTime,
-        long elapsedMillis,
-        long nOfIterations,
-        TotalOrderQualityBasedProblem<S, Q> problem,
-        Predicate<State<?, ?>> stopCondition,
-        long nOfBirths,
-        long nOfQualityEvaluations,
-        PartiallyOrderedCollection<Individual<List<Double>, S, Q>> pocPopulation,
-        List<Individual<List<Double>, S, Q>> listPopulation,
-        double[] center,
-        double[] m,
-        double[] v)
-        implements OpenAIESState<S, Q> {}
-    Comparator<Individual<List<Double>, S, Q>> comparator =
-        (i1, i2) -> problem.totalOrderComparator().compare(i1.quality(), i2.quality());
-    List<Individual<List<Double>, S, Q>> sortedListPopulation =
-        listPopulation.stream().sorted(comparator).toList();
-    return new HardState<>(
-        startingDateTime,
-        elapsedMillis,
-        nOfIterations,
-        problem,
-        stopCondition,
-        nOfBirths,
-        nOfQualityEvaluations,
-        PartiallyOrderedCollection.from(sortedListPopulation, comparator),
-        sortedListPopulation,
-        center,
-        m,
-        v);
-  }
+    static <S, Q> OpenAIESState<S, Q> of(
+            LocalDateTime startingDateTime,
+            long elapsedMillis,
+            long nOfIterations,
+            TotalOrderQualityBasedProblem<S, Q> problem,
+            Predicate<State<?, ?>> stopCondition,
+            long nOfBirths,
+            long nOfQualityEvaluations,
+            Collection<Individual<List<Double>, S, Q>> listPopulation,
+            double[] center,
+            double[] m,
+            double[] v) {
+        record HardState<S, Q>(
+                LocalDateTime startingDateTime,
+                long elapsedMillis,
+                long nOfIterations,
+                TotalOrderQualityBasedProblem<S, Q> problem,
+                Predicate<State<?, ?>> stopCondition,
+                long nOfBirths,
+                long nOfQualityEvaluations,
+                PartiallyOrderedCollection<Individual<List<Double>, S, Q>> pocPopulation,
+                List<Individual<List<Double>, S, Q>> listPopulation,
+                double[] center,
+                double[] m,
+                double[] v)
+                implements OpenAIESState<S, Q> {}
+        Comparator<Individual<List<Double>, S, Q>> comparator =
+                (i1, i2) -> problem.totalOrderComparator().compare(i1.quality(), i2.quality());
+        List<Individual<List<Double>, S, Q>> sortedListPopulation =
+                listPopulation.stream().sorted(comparator).toList();
+        return new HardState<>(
+                startingDateTime,
+                elapsedMillis,
+                nOfIterations,
+                problem,
+                stopCondition,
+                nOfBirths,
+                nOfQualityEvaluations,
+                PartiallyOrderedCollection.from(sortedListPopulation, comparator),
+                sortedListPopulation,
+                center,
+                m,
+                v);
+    }
 
-  static <S, Q> OpenAIESState<S, Q> empty(
-      TotalOrderQualityBasedProblem<S, Q> problem, Predicate<State<?, ?>> stopCondition, double[] center) {
-    return of(
-        LocalDateTime.now(),
-        0,
-        0,
-        problem,
-        stopCondition,
-        0,
-        0,
-        List.of(),
-        center,
-        new double[center.length],
-        new double[center.length]);
-  }
+    static <S, Q> OpenAIESState<S, Q> empty(
+            TotalOrderQualityBasedProblem<S, Q> problem, Predicate<State<?, ?>> stopCondition, double[] center) {
+        return of(
+                LocalDateTime.now(),
+                0,
+                0,
+                problem,
+                stopCondition,
+                0,
+                0,
+                List.of(),
+                center,
+                new double[center.length],
+                new double[center.length]);
+    }
 
-  default OpenAIESState<S, Q> updatedWithIteration(
-      Collection<Individual<List<Double>, S, Q>> listPopulation, double[] center, double[] m, double[] v) {
-    return of(
-        startingDateTime(),
-        ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
-        nOfIterations() + 1,
-        problem(),
-        stopCondition(),
-        nOfBirths() + listPopulation.size(),
-        nOfQualityEvaluations() + listPopulation.size(),
-        listPopulation,
-        center,
-        m,
-        v);
-  }
+    default OpenAIESState<S, Q> updatedWithIteration(
+            Collection<Individual<List<Double>, S, Q>> listPopulation, double[] center, double[] m, double[] v) {
+        return of(
+                startingDateTime(),
+                ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
+                nOfIterations() + 1,
+                problem(),
+                stopCondition(),
+                nOfBirths() + listPopulation.size(),
+                nOfQualityEvaluations() + listPopulation.size(),
+                listPopulation,
+                center,
+                m,
+                v);
+    }
 
-  @Override
-  default OpenAIESState<S, Q> updatedWithProblem(TotalOrderQualityBasedProblem<S, Q> problem) {
-    return of(
-        startingDateTime(),
-        elapsedMillis(),
-        nOfIterations(),
-        problem,
-        stopCondition(),
-        nOfBirths(),
-        nOfQualityEvaluations(),
-        listPopulation(),
-        center(),
-        m(),
-        v());
-  }
+    @Override
+    default OpenAIESState<S, Q> updatedWithProblem(TotalOrderQualityBasedProblem<S, Q> problem) {
+        return of(
+                startingDateTime(),
+                elapsedMillis(),
+                nOfIterations(),
+                problem,
+                stopCondition(),
+                nOfBirths(),
+                nOfQualityEvaluations(),
+                listPopulation(),
+                center(),
+                m(),
+                v());
+    }
 }

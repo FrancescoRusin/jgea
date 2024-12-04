@@ -31,40 +31,40 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class MultiModalIntOneMax implements MultiTargetProblem<IntString>, ProblemWithExampleSolution<IntString> {
-  private final int p;
-  private final int upperBound;
-  private final Distance<IntString> distance;
-  private final List<IntString> targets;
+    private final int p;
+    private final int upperBound;
+    private final Distance<IntString> distance;
+    private final List<IntString> targets;
 
-  public MultiModalIntOneMax(int p, int upperBound, int nOfTargets) {
-    this.p = p;
-    this.upperBound = upperBound;
-    Distance<IntString> innerD = new Hamming<Integer>().on(IntString::genes);
-    distance = (is1, is2) -> innerD.apply(is1, is2) / (double) p;
-    int s = p / nOfTargets;
-    targets = IntStream.range(0, nOfTargets)
-        .mapToObj(i -> new IntString(
-            IntStream.range(0, p)
-                .map(gi -> (i * s <= gi && gi < (i + 1) * s) ? (upperBound - 1) : 0)
-                .boxed()
-                .toList(),
-            0,
-            upperBound))
-        .toList();
-  }
+    public MultiModalIntOneMax(int p, int upperBound, int nOfTargets) {
+        this.p = p;
+        this.upperBound = upperBound;
+        Distance<IntString> innerD = new Hamming<Integer>().on(IntString::genes);
+        distance = (is1, is2) -> innerD.apply(is1, is2) / (double) p;
+        int s = p / nOfTargets;
+        targets = IntStream.range(0, nOfTargets)
+                .mapToObj(i -> new IntString(
+                        IntStream.range(0, p)
+                                .map(gi -> (i * s <= gi && gi < (i + 1) * s) ? (upperBound - 1) : 0)
+                                .boxed()
+                                .toList(),
+                        0,
+                        upperBound))
+                .toList();
+    }
 
-  @Override
-  public Distance<IntString> distance() {
-    return distance;
-  }
+    @Override
+    public Distance<IntString> distance() {
+        return distance;
+    }
 
-  @Override
-  public Collection<IntString> targets() {
-    return targets;
-  }
+    @Override
+    public Collection<IntString> targets() {
+        return targets;
+    }
 
-  @Override
-  public IntString example() {
-    return new IntString(Collections.nCopies(p, 0), 0, upperBound);
-  }
+    @Override
+    public IntString example() {
+        return new IntString(Collections.nCopies(p, 0), 0, upperBound);
+    }
 }

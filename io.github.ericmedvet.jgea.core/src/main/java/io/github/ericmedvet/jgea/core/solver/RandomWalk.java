@@ -29,12 +29,12 @@ import java.util.function.Predicate;
 
 public class RandomWalk<G, S, Q> extends MutationOnly<G, S, Q> {
 
-  public RandomWalk(
-      Function<? super G, ? extends S> solutionMapper,
-      Factory<? extends G> genotypeFactory,
-      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
-          stopCondition,
-      Mutation<G> mutation) {
-    super(solutionMapper, genotypeFactory, 1, stopCondition, new Last(), mutation);
-  }
+    public RandomWalk(
+            Function<? super G, ? extends S> solutionMapper,
+            Factory<? extends G> genotypeFactory,
+            Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
+                    stopCondition,
+            Mutation<G> mutation) {
+        super(solutionMapper, genotypeFactory, 1, stopCondition, new Last(), mutation);
+    }
 }

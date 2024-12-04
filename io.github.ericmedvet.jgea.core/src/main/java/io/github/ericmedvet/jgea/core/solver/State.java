@@ -27,59 +27,59 @@ import java.util.function.Predicate;
 
 public interface State<P extends Problem<S>, S> {
 
-  long elapsedMillis();
+    long elapsedMillis();
 
-  long nOfIterations();
+    long nOfIterations();
 
-  P problem();
+    P problem();
 
-  LocalDateTime startingDateTime();
+    LocalDateTime startingDateTime();
 
-  Predicate<State<?, ?>> stopCondition();
+    Predicate<State<?, ?>> stopCondition();
 
-  static <P extends Problem<S>, S> State<P, S> of(
-      LocalDateTime startingDateTime,
-      long elapsedMillis,
-      long nOfIterations,
-      P problem,
-      Predicate<State<?, ?>> stopCondition) {
-    record HardState<P extends Problem<S>, S>(
-        LocalDateTime startingDateTime,
-        long elapsedMillis,
-        long nOfIterations,
-        P problem,
-        Predicate<State<?, ?>> stopCondition)
-        implements State<P, S> {}
-    return new HardState<>(startingDateTime, elapsedMillis, nOfIterations, problem, stopCondition);
-  }
-
-  static <P extends Problem<S>, S> State<P, S> empty(P problem, Predicate<State<?, ?>> stopCondition) {
-    return of(LocalDateTime.now(), 0, 0, problem, stopCondition);
-  }
-
-  default Progress progress() {
-    //noinspection rawtypes
-    if (stopCondition() instanceof ProgressBasedStopCondition condition) {
-      try {
-        //noinspection unchecked
-        return condition.progress(this);
-      } catch (ClassCastException ex) {
-        return Progress.NA;
-      }
+    static <P extends Problem<S>, S> State<P, S> of(
+            LocalDateTime startingDateTime,
+            long elapsedMillis,
+            long nOfIterations,
+            P problem,
+            Predicate<State<?, ?>> stopCondition) {
+        record HardState<P extends Problem<S>, S>(
+                LocalDateTime startingDateTime,
+                long elapsedMillis,
+                long nOfIterations,
+                P problem,
+                Predicate<State<?, ?>> stopCondition)
+                implements State<P, S> {}
+        return new HardState<>(startingDateTime, elapsedMillis, nOfIterations, problem, stopCondition);
     }
-    return Progress.NA;
-  }
 
-  default State<P, S> updatedWithIteration() {
-    return of(
-        startingDateTime(),
-        ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
-        nOfIterations() + 1,
-        problem(),
-        stopCondition());
-  }
+    static <P extends Problem<S>, S> State<P, S> empty(P problem, Predicate<State<?, ?>> stopCondition) {
+        return of(LocalDateTime.now(), 0, 0, problem, stopCondition);
+    }
 
-  default State<P, S> updatedWithProblem(P problem) {
-    return of(startingDateTime(), elapsedMillis(), nOfIterations(), problem, stopCondition());
-  }
+    default Progress progress() {
+        //noinspection rawtypes
+        if (stopCondition() instanceof ProgressBasedStopCondition condition) {
+            try {
+                //noinspection unchecked
+                return condition.progress(this);
+            } catch (ClassCastException ex) {
+                return Progress.NA;
+            }
+        }
+        return Progress.NA;
+    }
+
+    default State<P, S> updatedWithIteration() {
+        return of(
+                startingDateTime(),
+                ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
+                nOfIterations() + 1,
+                problem(),
+                stopCondition());
+    }
+
+    default State<P, S> updatedWithProblem(P problem) {
+        return of(startingDateTime(), elapsedMillis(), nOfIterations(), problem, stopCondition());
+    }
 }

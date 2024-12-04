@@ -23,7 +23,7 @@ import io.github.ericmedvet.jgea.experimenter.listener.net.NetUtils;
 import java.io.Serializable;
 
 public record MachineKey(String value) implements Serializable {
-  public static MachineKey local() {
-    return new MachineKey(NetUtils.getMachineName());
-  }
+    public static MachineKey local() {
+        return new MachineKey(NetUtils.getMachineName());
+    }
 }

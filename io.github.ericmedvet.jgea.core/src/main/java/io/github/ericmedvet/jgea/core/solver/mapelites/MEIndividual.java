@@ -26,64 +26,64 @@ import java.util.List;
 
 public interface MEIndividual<G, S, Q> extends Individual<G, S, Q> {
 
-  List<MapElites.Descriptor.Coordinate> coordinates();
+    List<MapElites.Descriptor.Coordinate> coordinates();
 
-  default List<Integer> bins() {
-    return coordinates().stream().map(MapElites.Descriptor.Coordinate::bin).toList();
-  }
+    default List<Integer> bins() {
+        return coordinates().stream().map(MapElites.Descriptor.Coordinate::bin).toList();
+    }
 
-  static <G, S, Q> MEIndividual<G, S, Q> from(
-      Individual<G, S, Q> individual, List<MapElites.Descriptor<G, S, Q>> descriptors) {
-    return of(
-        individual.id(),
-        individual.genotype(),
-        individual.solution(),
-        individual.quality(),
-        individual.genotypeBirthIteration(),
-        individual.qualityMappingIteration(),
-        individual.parentIds(),
-        descriptors.stream().map(d -> d.coordinate(individual)).toList());
-  }
+    static <G, S, Q> MEIndividual<G, S, Q> from(
+            Individual<G, S, Q> individual, List<MapElites.Descriptor<G, S, Q>> descriptors) {
+        return of(
+                individual.id(),
+                individual.genotype(),
+                individual.solution(),
+                individual.quality(),
+                individual.genotypeBirthIteration(),
+                individual.qualityMappingIteration(),
+                individual.parentIds(),
+                descriptors.stream().map(d -> d.coordinate(individual)).toList());
+    }
 
-  static <G, S, Q> MEIndividual<G, S, Q> of(
-      long id,
-      G genotype,
-      S solution,
-      Q quality,
-      long genotypeBirthIteration,
-      long qualityMappingIteration,
-      Collection<Long> parentIds,
-      List<MapElites.Descriptor.Coordinate> coordinates) {
-    record HardIndividual<G, S, Q>(
-        long id,
-        G genotype,
-        S solution,
-        Q quality,
-        long genotypeBirthIteration,
-        long qualityMappingIteration,
-        Collection<Long> parentIds,
-        List<MapElites.Descriptor.Coordinate> coordinates)
-        implements MEIndividual<G, S, Q> {}
-    return new HardIndividual<>(
-        id,
-        genotype,
-        solution,
-        quality,
-        genotypeBirthIteration,
-        qualityMappingIteration,
-        parentIds,
-        coordinates);
-  }
+    static <G, S, Q> MEIndividual<G, S, Q> of(
+            long id,
+            G genotype,
+            S solution,
+            Q quality,
+            long genotypeBirthIteration,
+            long qualityMappingIteration,
+            Collection<Long> parentIds,
+            List<MapElites.Descriptor.Coordinate> coordinates) {
+        record HardIndividual<G, S, Q>(
+                long id,
+                G genotype,
+                S solution,
+                Q quality,
+                long genotypeBirthIteration,
+                long qualityMappingIteration,
+                Collection<Long> parentIds,
+                List<MapElites.Descriptor.Coordinate> coordinates)
+                implements MEIndividual<G, S, Q> {}
+        return new HardIndividual<>(
+                id,
+                genotype,
+                solution,
+                quality,
+                genotypeBirthIteration,
+                qualityMappingIteration,
+                parentIds,
+                coordinates);
+    }
 
-  default MEIndividual<G, S, Q> updatedWithQuality(Q q) {
-    return of(
-        id(),
-        genotype(),
-        solution(),
-        q,
-        genotypeBirthIteration(),
-        qualityMappingIteration(),
-        parentIds(),
-        coordinates());
-  }
+    default MEIndividual<G, S, Q> updatedWithQuality(Q q) {
+        return of(
+                id(),
+                genotype(),
+                solution(),
+                q,
+                genotypeBirthIteration(),
+                qualityMappingIteration(),
+                parentIds(),
+                coordinates());
+    }
 }

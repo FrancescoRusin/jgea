@@ -27,30 +27,30 @@ import java.util.random.RandomGenerator;
 
 public interface IterativeSolver<T extends State<P, S>, P extends Problem<S>, S> extends Solver<P, S> {
 
-  Collection<S> extractSolutions(P problem, RandomGenerator random, ExecutorService executor, T state)
-      throws SolverException;
+    Collection<S> extractSolutions(P problem, RandomGenerator random, ExecutorService executor, T state)
+            throws SolverException;
 
-  T init(P problem, RandomGenerator random, ExecutorService executor) throws SolverException;
+    T init(P problem, RandomGenerator random, ExecutorService executor) throws SolverException;
 
-  boolean terminate(RandomGenerator random, ExecutorService executor, T state) throws SolverException;
+    boolean terminate(RandomGenerator random, ExecutorService executor, T state) throws SolverException;
 
-  T update(RandomGenerator random, ExecutorService executor, T state) throws SolverException;
+    T update(RandomGenerator random, ExecutorService executor, T state) throws SolverException;
 
-  @Override
-  default Collection<S> solve(P problem, RandomGenerator random, ExecutorService executor) throws SolverException {
-    return solve(problem, random, executor, Listener.deaf());
-  }
-
-  default Collection<S> solve(
-      P problem, RandomGenerator random, ExecutorService executor, Listener<? super T> listener)
-      throws SolverException {
-    T state = init(problem, random, executor);
-    listener.listen(state);
-    while (!terminate(random, executor, state)) {
-      state = update(random, executor, state);
-      listener.listen(state);
+    @Override
+    default Collection<S> solve(P problem, RandomGenerator random, ExecutorService executor) throws SolverException {
+        return solve(problem, random, executor, Listener.deaf());
     }
-    listener.done();
-    return extractSolutions(problem, random, executor, state);
-  }
+
+    default Collection<S> solve(
+            P problem, RandomGenerator random, ExecutorService executor, Listener<? super T> listener)
+            throws SolverException {
+        T state = init(problem, random, executor);
+        listener.listen(state);
+        while (!terminate(random, executor, state)) {
+            state = update(random, executor, state);
+            listener.listen(state);
+        }
+        listener.done();
+        return extractSolutions(problem, random, executor, state);
+    }
 }

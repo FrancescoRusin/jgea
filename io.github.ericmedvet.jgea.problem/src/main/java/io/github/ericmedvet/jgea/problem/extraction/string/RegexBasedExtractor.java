@@ -33,61 +33,61 @@ import java.util.stream.Collectors;
 
 public class RegexBasedExtractor implements Extractor<Character>, Sized {
 
-  private final String regex;
+    private final String regex;
 
-  public RegexBasedExtractor(String regex) {
-    this.regex = regex;
-  }
-
-  @Override
-  public Set<IntRange> extract(List<Character> sequence) {
-    String string = sequence.stream().map(String::valueOf).collect(Collectors.joining());
-    if (Pattern.compile(regex).matcher("").matches()) {
-      return Set.of();
+    public RegexBasedExtractor(String regex) {
+        this.regex = regex;
     }
-    Matcher matcher = Pattern.compile(regex).matcher(string);
-    Set<IntRange> extractions = new LinkedHashSet<>();
-    int s = 0;
-    while (matcher.find(s)) {
-      IntRange extraction = new IntRange(matcher.start(), matcher.end());
-      s = extraction.max();
-      extractions.add(extraction);
+
+    @Override
+    public Set<IntRange> extract(List<Character> sequence) {
+        String string = sequence.stream().map(String::valueOf).collect(Collectors.joining());
+        if (Pattern.compile(regex).matcher("").matches()) {
+            return Set.of();
+        }
+        Matcher matcher = Pattern.compile(regex).matcher(string);
+        Set<IntRange> extractions = new LinkedHashSet<>();
+        int s = 0;
+        while (matcher.find(s)) {
+            IntRange extraction = new IntRange(matcher.start(), matcher.end());
+            s = extraction.max();
+            extractions.add(extraction);
+        }
+        return extractions;
     }
-    return extractions;
-  }
 
-  @Override
-  public boolean match(List<Character> sequence) {
-    String string = sequence.stream().map(String::valueOf).collect(Collectors.joining());
-    Matcher matcher = Pattern.compile(regex).matcher(string);
-    return matcher.matches();
-  }
+    @Override
+    public boolean match(List<Character> sequence) {
+        String string = sequence.stream().map(String::valueOf).collect(Collectors.joining());
+        Matcher matcher = Pattern.compile(regex).matcher(string);
+        return matcher.matches();
+    }
 
-  @Override
-  public Set<IntRange> extractNonOverlapping(List<Character> sequence) {
-    return extract(sequence);
-  }
+    @Override
+    public Set<IntRange> extractNonOverlapping(List<Character> sequence) {
+        return extract(sequence);
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(regex);
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hash(regex);
+    }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    RegexBasedExtractor that = (RegexBasedExtractor) o;
-    return regex.equals(that.regex);
-  }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RegexBasedExtractor that = (RegexBasedExtractor) o;
+        return regex.equals(that.regex);
+    }
 
-  @Override
-  public String toString() {
-    return regex;
-  }
+    @Override
+    public String toString() {
+        return regex;
+    }
 
-  @Override
-  public int size() {
-    return regex.length();
-  }
+    @Override
+    public int size() {
+        return regex.length();
+    }
 }

@@ -28,41 +28,41 @@ import java.util.function.Function;
 
 public record IndexedNode<C>(int index, C content) implements Serializable {
 
-  public static <H, K extends H> Function<K, IndexedNode<H>> hashMapper(Class<H> c) {
-    return k -> new IndexedNode<>(Objects.hash(k.getClass(), k), k);
-  }
+    public static <H, K extends H> Function<K, IndexedNode<H>> hashMapper(Class<H> c) {
+        return k -> new IndexedNode<>(Objects.hash(k.getClass(), k), k);
+    }
 
-  public static <H, K extends H> Function<K, IndexedNode<H>> incrementerMapper(Class<H> c) {
-    return new Function<>() {
-      private final List<K> nodes = new ArrayList<>();
+    public static <H, K extends H> Function<K, IndexedNode<H>> incrementerMapper(Class<H> c) {
+        return new Function<>() {
+            private final List<K> nodes = new ArrayList<>();
 
-      @Override
-      public synchronized IndexedNode<H> apply(K k) {
-        int index = nodes.indexOf(k);
-        if (index == -1) {
-          nodes.add(k);
-          index = nodes.size() - 1;
-        }
-        return new IndexedNode<>(index, k);
-      }
-    };
-  }
+            @Override
+            public synchronized IndexedNode<H> apply(K k) {
+                int index = nodes.indexOf(k);
+                if (index == -1) {
+                    nodes.add(k);
+                    index = nodes.size() - 1;
+                }
+                return new IndexedNode<>(index, k);
+            }
+        };
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(index);
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hash(index);
+    }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    IndexedNode<?> that = (IndexedNode<?>) o;
-    return index == that.index;
-  }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IndexedNode<?> that = (IndexedNode<?>) o;
+        return index == that.index;
+    }
 
-  @Override
-  public String toString() {
-    return content + "[" + index + "]";
-  }
+    @Override
+    public String toString() {
+        return content + "[" + index + "]";
+    }
 }

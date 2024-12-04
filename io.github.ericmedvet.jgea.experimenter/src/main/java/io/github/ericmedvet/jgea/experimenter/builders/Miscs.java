@@ -45,105 +45,105 @@ import java.util.stream.IntStream;
 @Discoverable(prefixTemplate = "ea.misc")
 public class Miscs {
 
-  private Miscs() {}
+    private Miscs() {}
 
-  @SuppressWarnings("unused")
-  public static VideoBuilder<MultivariateRealGridCellularAutomaton> caVideo(
-      @Param(value = "gray", dB = true) boolean gray,
-      @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
-      @Param(value = "nOfSteps", dI = 100) int nOfSteps,
-      @Param(value = "sizeRate", dI = 10) int sizeRate,
-      @Param(value = "marginRate", dD = 0d) double marginRate,
-      @Param(value = "frameRate", dD = 10d) double frameRate,
-      @Param(value = "fontSize", dD = 10d) double fontSize) {
-    DoubleGridDrawer gDrawer = new DoubleGridDrawer(new DoubleGridDrawer.Configuration(
-        gray ? DoubleGridDrawer.Configuration.ColorType.GRAY : DoubleGridDrawer.Configuration.ColorType.RGB,
-        caStateRange,
-        sizeRate,
-        marginRate));
-    Drawer<Pair<Integer, Grid<double[]>>> pDrawer = new Drawer<>() {
-      @Override
-      public void draw(Graphics2D g, Pair<Integer, Grid<double[]>> p) {
-        gDrawer.draw(g, p.second());
-        Drawer.stringWriter(Color.PINK, (float) fontSize, Function.identity())
-            .draw(g, "k=%3d".formatted(p.first()));
-      }
+    @SuppressWarnings("unused")
+    public static VideoBuilder<MultivariateRealGridCellularAutomaton> caVideo(
+            @Param(value = "gray", dB = true) boolean gray,
+            @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
+            @Param(value = "nOfSteps", dI = 100) int nOfSteps,
+            @Param(value = "sizeRate", dI = 10) int sizeRate,
+            @Param(value = "marginRate", dD = 0d) double marginRate,
+            @Param(value = "frameRate", dD = 10d) double frameRate,
+            @Param(value = "fontSize", dD = 10d) double fontSize) {
+        DoubleGridDrawer gDrawer = new DoubleGridDrawer(new DoubleGridDrawer.Configuration(
+                gray ? DoubleGridDrawer.Configuration.ColorType.GRAY : DoubleGridDrawer.Configuration.ColorType.RGB,
+                caStateRange,
+                sizeRate,
+                marginRate));
+        Drawer<Pair<Integer, Grid<double[]>>> pDrawer = new Drawer<>() {
+            @Override
+            public void draw(Graphics2D g, Pair<Integer, Grid<double[]>> p) {
+                gDrawer.draw(g, p.second());
+                Drawer.stringWriter(Color.PINK, (float) fontSize, Function.identity())
+                        .draw(g, "k=%3d".formatted(p.first()));
+            }
 
-      @Override
-      public ImageInfo imageInfo(Pair<Integer, Grid<double[]>> p) {
-        return gDrawer.imageInfo(p.second());
-      }
-    };
-    return VideoBuilder.from(pDrawer, Function.identity(), frameRate).on(ca -> {
-      List<Grid<double[]>> seq = ca.evolve(nOfSteps);
-      return IntStream.range(0, seq.size())
-          .mapToObj(i -> new Pair<>(i, seq.get(i)))
-          .toList();
-    });
-  }
-
-  @SuppressWarnings("unused")
-  public static Character ch(@Param("s") String s) {
-    return s.charAt(0);
-  }
-
-  @SuppressWarnings("unused")
-  public static Color colorByName(@Param("name") String name) {
-    try {
-      return (Color) Color.class.getField(name.toUpperCase()).get(null);
-    } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-      throw new RuntimeException(e);
+            @Override
+            public ImageInfo imageInfo(Pair<Integer, Grid<double[]>> p) {
+                return gDrawer.imageInfo(p.second());
+            }
+        };
+        return VideoBuilder.from(pDrawer, Function.identity(), frameRate).on(ca -> {
+            List<Grid<double[]>> seq = ca.evolve(nOfSteps);
+            return IntStream.range(0, seq.size())
+                    .mapToObj(i -> new Pair<>(i, seq.get(i)))
+                    .toList();
+        });
     }
-  }
 
-  @SuppressWarnings("unused")
-  public static Color colorByRgb(@Param("r") int r, @Param("g") int g, @Param("b") int b) {
-    return new Color(r, g, b);
-  }
+    @SuppressWarnings("unused")
+    public static Character ch(@Param("s") String s) {
+        return s.charAt(0);
+    }
 
-  @SuppressWarnings("unused")
-  public static <K, V> Map.Entry<K, V> entry(@Param("key") K key, @Param("value") V value) {
-    return Map.entry(key, value);
-  }
+    @SuppressWarnings("unused")
+    public static Color colorByName(@Param("name") String name) {
+        try {
+            return (Color) Color.class.getField(name.toUpperCase()).get(null);
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static BufferedImage imgByName(
-      @Param("name") String name,
-      @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
-      @Param(value = "w", dI = 15) int w,
-      @Param(value = "h", dI = 15) int h,
-      @Param(value = "marginRate", dD = 0.1) double marginRate) {
-    return ImageUtils.imageDrawer(bgColor, marginRate)
-        .build(new ImageBuilder.ImageInfo(w, h), ImageUtils.loadFromResource(name));
-  }
+    @SuppressWarnings("unused")
+    public static Color colorByRgb(@Param("r") int r, @Param("g") int g, @Param("b") int b) {
+        return new Color(r, g, b);
+    }
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static BufferedImage imgFromString(
-      @Param("s") String s,
-      @Param(value = "fgColor", dNPM = "ea.misc.colorByName(name = white)") Color fgColor,
-      @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
-      @Param(value = "w", dI = 159) int w,
-      @Param(value = "h", dI = 15) int h,
-      @Param(value = "marginRate", dD = 0.1) double marginRate) {
-    return ImageUtils.stringDrawer(fgColor, bgColor, marginRate).build(new ImageBuilder.ImageInfo(w, h), s);
-  }
+    @SuppressWarnings("unused")
+    public static <K, V> Map.Entry<K, V> entry(@Param("key") K key, @Param("value") V value) {
+        return Map.entry(key, value);
+    }
 
-  @SuppressWarnings("unused")
-  public static <K, V> Map<K, V> map(@Param("entries") List<Map.Entry<K, V>> entries) {
-    Map<K, V> map = new LinkedHashMap<>();
-    entries.forEach(e -> map.put(e.getKey(), e.getValue()));
-    return Collections.unmodifiableMap(map);
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static BufferedImage imgByName(
+            @Param("name") String name,
+            @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
+            @Param(value = "w", dI = 15) int w,
+            @Param(value = "h", dI = 15) int h,
+            @Param(value = "marginRate", dD = 0.1) double marginRate) {
+        return ImageUtils.imageDrawer(bgColor, marginRate)
+                .build(new ImageBuilder.ImageInfo(w, h), ImageUtils.loadFromResource(name));
+    }
 
-  @SuppressWarnings("unused")
-  public static Map.Entry<String, String> sEntry(@Param("key") String key, @Param("value") String value) {
-    return Map.entry(key, value);
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static BufferedImage imgFromString(
+            @Param("s") String s,
+            @Param(value = "fgColor", dNPM = "ea.misc.colorByName(name = white)") Color fgColor,
+            @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
+            @Param(value = "w", dI = 159) int w,
+            @Param(value = "h", dI = 15) int h,
+            @Param(value = "marginRate", dD = 0.1) double marginRate) {
+        return ImageUtils.stringDrawer(fgColor, bgColor, marginRate).build(new ImageBuilder.ImageInfo(w, h), s);
+    }
 
-  @SuppressWarnings("unused")
-  public static <S> VideoBuilder<Simulation.Outcome<S>> toVideo(@Param("drawer") SimulationOutcomeDrawer<S> drawer) {
-    return drawer.videoBuilder();
-  }
+    @SuppressWarnings("unused")
+    public static <K, V> Map<K, V> map(@Param("entries") List<Map.Entry<K, V>> entries) {
+        Map<K, V> map = new LinkedHashMap<>();
+        entries.forEach(e -> map.put(e.getKey(), e.getValue()));
+        return Collections.unmodifiableMap(map);
+    }
+
+    @SuppressWarnings("unused")
+    public static Map.Entry<String, String> sEntry(@Param("key") String key, @Param("value") String value) {
+        return Map.entry(key, value);
+    }
+
+    @SuppressWarnings("unused")
+    public static <S> VideoBuilder<Simulation.Outcome<S>> toVideo(@Param("drawer") SimulationOutcomeDrawer<S> drawer) {
+        return drawer.videoBuilder();
+    }
 }

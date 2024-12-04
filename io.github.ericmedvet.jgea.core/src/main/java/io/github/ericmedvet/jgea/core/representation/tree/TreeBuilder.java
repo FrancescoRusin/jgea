@@ -24,5 +24,5 @@ import java.util.random.RandomGenerator;
 
 public interface TreeBuilder<N> {
 
-  Tree<N> build(RandomGenerator random, int height);
+    Tree<N> build(RandomGenerator random, int height);
 }

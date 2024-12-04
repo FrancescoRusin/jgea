@@ -36,80 +36,80 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class LandscapeSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, LandscapePlot, R, LandscapePlot.Data, X> {
-  private final List<Function<? super E, Collection<P>>> pointFunctions;
-  private final Function<? super P, ? extends Number> xFunction;
-  private final Function<? super P, ? extends Number> yFunction;
-  private final Function<E, DoubleBinaryOperator> valueFunction;
-  private final DoubleRange xRange;
-  private final DoubleRange yRange;
-  private final DoubleRange valueRange;
+    private final List<Function<? super E, Collection<P>>> pointFunctions;
+    private final Function<? super P, ? extends Number> xFunction;
+    private final Function<? super P, ? extends Number> yFunction;
+    private final Function<E, DoubleBinaryOperator> valueFunction;
+    private final DoubleRange xRange;
+    private final DoubleRange yRange;
+    private final DoubleRange valueRange;
 
-  public LandscapeSEPAF(
-      Function<? super R, String> titleFunction,
-      Function<? super E, X> predicateValueFunction,
-      Predicate<? super X> predicate,
-      boolean unique,
-      List<Function<? super E, Collection<P>>> pointFunctions,
-      Function<? super P, ? extends Number> xFunction,
-      Function<? super P, ? extends Number> yFunction,
-      Function<E, DoubleBinaryOperator> valueFunction,
-      DoubleRange xRange,
-      DoubleRange yRange,
-      DoubleRange valueRange) {
-    super(titleFunction, predicateValueFunction, predicate, unique);
-    this.pointFunctions = pointFunctions;
-    this.xFunction = xFunction;
-    this.yFunction = yFunction;
-    this.valueFunction = valueFunction;
-    this.xRange = xRange;
-    this.yRange = yRange;
-    this.valueRange = valueRange;
-  }
+    public LandscapeSEPAF(
+            Function<? super R, String> titleFunction,
+            Function<? super E, X> predicateValueFunction,
+            Predicate<? super X> predicate,
+            boolean unique,
+            List<Function<? super E, Collection<P>>> pointFunctions,
+            Function<? super P, ? extends Number> xFunction,
+            Function<? super P, ? extends Number> yFunction,
+            Function<E, DoubleBinaryOperator> valueFunction,
+            DoubleRange xRange,
+            DoubleRange yRange,
+            DoubleRange valueRange) {
+        super(titleFunction, predicateValueFunction, predicate, unique);
+        this.pointFunctions = pointFunctions;
+        this.xFunction = xFunction;
+        this.yFunction = yFunction;
+        this.valueFunction = valueFunction;
+        this.xRange = xRange;
+        this.yRange = yRange;
+        this.valueRange = valueRange;
+    }
 
-  @Override
-  protected List<Map.Entry<String, LandscapePlot.Data>> buildData(E e, R r) {
-    return List.of(Map.entry(
-        "",
-        new LandscapePlot.Data(
-            valueFunction.apply(e),
-            pointFunctions.stream()
-                .map(pf -> XYDataSeries.of(
-                        NamedFunction.name(pf),
-                        pf.apply(e).stream()
-                            .map(p -> new XYDataSeries.Point(
-                                Value.of(
-                                    xFunction
-                                        .apply(p)
-                                        .doubleValue()),
-                                Value.of(
-                                    yFunction
-                                        .apply(p)
-                                        .doubleValue())))
-                            .toList())
-                    .sorted())
-                .toList())));
-  }
+    @Override
+    protected List<Map.Entry<String, LandscapePlot.Data>> buildData(E e, R r) {
+        return List.of(Map.entry(
+                "",
+                new LandscapePlot.Data(
+                        valueFunction.apply(e),
+                        pointFunctions.stream()
+                                .map(pf -> XYDataSeries.of(
+                                                NamedFunction.name(pf),
+                                                pf.apply(e).stream()
+                                                        .map(p -> new XYDataSeries.Point(
+                                                                Value.of(
+                                                                        xFunction
+                                                                                .apply(p)
+                                                                                .doubleValue()),
+                                                                Value.of(
+                                                                        yFunction
+                                                                                .apply(p)
+                                                                                .doubleValue())))
+                                                        .toList())
+                                        .sorted())
+                                .toList())));
+    }
 
-  @Override
-  protected LandscapePlot buildPlot(Table<String, String, LandscapePlot.Data> data, R r) {
-    return new LandscapePlot(
-        titleFunction.apply(r),
-        NamedFunction.name(predicateValueFunction),
-        "",
-        NamedFunction.name(xFunction),
-        NamedFunction.name(yFunction),
-        xRange,
-        yRange,
-        valueRange,
-        Grid.create(
-            data.nColumns(),
-            data.nRows(),
-            (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
-  }
+    @Override
+    protected LandscapePlot buildPlot(Table<String, String, LandscapePlot.Data> data, R r) {
+        return new LandscapePlot(
+                titleFunction.apply(r),
+                NamedFunction.name(predicateValueFunction),
+                "",
+                NamedFunction.name(xFunction),
+                NamedFunction.name(yFunction),
+                xRange,
+                yRange,
+                valueRange,
+                Grid.create(
+                        data.nColumns(),
+                        data.nRows(),
+                        (x, y) -> new XYPlot.TitledData<>(
+                                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+    }
 
-  @Override
-  public String toString() {
-    return "landscapeSEPAF(xFunction=" + xFunction + ";yFunction=" + yFunction + ')';
-  }
+    @Override
+    public String toString() {
+        return "landscapeSEPAF(xFunction=" + xFunction + ";yFunction=" + yFunction + ')';
+    }
 }

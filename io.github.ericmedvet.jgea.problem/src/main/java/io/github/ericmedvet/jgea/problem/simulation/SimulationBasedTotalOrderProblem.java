@@ -24,10 +24,10 @@ import io.github.ericmedvet.jsdynsym.control.Simulation;
 import java.util.Comparator;
 
 public interface SimulationBasedTotalOrderProblem<S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>>
-    extends SimulationBasedProblem<S, B, O, Q>,
-        TotalOrderQualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
-  @Override
-  default Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-    return Comparator.comparing(QualityOutcome::quality);
-  }
+        extends SimulationBasedProblem<S, B, O, Q>,
+                TotalOrderQualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
+    @Override
+    default Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
+        return Comparator.comparing(QualityOutcome::quality);
+    }
 }

@@ -28,30 +28,30 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public record AreaPlotCell(int l, SortedMap<? extends Number, ? extends Number> data, double xMin, double xMax)
-    implements Cell {
+        implements Cell {
 
-  public AreaPlotCell(int l, SortedMap<? extends Number, ? extends Number> data) {
-    this(l, data, data.firstKey().doubleValue(), data.lastKey().doubleValue());
-  }
+    public AreaPlotCell(int l, SortedMap<? extends Number, ? extends Number> data) {
+        this(l, data, data.firstKey().doubleValue(), data.lastKey().doubleValue());
+    }
 
-  public AreaPlotCell(int l, List<? extends Number> data) {
-    this(l, (SortedMap<Integer, ? extends Number>) IntStream.range(0, data.size())
-        .boxed()
-        .collect(Collectors.toMap(i -> i, data::get, (n1, n2) -> n1, TreeMap::new)));
-  }
+    public AreaPlotCell(int l, List<? extends Number> data) {
+        this(l, (SortedMap<Integer, ? extends Number>) IntStream.range(0, data.size())
+                .boxed()
+                .collect(Collectors.toMap(i -> i, data::get, (n1, n2) -> n1, TreeMap::new)));
+    }
 
-  @Override
-  public void draw(TuiDrawer td, int width) {
-    td.drawString(
-        0,
-        0,
-        TextPlotter.areaPlot(data, xMin, xMax, l).content(),
-        td.getConfiguration().primaryPlotColor(),
-        td.getConfiguration().secondaryPlotColor());
-  }
+    @Override
+    public void draw(TuiDrawer td, int width) {
+        td.drawString(
+                0,
+                0,
+                TextPlotter.areaPlot(data, xMin, xMax, l).content(),
+                td.getConfiguration().primaryPlotColor(),
+                td.getConfiguration().secondaryPlotColor());
+    }
 
-  @Override
-  public int preferredWidth() {
-    return l;
-  }
+    @Override
+    public int preferredWidth() {
+        return l;
+    }
 }

@@ -33,69 +33,69 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class AbstractSingleEPAF<E, P extends XYPlot<D>, R, D, X>
-    implements PlotAccumulatorFactory<E, P, R, D> {
+        implements PlotAccumulatorFactory<E, P, R, D> {
 
-  protected final Function<? super R, String> titleFunction;
-  protected final Function<? super E, X> predicateValueFunction;
-  private final Predicate<? super X> predicate;
-  private final boolean unique;
+    protected final Function<? super R, String> titleFunction;
+    protected final Function<? super E, X> predicateValueFunction;
+    private final Predicate<? super X> predicate;
+    private final boolean unique;
 
-  public AbstractSingleEPAF(
-      Function<? super R, String> titleFunction,
-      Function<? super E, X> predicateValueFunction,
-      Predicate<? super X> predicate,
-      boolean unique) {
-    this.titleFunction = titleFunction;
-    this.predicateValueFunction = predicateValueFunction;
-    this.predicate = predicate;
-    this.unique = unique;
-  }
+    public AbstractSingleEPAF(
+            Function<? super R, String> titleFunction,
+            Function<? super E, X> predicateValueFunction,
+            Predicate<? super X> predicate,
+            boolean unique) {
+        this.titleFunction = titleFunction;
+        this.predicateValueFunction = predicateValueFunction;
+        this.predicate = predicate;
+        this.unique = unique;
+    }
 
-  protected abstract List<Map.Entry<String, D>> buildData(E e, R r);
+    protected abstract List<Map.Entry<String, D>> buildData(E e, R r);
 
-  protected abstract P buildPlot(Table<String, String, D> data, R r);
+    protected abstract P buildPlot(Table<String, String, D> data, R r);
 
-  @Override
-  public Accumulator<E, P> build(R r) {
-    Table<String, String, D> table = new HashMapTable<>();
-    Set<X> predicateValues = new HashSet<>();
-    return new Accumulator<>() {
-      @Override
-      public P get() {
-        synchronized (table) {
-          return buildPlot(table, r);
-        }
-      }
+    @Override
+    public Accumulator<E, P> build(R r) {
+        Table<String, String, D> table = new HashMapTable<>();
+        Set<X> predicateValues = new HashSet<>();
+        return new Accumulator<>() {
+            @Override
+            public P get() {
+                synchronized (table) {
+                    return buildPlot(table, r);
+                }
+            }
 
-      @Override
-      public void listen(E e) {
-        X predicateValue = predicateValueFunction.apply(e);
-        if (predicate.test(predicateValue) && !predicateValues.contains(predicateValue)) {
-          if (unique) {
-            predicateValues.add(predicateValue);
-          }
-          List<Map.Entry<String, D>> newEntries = buildData(e, r);
-          synchronized (table) {
-            newEntries.forEach(me -> table.set(
-                me.getKey(),
-                "%s = %s"
-                    .formatted(
-                        NamedFunction.name(predicateValueFunction),
-                        FormattedFunction.format(predicateValueFunction)
-                            .formatted(predicateValue)),
-                me.getValue()));
-          }
-        }
-      }
+            @Override
+            public void listen(E e) {
+                X predicateValue = predicateValueFunction.apply(e);
+                if (predicate.test(predicateValue) && !predicateValues.contains(predicateValue)) {
+                    if (unique) {
+                        predicateValues.add(predicateValue);
+                    }
+                    List<Map.Entry<String, D>> newEntries = buildData(e, r);
+                    synchronized (table) {
+                        newEntries.forEach(me -> table.set(
+                                me.getKey(),
+                                "%s = %s"
+                                        .formatted(
+                                                NamedFunction.name(predicateValueFunction),
+                                                FormattedFunction.format(predicateValueFunction)
+                                                        .formatted(predicateValue)),
+                                me.getValue()));
+                    }
+                }
+            }
 
-      @Override
-      public String toString() {
-        return name();
-      }
-    };
-  }
+            @Override
+            public String toString() {
+                return name();
+            }
+        };
+    }
 
-  private String name() {
-    return toString();
-  }
+    private String name() {
+        return toString();
+    }
 }

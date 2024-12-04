@@ -42,211 +42,211 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class OperatorGraph
-    implements NamedMultivariateRealFunction,
-        Sized,
-        Serializable,
-        Parametrized<OperatorGraph, Graph<Node, OperatorGraph.NonValuedArc>> {
+        implements NamedMultivariateRealFunction,
+                Sized,
+                Serializable,
+                Parametrized<OperatorGraph, Graph<Node, OperatorGraph.NonValuedArc>> {
 
-  public static final NonValuedArc NON_VALUED_ARC = new NonValuedArc();
-  private final List<String> xVarNames;
-  private final List<String> yVarNames;
-  private final DoubleUnaryOperator postOperator;
-  private Graph<Node, NonValuedArc> graph;
+    public static final NonValuedArc NON_VALUED_ARC = new NonValuedArc();
+    private final List<String> xVarNames;
+    private final List<String> yVarNames;
+    private final DoubleUnaryOperator postOperator;
+    private Graph<Node, NonValuedArc> graph;
 
-  public OperatorGraph(
-      Graph<Node, NonValuedArc> graph,
-      List<String> xVarNames,
-      List<String> yVarNames,
-      DoubleUnaryOperator postOperator) {
-    this.xVarNames = xVarNames;
-    this.yVarNames = yVarNames;
-    this.postOperator = postOperator;
-    setParams(graph);
-  }
+    public OperatorGraph(
+            Graph<Node, NonValuedArc> graph,
+            List<String> xVarNames,
+            List<String> yVarNames,
+            DoubleUnaryOperator postOperator) {
+        this.xVarNames = xVarNames;
+        this.yVarNames = yVarNames;
+        this.postOperator = postOperator;
+        setParams(graph);
+    }
 
-  public static Graph<Node, OperatorGraph.NonValuedArc> sampleFor(List<String> xVarNames, List<String> yVarNames) {
-    Graph<Node, OperatorGraph.NonValuedArc> g = new LinkedHashGraph<>();
-    IntStream.range(0, xVarNames.size()).forEach(i -> g.addNode(new Input(i, xVarNames.get(i))));
-    IntStream.range(0, yVarNames.size()).forEach(i -> g.addNode(new Output(i, yVarNames.get(i))));
-    return g;
-  }
+    public static Graph<Node, OperatorGraph.NonValuedArc> sampleFor(List<String> xVarNames, List<String> yVarNames) {
+        Graph<Node, OperatorGraph.NonValuedArc> g = new LinkedHashGraph<>();
+        IntStream.range(0, xVarNames.size()).forEach(i -> g.addNode(new Input(i, xVarNames.get(i))));
+        IntStream.range(0, yVarNames.size()).forEach(i -> g.addNode(new Output(i, yVarNames.get(i))));
+        return g;
+    }
 
-  public OperatorGraph(Graph<Node, NonValuedArc> graph, List<String> xVarNames, List<String> yVarNames) {
-    this(graph, xVarNames, yVarNames, x -> x);
-  }
+    public OperatorGraph(Graph<Node, NonValuedArc> graph, List<String> xVarNames, List<String> yVarNames) {
+        this(graph, xVarNames, yVarNames, x -> x);
+    }
 
-  public static class NonValuedArc implements Serializable {
+    public static class NonValuedArc implements Serializable {
 
-    private NonValuedArc() {}
+        private NonValuedArc() {}
 
-    @Override
-    public int hashCode() {
-      return 1;
+        @Override
+        public int hashCode() {
+            return 1;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof NonValuedArc;
+        }
+
+        @Override
+        public String toString() {
+            return "-";
+        }
+    }
+
+    public static void check(Graph<Node, NonValuedArc> graph) {
+        if (graph.hasCycles()) {
+            throw new IllegalArgumentException("Invalid graph: it has cycles");
+        }
+        for (Node n : graph.nodes()) {
+            if (!((n instanceof Input)
+                    || (n instanceof Output)
+                    || (n instanceof OperatorNode)
+                    || (n instanceof Constant))) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid graph: node %s is of wrong type %s", n, n.getClass()));
+            }
+            if ((n instanceof Output) && (graph.predecessors(n).size() > 1)) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid graph: output node %s has more than 1 predecessors " + "(%d)",
+                        n, graph.predecessors(n).size()));
+            }
+            if ((n instanceof OperatorNode)
+                    && ((graph.predecessors(n).size()
+                                    < ((OperatorNode) n).getOperator().minArity())
+                            || (graph.predecessors(n).size()
+                                    > ((OperatorNode) n).getOperator().maxArity()))) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid graph: operator node %s has wrong number of predecessors (%d, outside [%d,%d])",
+                        n,
+                        graph.predecessors(n).size(),
+                        ((OperatorNode) n).getOperator().minArity(),
+                        ((OperatorNode) n).getOperator().maxArity()));
+            }
+            if ((n instanceof Constant || n instanceof Input)
+                    && !graph.predecessors(n).isEmpty()) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid graph: constant/input node %s has more than 0 predecessors (%d)",
+                        n, graph.predecessors(n).size()));
+            }
+            if ((n instanceof Output) && !graph.successors(n).isEmpty()) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid graph: output node %s has more than 0 successors " + "(%d)",
+                        n, graph.predecessors(n).size()));
+            }
+        }
+    }
+
+    public static Predicate<Graph<Node, NonValuedArc>> checker() {
+        return graph -> {
+            try {
+                check(graph);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+            return true;
+        };
+    }
+
+    public static Function<Graph<Node, NonValuedArc>, NamedMultivariateRealFunction> mapper(
+            List<String> xVarNames, List<String> yVarNames) {
+        return g -> new OperatorGraph(g, xVarNames, yVarNames);
     }
 
     @Override
-    public boolean equals(Object obj) {
-      return obj instanceof NonValuedArc;
+    public Map<String, Double> compute(Map<String, Double> input) {
+        return graph.nodes().stream()
+                .filter(n -> n instanceof Output)
+                .map(n -> (Output) n)
+                .map(n -> Map.entry(n.getName(), postOperator.applyAsDouble(outValue(n, input))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    @Override
+    public List<String> xVarNames() {
+        return xVarNames;
+    }
+
+    @Override
+    public List<String> yVarNames() {
+        return yVarNames;
+    }
+
+    @Override
+    public Graph<Node, NonValuedArc> getParams() {
+        return graph;
+    }
+
+    @Override
+    public void setParams(Graph<Node, NonValuedArc> graph) {
+        check(graph);
+        this.graph = graph;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(graph);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OperatorGraph that = (OperatorGraph) o;
+        return graph.equals(that.graph);
     }
 
     @Override
     public String toString() {
-      return "-";
+        return graph.nodes().stream()
+                .filter(n -> n instanceof Output)
+                .map(n -> n
+                        + "="
+                        + ((graph.predecessors(n).isEmpty()) ? "0" : nodeToString(Misc.first(graph.predecessors(n)))))
+                .collect(Collectors.joining(";"));
     }
-  }
 
-  public static void check(Graph<Node, NonValuedArc> graph) {
-    if (graph.hasCycles()) {
-      throw new IllegalArgumentException("Invalid graph: it has cycles");
+    private String nodeToString(Node n) {
+        String s;
+        if (n instanceof Constant) {
+            s = Double.toString(((Constant) n).getValue());
+        } else if (n instanceof OperatorNode) {
+            s = ((OperatorNode) n).getOperator().toString();
+        } else {
+            s = n.toString();
+        }
+        List<String> predecessors =
+                graph.predecessors(n).stream().map(this::nodeToString).sorted().toList();
+        if (!predecessors.isEmpty()) {
+            s = s + "(" + String.join(",", predecessors) + ")";
+        }
+        return s;
     }
-    for (Node n : graph.nodes()) {
-      if (!((n instanceof Input)
-          || (n instanceof Output)
-          || (n instanceof OperatorNode)
-          || (n instanceof Constant))) {
-        throw new IllegalArgumentException(
-            String.format("Invalid graph: node %s is of wrong type %s", n, n.getClass()));
-      }
-      if ((n instanceof Output) && (graph.predecessors(n).size() > 1)) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: output node %s has more than 1 predecessors " + "(%d)",
-            n, graph.predecessors(n).size()));
-      }
-      if ((n instanceof OperatorNode)
-          && ((graph.predecessors(n).size()
-                  < ((OperatorNode) n).getOperator().minArity())
-              || (graph.predecessors(n).size()
-                  > ((OperatorNode) n).getOperator().maxArity()))) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: operator node %s has wrong number of predecessors (%d, outside [%d,%d])",
-            n,
-            graph.predecessors(n).size(),
-            ((OperatorNode) n).getOperator().minArity(),
-            ((OperatorNode) n).getOperator().maxArity()));
-      }
-      if ((n instanceof Constant || n instanceof Input)
-          && !graph.predecessors(n).isEmpty()) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: constant/input node %s has more than 0 predecessors (%d)",
-            n, graph.predecessors(n).size()));
-      }
-      if ((n instanceof Output) && !graph.successors(n).isEmpty()) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: output node %s has more than 0 successors " + "(%d)",
-            n, graph.predecessors(n).size()));
-      }
+
+    private double outValue(Node node, Map<String, Double> input) {
+        if (node instanceof Input iNode) {
+            return input.get(iNode.getName());
+        }
+        if (node instanceof Constant constant) {
+            return constant.getValue();
+        }
+        double[] inValues = graph.predecessors(node).stream()
+                .sorted(Comparator.comparing((Node n) -> n.getClass().getName()).thenComparingInt(Node::getIndex))
+                .mapToDouble(n -> outValue(n, input))
+                .toArray();
+        if (node instanceof Output) {
+            return inValues.length > 0 ? inValues[0] : 0d;
+        }
+        if (node instanceof OperatorNode operatorNode) {
+            return operatorNode.applyAsDouble(inValues);
+        }
+        throw new RuntimeException(
+                String.format("Unknown type of node: %s", node.getClass().getSimpleName()));
     }
-  }
 
-  public static Predicate<Graph<Node, NonValuedArc>> checker() {
-    return graph -> {
-      try {
-        check(graph);
-      } catch (IllegalArgumentException e) {
-        return false;
-      }
-      return true;
-    };
-  }
-
-  public static Function<Graph<Node, NonValuedArc>, NamedMultivariateRealFunction> mapper(
-      List<String> xVarNames, List<String> yVarNames) {
-    return g -> new OperatorGraph(g, xVarNames, yVarNames);
-  }
-
-  @Override
-  public Map<String, Double> compute(Map<String, Double> input) {
-    return graph.nodes().stream()
-        .filter(n -> n instanceof Output)
-        .map(n -> (Output) n)
-        .map(n -> Map.entry(n.getName(), postOperator.applyAsDouble(outValue(n, input))))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  @Override
-  public List<String> xVarNames() {
-    return xVarNames;
-  }
-
-  @Override
-  public List<String> yVarNames() {
-    return yVarNames;
-  }
-
-  @Override
-  public Graph<Node, NonValuedArc> getParams() {
-    return graph;
-  }
-
-  @Override
-  public void setParams(Graph<Node, NonValuedArc> graph) {
-    check(graph);
-    this.graph = graph;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(graph);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    OperatorGraph that = (OperatorGraph) o;
-    return graph.equals(that.graph);
-  }
-
-  @Override
-  public String toString() {
-    return graph.nodes().stream()
-        .filter(n -> n instanceof Output)
-        .map(n -> n
-            + "="
-            + ((graph.predecessors(n).isEmpty()) ? "0" : nodeToString(Misc.first(graph.predecessors(n)))))
-        .collect(Collectors.joining(";"));
-  }
-
-  private String nodeToString(Node n) {
-    String s;
-    if (n instanceof Constant) {
-      s = Double.toString(((Constant) n).getValue());
-    } else if (n instanceof OperatorNode) {
-      s = ((OperatorNode) n).getOperator().toString();
-    } else {
-      s = n.toString();
+    @Override
+    public int size() {
+        return graph.size();
     }
-    List<String> predecessors =
-        graph.predecessors(n).stream().map(this::nodeToString).sorted().toList();
-    if (!predecessors.isEmpty()) {
-      s = s + "(" + String.join(",", predecessors) + ")";
-    }
-    return s;
-  }
-
-  private double outValue(Node node, Map<String, Double> input) {
-    if (node instanceof Input iNode) {
-      return input.get(iNode.getName());
-    }
-    if (node instanceof Constant constant) {
-      return constant.getValue();
-    }
-    double[] inValues = graph.predecessors(node).stream()
-        .sorted(Comparator.comparing((Node n) -> n.getClass().getName()).thenComparingInt(Node::getIndex))
-        .mapToDouble(n -> outValue(n, input))
-        .toArray();
-    if (node instanceof Output) {
-      return inValues.length > 0 ? inValues[0] : 0d;
-    }
-    if (node instanceof OperatorNode operatorNode) {
-      return operatorNode.applyAsDouble(inValues);
-    }
-    throw new RuntimeException(
-        String.format("Unknown type of node: %s", node.getClass().getSimpleName()));
-  }
-
-  @Override
-  public int size() {
-    return graph.size();
-  }
 }

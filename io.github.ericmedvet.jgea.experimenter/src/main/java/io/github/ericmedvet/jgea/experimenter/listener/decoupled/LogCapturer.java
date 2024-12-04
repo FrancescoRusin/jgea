@@ -26,56 +26,56 @@ import java.util.function.Consumer;
 import java.util.logging.*;
 
 public class LogCapturer extends Handler {
-  private static final Logger L = Logger.getLogger(LogCapturer.class.getName());
-  private static final int LOG_HISTORY_SIZE = 100;
+    private static final Logger L = Logger.getLogger(LogCapturer.class.getName());
+    private static final int LOG_HISTORY_SIZE = 100;
 
-  private final boolean replaceConsoleHandlers;
-  private final List<Handler> originalHandlers;
-  private final List<LogRecord> logRecords;
+    private final boolean replaceConsoleHandlers;
+    private final List<Handler> originalHandlers;
+    private final List<LogRecord> logRecords;
 
-  private final Consumer<LogRecord> consumer;
+    private final Consumer<LogRecord> consumer;
 
-  public LogCapturer(Consumer<LogRecord> consumer, boolean replaceConsoleHandlers) {
-    this.consumer = consumer;
-    this.replaceConsoleHandlers = replaceConsoleHandlers;
-    // prepare data object stores
-    logRecords = new LinkedList<>();
-    // capture logs
-    Logger mainLogger = Logger.getLogger("");
-    mainLogger.setLevel(Level.CONFIG);
-    mainLogger.addHandler(this);
-    if (replaceConsoleHandlers) {
-      originalHandlers = Arrays.stream(mainLogger.getHandlers())
-          .filter(h -> h instanceof ConsoleHandler)
-          .toList();
-      originalHandlers.forEach(mainLogger::removeHandler);
-    } else {
-      originalHandlers = List.of();
-    }
-  }
-
-  @Override
-  public synchronized void publish(LogRecord record) {
-    consumer.accept(record);
-    if (replaceConsoleHandlers) {
-      synchronized (logRecords) {
-        logRecords.add(record);
-        while (logRecords.size() > LOG_HISTORY_SIZE) {
-          logRecords.removeFirst();
+    public LogCapturer(Consumer<LogRecord> consumer, boolean replaceConsoleHandlers) {
+        this.consumer = consumer;
+        this.replaceConsoleHandlers = replaceConsoleHandlers;
+        // prepare data object stores
+        logRecords = new LinkedList<>();
+        // capture logs
+        Logger mainLogger = Logger.getLogger("");
+        mainLogger.setLevel(Level.CONFIG);
+        mainLogger.addHandler(this);
+        if (replaceConsoleHandlers) {
+            originalHandlers = Arrays.stream(mainLogger.getHandlers())
+                    .filter(h -> h instanceof ConsoleHandler)
+                    .toList();
+            originalHandlers.forEach(mainLogger::removeHandler);
+        } else {
+            originalHandlers = List.of();
         }
-      }
     }
-  }
 
-  @Override
-  public void flush() {}
-
-  @Override
-  public void close() throws SecurityException {
-    Logger.getLogger("").removeHandler(this);
-    if (replaceConsoleHandlers) {
-      originalHandlers.forEach(h -> Logger.getLogger("").addHandler(h));
-      logRecords.forEach(L::log);
+    @Override
+    public synchronized void publish(LogRecord record) {
+        consumer.accept(record);
+        if (replaceConsoleHandlers) {
+            synchronized (logRecords) {
+                logRecords.add(record);
+                while (logRecords.size() > LOG_HISTORY_SIZE) {
+                    logRecords.removeFirst();
+                }
+            }
+        }
     }
-  }
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() throws SecurityException {
+        Logger.getLogger("").removeHandler(this);
+        if (replaceConsoleHandlers) {
+            originalHandlers.forEach(h -> Logger.getLogger("").addHandler(h));
+            logRecords.forEach(L::log);
+        }
+    }
 }

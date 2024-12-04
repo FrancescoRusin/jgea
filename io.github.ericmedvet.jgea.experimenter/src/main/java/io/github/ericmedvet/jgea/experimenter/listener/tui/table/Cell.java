@@ -25,24 +25,24 @@ import io.github.ericmedvet.jgea.experimenter.listener.tui.util.TuiDrawer;
 
 public interface Cell {
 
-  void draw(TuiDrawer td, int width);
+    void draw(TuiDrawer td, int width);
 
-  int preferredWidth();
+    int preferredWidth();
 
-  default Cell rightAligned() {
-    Cell thisCell = this;
-    return new Cell() {
-      @Override
-      public int preferredWidth() {
-        return thisCell.preferredWidth();
-      }
+    default Cell rightAligned() {
+        Cell thisCell = this;
+        return new Cell() {
+            @Override
+            public int preferredWidth() {
+                return thisCell.preferredWidth();
+            }
 
-      @Override
-      public void draw(TuiDrawer td, int width) {
-        thisCell.draw(
-            td.in(new Rectangle(new Point(width - thisCell.preferredWidth(), 0), new Point(width, 1))),
-            width);
-      }
-    };
-  }
+            @Override
+            public void draw(TuiDrawer td, int width) {
+                thisCell.draw(
+                        td.in(new Rectangle(new Point(width - thisCell.preferredWidth(), 0), new Point(width, 1))),
+                        width);
+            }
+        };
+    }
 }

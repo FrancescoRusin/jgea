@@ -24,5 +24,5 @@ import java.util.function.Function;
 
 public interface ProblemWithValidation<S, Q> extends QualityBasedProblem<S, Q> {
 
-  Function<S, Q> validationQualityFunction();
+    Function<S, Q> validationQualityFunction();
 }

@@ -24,15 +24,15 @@ import java.time.LocalDateTime;
 
 public class DirectSinkSource<K, V> extends AbstractAutoPurgingSource<K, V> implements Sink<K, V> {
 
-  @Override
-  public void close() {
-    super.close();
-  }
-
-  @Override
-  public void push(LocalDateTime t, K k, V v) {
-    synchronized (map) {
-      map.put(new Pair<>(t, k), v);
+    @Override
+    public void close() {
+        super.close();
     }
-  }
+
+    @Override
+    public void push(LocalDateTime t, K k, V v) {
+        synchronized (map) {
+            map.put(new Pair<>(t, k), v);
+        }
+    }
 }

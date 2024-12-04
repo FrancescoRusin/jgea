@@ -32,25 +32,25 @@ import java.util.stream.Stream;
 
 public record Representation<G>(Factory<G> factory, List<Mutation<G>> mutations, List<Crossover<G>> crossovers) {
 
-  public Representation(Factory<G> factory, Mutation<G> mutation, Crossover<G> crossover) {
-    this(factory, List.of(mutation), List.of(crossover));
-  }
+    public Representation(Factory<G> factory, Mutation<G> mutation, Crossover<G> crossover) {
+        this(factory, List.of(mutation), List.of(crossover));
+    }
 
-  public static <G1, G2> Representation<Pair<G1, G2>> pair(Representation<G1> r1, Representation<G2> r2) {
-    return new Representation<>(
-        Factory.pair(r1.factory, r2.factory),
-        r1.mutations.stream()
-            .flatMap(m1 -> r2.mutations.stream().map(m2 -> Mutation.pair(m1, m2)))
-            .toList(),
-        r1.crossovers.stream()
-            .flatMap(xo1 -> r2.crossovers.stream().map(xo2 -> Crossover.pair(xo1, xo2)))
-            .toList());
-  }
+    public static <G1, G2> Representation<Pair<G1, G2>> pair(Representation<G1> r1, Representation<G2> r2) {
+        return new Representation<>(
+                Factory.pair(r1.factory, r2.factory),
+                r1.mutations.stream()
+                        .flatMap(m1 -> r2.mutations.stream().map(m2 -> Mutation.pair(m1, m2)))
+                        .toList(),
+                r1.crossovers.stream()
+                        .flatMap(xo1 -> r2.crossovers.stream().map(xo2 -> Crossover.pair(xo1, xo2)))
+                        .toList());
+    }
 
-  public Map<GeneticOperator<G>, Double> geneticOperators(double crossoverP) {
-    return Stream.concat(
-            mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
-            crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size())))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (p1, p2) -> p1, LinkedHashMap::new));
-  }
+    public Map<GeneticOperator<G>, Double> geneticOperators(double crossoverP) {
+        return Stream.concat(
+                        mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
+                        crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size())))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (p1, p2) -> p1, LinkedHashMap::new));
+    }
 }

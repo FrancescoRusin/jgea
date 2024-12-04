@@ -24,18 +24,18 @@ import io.github.ericmedvet.jsdynsym.control.Simulation;
 import java.util.function.Function;
 
 public interface SimulationBasedProblem<S, B, O extends Simulation.Outcome<B>, Q>
-    extends QualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
-  record QualityOutcome<B, O extends Simulation.Outcome<B>, Q>(O outcome, Q quality) {}
+        extends QualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
+    record QualityOutcome<B, O extends Simulation.Outcome<B>, Q>(O outcome, Q quality) {}
 
-  Function<O, Q> outcomeQualityFunction();
+    Function<O, Q> outcomeQualityFunction();
 
-  Simulation<S, B, O> simulation();
+    Simulation<S, B, O> simulation();
 
-  @Override
-  default Function<S, QualityOutcome<B, O, Q>> qualityFunction() {
-    return s -> {
-      O outcome = simulation().simulate(s);
-      return new QualityOutcome<>(outcome, outcomeQualityFunction().apply(outcome));
-    };
-  }
+    @Override
+    default Function<S, QualityOutcome<B, O, Q>> qualityFunction() {
+        return s -> {
+            O outcome = simulation().simulate(s);
+            return new QualityOutcome<>(outcome, outcomeQualityFunction().apply(outcome));
+        };
+    }
 }

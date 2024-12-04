@@ -28,19 +28,19 @@ import java.util.stream.IntStream;
 
 public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
 
-  Function<List<CO>, AF> aggregateFunction();
+    Function<List<CO>, AF> aggregateFunction();
 
-  BiFunction<S, C, CO> caseFunction();
+    BiFunction<S, C, CO> caseFunction();
 
-  IntFunction<C> caseProvider();
+    IntFunction<C> caseProvider();
 
-  int nOfCases();
+    int nOfCases();
 
-  @Override
-  default AF apply(S s) {
-    List<CO> outcomes = IntStream.range(0, nOfCases())
-        .mapToObj(i -> caseFunction().apply(s, caseProvider().apply(i)))
-        .toList();
-    return aggregateFunction().apply(outcomes);
-  }
+    @Override
+    default AF apply(S s) {
+        List<CO> outcomes = IntStream.range(0, nOfCases())
+                .mapToObj(i -> caseFunction().apply(s, caseProvider().apply(i)))
+                .toList();
+        return aggregateFunction().apply(outcomes);
+    }
 }

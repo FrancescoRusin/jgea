@@ -25,11 +25,11 @@ import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 
 public class HypercubeGeometricCrossover extends ElementWiseCrossover<Double> {
 
-  public HypercubeGeometricCrossover(DoubleRange range) {
-    super((v1, v2, random) -> v1 + (v2 - v1) * range.denormalize(random.nextDouble()));
-  }
+    public HypercubeGeometricCrossover(DoubleRange range) {
+        super((v1, v2, random) -> v1 + (v2 - v1) * range.denormalize(random.nextDouble()));
+    }
 
-  public HypercubeGeometricCrossover() {
-    this(DoubleRange.UNIT);
-  }
+    public HypercubeGeometricCrossover() {
+        this(DoubleRange.UNIT);
+    }
 }

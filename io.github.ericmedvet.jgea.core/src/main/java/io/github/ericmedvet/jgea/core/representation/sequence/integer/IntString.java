@@ -25,18 +25,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record IntString(List<Integer> genes, int lowerBound, int upperBound) implements Sized {
-  @Override
-  public int size() {
-    return genes().size();
-  }
+    @Override
+    public int size() {
+        return genes().size();
+    }
 
-  @Override
-  public String toString() {
-    return genes().stream().map(Object::toString).collect(Collectors.joining(","));
-  }
+    @Override
+    public String toString() {
+        return genes().stream().map(Object::toString).collect(Collectors.joining(","));
+    }
 
-  public List<Double> asDoubleString() {
-    double extent = upperBound - lowerBound;
-    return genes.stream().map(i -> (double) (i - lowerBound) / extent).toList();
-  }
+    public List<Double> asDoubleString() {
+        double extent = upperBound - lowerBound;
+        return genes.stream().map(i -> (double) (i - lowerBound) / extent).toList();
+    }
 }

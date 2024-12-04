@@ -28,80 +28,80 @@ import java.util.stream.IntStream;
 
 public class GridCellularAutomaton<S> implements TimeInvariantDynamicalSystem<Void, Void, Grid<S>> {
 
-  protected final Grid<S> initialStates;
-  private final int neighboroodRadius;
-  private final Function<Grid<S>, S> updateRule;
-  private final boolean torodial;
-  private final S emptyState;
+    protected final Grid<S> initialStates;
+    private final int neighboroodRadius;
+    private final Function<Grid<S>, S> updateRule;
+    private final boolean torodial;
+    private final S emptyState;
 
-  private final Grid<S> states;
+    private final Grid<S> states;
 
-  public GridCellularAutomaton(
-      Grid<S> initialStates,
-      int neighboroodRadius,
-      Function<Grid<S>, S> updateRule,
-      boolean torodial,
-      S emptyState) {
-    this.initialStates = initialStates;
-    this.neighboroodRadius = neighboroodRadius;
-    this.updateRule = updateRule;
-    this.torodial = torodial;
-    this.emptyState = emptyState;
-    states = new HashGrid<>(initialStates.w(), initialStates.h());
-    reset();
-  }
+    public GridCellularAutomaton(
+            Grid<S> initialStates,
+            int neighboroodRadius,
+            Function<Grid<S>, S> updateRule,
+            boolean torodial,
+            S emptyState) {
+        this.initialStates = initialStates;
+        this.neighboroodRadius = neighboroodRadius;
+        this.updateRule = updateRule;
+        this.torodial = torodial;
+        this.emptyState = emptyState;
+        states = new HashGrid<>(initialStates.w(), initialStates.h());
+        reset();
+    }
 
-  @Override
-  public Grid<S> getState() {
-    return states;
-  }
+    @Override
+    public Grid<S> getState() {
+        return states;
+    }
 
-  @Override
-  public void reset() {
-    states.keys().forEach(k -> states.set(k, initialStates.get(k)));
-  }
+    @Override
+    public void reset() {
+        states.keys().forEach(k -> states.set(k, initialStates.get(k)));
+    }
 
-  @Override
-  public Void step(Void i) {
-    step();
-    return null;
-  }
+    @Override
+    public Void step(Void i) {
+        step();
+        return null;
+    }
 
-  public Grid<S> step() {
-    Grid<S> newStates = states.entries().stream()
-        .map(e -> new Grid.Entry<>(
-            e.key(),
-            updateRule.apply(neighborhood(e.key(), states, neighboroodRadius, torodial, emptyState))))
-        .collect(Grid.collector());
-    states.keys().forEach(k -> states.set(k, newStates.get(k)));
-    return states;
-  }
+    public Grid<S> step() {
+        Grid<S> newStates = states.entries().stream()
+                .map(e -> new Grid.Entry<>(
+                        e.key(),
+                        updateRule.apply(neighborhood(e.key(), states, neighboroodRadius, torodial, emptyState))))
+                .collect(Grid.collector());
+        states.keys().forEach(k -> states.set(k, newStates.get(k)));
+        return states;
+    }
 
-  public List<Grid<S>> evolve(int nOfSteps) {
-    reset();
-    return IntStream.range(0, nOfSteps).mapToObj(i -> step().copy()).toList();
-  }
+    public List<Grid<S>> evolve(int nOfSteps) {
+        reset();
+        return IntStream.range(0, nOfSteps).mapToObj(i -> step().copy()).toList();
+    }
 
-  private static <S> Grid<S> neighborhood(Grid.Key k, Grid<S> g, int radius, boolean torodial, S emptyState) {
-    Grid<S> n = new HashGrid<>(2 * radius + 1, 2 * radius + 1);
-    n.keys().forEach(lK -> {
-      Grid.Key tK = lK.translated(k.x() - radius, k.y() - radius);
-      if (torodial) {
-        while (tK.x() < 0) {
-          tK = new Grid.Key(tK.x() + g.w(), tK.y());
-        }
-        while (tK.y() < 0) {
-          tK = new Grid.Key(tK.x(), tK.y() + g.h());
-        }
-        if (tK.x() >= g.w()) {
-          tK = new Grid.Key(tK.x() % g.w(), tK.y());
-        }
-        if (tK.y() >= g.h()) {
-          tK = new Grid.Key(tK.x(), tK.y() % g.h());
-        }
-      }
-      n.set(lK, g.isValid(tK) ? g.get(tK) : emptyState);
-    });
-    return n;
-  }
+    private static <S> Grid<S> neighborhood(Grid.Key k, Grid<S> g, int radius, boolean torodial, S emptyState) {
+        Grid<S> n = new HashGrid<>(2 * radius + 1, 2 * radius + 1);
+        n.keys().forEach(lK -> {
+            Grid.Key tK = lK.translated(k.x() - radius, k.y() - radius);
+            if (torodial) {
+                while (tK.x() < 0) {
+                    tK = new Grid.Key(tK.x() + g.w(), tK.y());
+                }
+                while (tK.y() < 0) {
+                    tK = new Grid.Key(tK.x(), tK.y() + g.h());
+                }
+                if (tK.x() >= g.w()) {
+                    tK = new Grid.Key(tK.x() % g.w(), tK.y());
+                }
+                if (tK.y() >= g.h()) {
+                    tK = new Grid.Key(tK.x(), tK.y() % g.h());
+                }
+            }
+            n.set(lK, g.isValid(tK) ? g.get(tK) : emptyState);
+        });
+        return n;
+    }
 }

@@ -29,49 +29,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClassificationProblem<O, L extends Enum<L>>
-    implements ProblemWithValidation<Classifier<O, L>, List<Double>> {
+        implements ProblemWithValidation<Classifier<O, L>, List<Double>> {
 
-  // TODO fix this: currently, it enforces just one objective/metric
-  private static final PartialComparator<List<Double>> COMPARATOR = ParetoDominance.build(Double.class, 1);
+    // TODO fix this: currently, it enforces just one objective/metric
+    private static final PartialComparator<List<Double>> COMPARATOR = ParetoDominance.build(Double.class, 1);
 
-  private final ClassificationFitness<O, L> fitnessFunction;
-  private final ClassificationFitness<O, L> validationFunction;
-  private final List<Pair<O, L>> learningData;
-  private final List<Pair<O, L>> validationData;
+    private final ClassificationFitness<O, L> fitnessFunction;
+    private final ClassificationFitness<O, L> validationFunction;
+    private final List<Pair<O, L>> learningData;
+    private final List<Pair<O, L>> validationData;
 
-  public ClassificationProblem(
-      List<Pair<O, L>> data,
-      int folds,
-      int i,
-      ClassificationFitness.Metric learningMetric,
-      ClassificationFitness.Metric validationMetric) {
-    validationData = DataUtils.fold(data, i, folds);
-    learningData = new ArrayList<>(data);
-    learningData.removeAll(validationData);
-    fitnessFunction = new ClassificationFitness<>(learningData, learningMetric);
-    validationFunction = new ClassificationFitness<>(validationData, validationMetric);
-  }
+    public ClassificationProblem(
+            List<Pair<O, L>> data,
+            int folds,
+            int i,
+            ClassificationFitness.Metric learningMetric,
+            ClassificationFitness.Metric validationMetric) {
+        validationData = DataUtils.fold(data, i, folds);
+        learningData = new ArrayList<>(data);
+        learningData.removeAll(validationData);
+        fitnessFunction = new ClassificationFitness<>(learningData, learningMetric);
+        validationFunction = new ClassificationFitness<>(validationData, validationMetric);
+    }
 
-  public List<Pair<O, L>> getLearningData() {
-    return learningData;
-  }
+    public List<Pair<O, L>> getLearningData() {
+        return learningData;
+    }
 
-  public List<Pair<O, L>> getValidationData() {
-    return validationData;
-  }
+    public List<Pair<O, L>> getValidationData() {
+        return validationData;
+    }
 
-  @Override
-  public PartialComparator<List<Double>> qualityComparator() {
-    return COMPARATOR;
-  }
+    @Override
+    public PartialComparator<List<Double>> qualityComparator() {
+        return COMPARATOR;
+    }
 
-  @Override
-  public ClassificationFitness<O, L> qualityFunction() {
-    return fitnessFunction;
-  }
+    @Override
+    public ClassificationFitness<O, L> qualityFunction() {
+        return fitnessFunction;
+    }
 
-  @Override
-  public ClassificationFitness<O, L> validationQualityFunction() {
-    return validationFunction;
-  }
+    @Override
+    public ClassificationFitness<O, L> validationQualityFunction() {
+        return validationFunction;
+    }
 }

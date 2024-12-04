@@ -32,72 +32,72 @@ import java.util.stream.Collectors;
 @FunctionalInterface
 public interface Listener<E> {
 
-  void listen(E e);
+    void listen(E e);
 
-  static <E> Listener<E> all(List<Listener<? super E>> listeners) {
-    return from(
-        "all[%s]".formatted(listeners.stream().map(Object::toString).collect(Collectors.joining(";"))),
-        e -> listeners.forEach(l -> l.listen(e)),
-        () -> listeners.forEach(Listener::done));
-  }
+    static <E> Listener<E> all(List<Listener<? super E>> listeners) {
+        return from(
+                "all[%s]".formatted(listeners.stream().map(Object::toString).collect(Collectors.joining(";"))),
+                e -> listeners.forEach(l -> l.listen(e)),
+                () -> listeners.forEach(Listener::done));
+    }
 
-  static <E> Listener<E> deaf() {
-    return from("deaf", e -> {}, () -> {});
-  }
+    static <E> Listener<E> deaf() {
+        return from("deaf", e -> {}, () -> {});
+    }
 
-  static <E> Listener<E> from(String name, Consumer<E> consumer, Runnable doneRunnable) {
-    return new Listener<>() {
-      @Override
-      public void listen(E e) {
-        consumer.accept(e);
-      }
+    static <E> Listener<E> from(String name, Consumer<E> consumer, Runnable doneRunnable) {
+        return new Listener<>() {
+            @Override
+            public void listen(E e) {
+                consumer.accept(e);
+            }
 
-      @Override
-      public void done() {
-        doneRunnable.run();
-      }
+            @Override
+            public void done() {
+                doneRunnable.run();
+            }
 
-      @Override
-      public String toString() {
-        return name;
-      }
-    };
-  }
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
+    }
 
-  default Listener<E> and(Listener<? super E> other) {
-    return all(List.of(this, other));
-  }
+    default Listener<E> and(Listener<? super E> other) {
+        return all(List.of(this, other));
+    }
 
-  default Listener<E> deferred(ExecutorService executorService) {
-    final Logger L = Logger.getLogger(Listener.class.getName());
-    return from(
-        "%s[deferered]".formatted(this),
-        e -> executorService.submit(() -> Misc.doOrLog(
-            () -> listen(e),
-            Logger.getLogger(Listener.class.getName()),
-            Level.WARNING,
-            t -> String.format("Listener %s cannot listen() event: %s", this, t))),
-        () -> executorService.submit(() -> Misc.doOrLog(
-            this::done,
-            Logger.getLogger(Listener.class.getName()),
-            Level.WARNING,
-            t -> String.format("Listener %s cannot done(): %s", this, t))));
-  }
+    default Listener<E> deferred(ExecutorService executorService) {
+        final Logger L = Logger.getLogger(Listener.class.getName());
+        return from(
+                "%s[deferered]".formatted(this),
+                e -> executorService.submit(() -> Misc.doOrLog(
+                        () -> listen(e),
+                        Logger.getLogger(Listener.class.getName()),
+                        Level.WARNING,
+                        t -> String.format("Listener %s cannot listen() event: %s", this, t))),
+                () -> executorService.submit(() -> Misc.doOrLog(
+                        this::done,
+                        Logger.getLogger(Listener.class.getName()),
+                        Level.WARNING,
+                        t -> String.format("Listener %s cannot done(): %s", this, t))));
+    }
 
-  default void done() {}
+    default void done() {}
 
-  default <F> Listener<F> forEach(Function<F, Collection<E>> splitter) {
-    return from(
-        "%s[forEach:%s]".formatted(this, splitter),
-        f -> splitter.apply(f).forEach(this::listen),
-        this::done);
-  }
+    default <F> Listener<F> forEach(Function<F, Collection<E>> splitter) {
+        return from(
+                "%s[forEach:%s]".formatted(this, splitter),
+                f -> splitter.apply(f).forEach(this::listen),
+                this::done);
+    }
 
-  default <F> Listener<F> on(Function<F, E> function) {
-    return from("%s[on:%s]".formatted(this, function), f -> listen(function.apply(f)), this::done);
-  }
+    default <F> Listener<F> on(Function<F, E> function) {
+        return from("%s[on:%s]".formatted(this, function), f -> listen(function.apply(f)), this::done);
+    }
 
-  default Listener<E> onLast() {
-    return Accumulator.from("%s[last]".formatted(this), () -> null, (e, oldE) -> e, this::listen);
-  }
+    default Listener<E> onLast() {
+        return Accumulator.from("%s[last]".formatted(this), () -> null, (e, oldE) -> e, this::listen);
+    }
 }

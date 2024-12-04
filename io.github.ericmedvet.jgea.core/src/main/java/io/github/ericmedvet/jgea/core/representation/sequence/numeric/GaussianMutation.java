@@ -24,7 +24,7 @@ import io.github.ericmedvet.jgea.core.representation.sequence.ListProbabilisticM
 
 public class GaussianMutation extends ListProbabilisticMutation<Double> {
 
-  public GaussianMutation(double sigma) {
-    super(1d, (v, random) -> v + random.nextGaussian() * sigma);
-  }
+    public GaussianMutation(double sigma) {
+        super(1d, (v, random) -> v + random.nextGaussian() * sigma);
+    }
 }

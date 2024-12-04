@@ -26,13 +26,13 @@ import java.util.random.RandomGenerator;
 
 public class Last implements Selector<Object> {
 
-  @Override
-  public <K> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random) {
-    return Misc.pickRandomly(ks.lasts(), random);
-  }
+    @Override
+    public <K> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random) {
+        return Misc.pickRandomly(ks.lasts(), random);
+    }
 
-  @Override
-  public String toString() {
-    return "Last{" + '}';
-  }
+    @Override
+    public String toString() {
+        return "Last{" + '}';
+    }
 }

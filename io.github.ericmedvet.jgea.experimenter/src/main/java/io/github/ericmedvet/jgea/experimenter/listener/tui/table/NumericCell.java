@@ -23,19 +23,19 @@ import io.github.ericmedvet.jgea.experimenter.listener.tui.util.TuiDrawer;
 
 public record NumericCell(Number value, String format, String suffix) implements Cell {
 
-  public NumericCell(Number value, String format) {
-    this(value, format, "");
-  }
+    public NumericCell(Number value, String format) {
+        this(value, format, "");
+    }
 
-  @Override
-  public void draw(TuiDrawer td, int width) {
-    String s = format.formatted(value);
-    td.drawString(0, 0, s);
-    td.drawString(s.length(), 0, suffix, td.getConfiguration().secondaryStringColor());
-  }
+    @Override
+    public void draw(TuiDrawer td, int width) {
+        String s = format.formatted(value);
+        td.drawString(0, 0, s);
+        td.drawString(s.length(), 0, suffix, td.getConfiguration().secondaryStringColor());
+    }
 
-  @Override
-  public int preferredWidth() {
-    return format.formatted(value).length() + suffix.length();
-  }
+    @Override
+    public int preferredWidth() {
+        return format.formatted(value).length() + suffix.length();
+    }
 }

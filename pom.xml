@@ -203,7 +203,7 @@
             </indent>
             <indent>
               <spaces>true</spaces>
-              <spacesPerTab>2</spacesPerTab>
+              <spacesPerTab>4</spacesPerTab>
             </indent>
           </java>
           <pom>

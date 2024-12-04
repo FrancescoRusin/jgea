@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface Grammar<S, O> {
-  Map<S, List<O>> rules();
+    Map<S, List<O>> rules();
 
-  S startingSymbol();
+    S startingSymbol();
 
-  Collection<S> usedSymbols(O o);
+    Collection<S> usedSymbols(O o);
 }

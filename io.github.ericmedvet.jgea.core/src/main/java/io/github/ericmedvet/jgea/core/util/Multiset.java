@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Set;
 
 public interface Multiset<E> extends Collection<E> {
-  int count(E e);
+    int count(E e);
 
-  Set<E> elementSet();
+    Set<E> elementSet();
 
-  @SafeVarargs
-  static <E> Multiset<E> of(E... es) {
-    return new LinkedHashMultiset<>(List.of(es));
-  }
+    @SafeVarargs
+    static <E> Multiset<E> of(E... es) {
+        return new LinkedHashMultiset<>(List.of(es));
+    }
 }

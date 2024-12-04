@@ -26,85 +26,85 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface PartialComparator<K> {
 
-  enum PartialComparatorOutcome {
-    BEFORE,
-    AFTER,
-    SAME,
-    NOT_COMPARABLE
-  }
+    enum PartialComparatorOutcome {
+        BEFORE,
+        AFTER,
+        SAME,
+        NOT_COMPARABLE
+    }
 
-  PartialComparatorOutcome compare(K k1, K k2);
+    PartialComparatorOutcome compare(K k1, K k2);
 
-  static <C> PartialComparator<C> from(Comparator<? super C> comparator) {
-    return (c1, c2) -> {
-      int o = comparator.compare(c1, c2);
-      if (o < 0) {
-        return PartialComparatorOutcome.BEFORE;
-      }
-      if (o == 0) {
-        return PartialComparatorOutcome.SAME;
-      }
-      return PartialComparatorOutcome.AFTER;
-    };
-  }
+    static <C> PartialComparator<C> from(Comparator<? super C> comparator) {
+        return (c1, c2) -> {
+            int o = comparator.compare(c1, c2);
+            if (o < 0) {
+                return PartialComparatorOutcome.BEFORE;
+            }
+            if (o == 0) {
+                return PartialComparatorOutcome.SAME;
+            }
+            return PartialComparatorOutcome.AFTER;
+        };
+    }
 
-  static <C extends Comparable<C>> PartialComparator<C> from(Class<C> comparableClass) {
-    return (c1, c2) -> {
-      int o = c1.compareTo(c2);
-      if (o < 0) {
-        return PartialComparatorOutcome.BEFORE;
-      }
-      if (o == 0) {
-        return PartialComparatorOutcome.SAME;
-      }
-      return PartialComparatorOutcome.AFTER;
-    };
-  }
+    static <C extends Comparable<C>> PartialComparator<C> from(Class<C> comparableClass) {
+        return (c1, c2) -> {
+            int o = c1.compareTo(c2);
+            if (o < 0) {
+                return PartialComparatorOutcome.BEFORE;
+            }
+            if (o == 0) {
+                return PartialComparatorOutcome.SAME;
+            }
+            return PartialComparatorOutcome.AFTER;
+        };
+    }
 
-  default Comparator<K> comparator() {
-    PartialComparator<K> thisPartialComparator = this;
-    return (o1, o2) -> {
-      PartialComparatorOutcome outcome = thisPartialComparator.compare(o1, o2);
-      if (outcome.equals(PartialComparatorOutcome.NOT_COMPARABLE)) {
-        throw new IllegalArgumentException(
-            String.format("Cannot total order uncomparable items %s and %s", o1, o2));
-      }
-      if (outcome.equals(PartialComparatorOutcome.BEFORE)) {
-        return -1;
-      }
-      if (outcome.equals(PartialComparatorOutcome.AFTER)) {
-        return 1;
-      }
-      return 0;
-    };
-  }
+    default Comparator<K> comparator() {
+        PartialComparator<K> thisPartialComparator = this;
+        return (o1, o2) -> {
+            PartialComparatorOutcome outcome = thisPartialComparator.compare(o1, o2);
+            if (outcome.equals(PartialComparatorOutcome.NOT_COMPARABLE)) {
+                throw new IllegalArgumentException(
+                        String.format("Cannot total order uncomparable items %s and %s", o1, o2));
+            }
+            if (outcome.equals(PartialComparatorOutcome.BEFORE)) {
+                return -1;
+            }
+            if (outcome.equals(PartialComparatorOutcome.AFTER)) {
+                return 1;
+            }
+            return 0;
+        };
+    }
 
-  default <C> PartialComparator<C> comparing(Function<? super C, ? extends K> function) {
-    return (c1, c2) -> compare(function.apply(c1), function.apply(c2));
-  }
+    default <C> PartialComparator<C> comparing(Function<? super C, ? extends K> function) {
+        return (c1, c2) -> compare(function.apply(c1), function.apply(c2));
+    }
 
-  default PartialComparator<K> reversed() {
-    PartialComparator<K> thisComparator = this;
-    return (k1, k2) -> {
-      PartialComparatorOutcome outcome = thisComparator.compare(k1, k2);
-      if (outcome.equals(PartialComparatorOutcome.BEFORE)) {
-        return PartialComparatorOutcome.AFTER;
-      }
-      if (outcome.equals(PartialComparatorOutcome.AFTER)) {
-        return PartialComparatorOutcome.BEFORE;
-      }
-      return outcome;
-    };
-  }
+    default PartialComparator<K> reversed() {
+        PartialComparator<K> thisComparator = this;
+        return (k1, k2) -> {
+            PartialComparatorOutcome outcome = thisComparator.compare(k1, k2);
+            if (outcome.equals(PartialComparatorOutcome.BEFORE)) {
+                return PartialComparatorOutcome.AFTER;
+            }
+            if (outcome.equals(PartialComparatorOutcome.AFTER)) {
+                return PartialComparatorOutcome.BEFORE;
+            }
+            return outcome;
+        };
+    }
 
-  default PartialComparator<K> thenComparing(PartialComparator<? super K> other) {
-    PartialComparator<K> thisComparator = this;
-    return (k1, k2) -> {
-      PartialComparatorOutcome outcome = thisComparator.compare(k1, k2);
-      if (!outcome.equals(PartialComparatorOutcome.SAME)) {
-        return outcome;
-      }
-      return other.compare(k1, k2);
-    };
-  }
+    default PartialComparator<K> thenComparing(PartialComparator<? super K> other) {
+        PartialComparator<K> thisComparator = this;
+        return (k1, k2) -> {
+            PartialComparatorOutcome outcome = thisComparator.compare(k1, k2);
+            if (!outcome.equals(PartialComparatorOutcome.SAME)) {
+                return outcome;
+            }
+            return other.compare(k1, k2);
+        };
+    }
 }

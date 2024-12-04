@@ -22,12 +22,12 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 import java.util.stream.IntStream;
 
 public class Discus extends AbstractNumericalProblem {
-  public Discus(int p) {
-    super(
-        p,
-        vs -> 1000000d * vs.getFirst() * vs.getFirst()
-            + IntStream.range(1, p)
-                .mapToDouble(i -> vs.get(i) * vs.get(i))
-                .sum());
-  }
+    public Discus(int p) {
+        super(
+                p,
+                vs -> 1000000d * vs.getFirst() * vs.getFirst()
+                        + IntStream.range(1, p)
+                                .mapToDouble(i -> vs.get(i) * vs.get(i))
+                                .sum());
+    }
 }

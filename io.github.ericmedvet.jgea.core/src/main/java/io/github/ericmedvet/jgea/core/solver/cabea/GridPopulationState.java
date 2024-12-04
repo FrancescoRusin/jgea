@@ -32,75 +32,75 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q>>
-    extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
-  Grid<Individual<G, S, Q>> gridPopulation();
+        extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
+    Grid<Individual<G, S, Q>> gridPopulation();
 
-  static <G, S, Q, P extends QualityBasedProblem<S, Q>> GridPopulationState<G, S, Q, P> empty(
-      P problem, Predicate<State<?, ?>> stopCondition) {
-    return of(LocalDateTime.now(), 0, 0, problem, stopCondition, 0, 0, Grid.create(0, 0));
-  }
+    static <G, S, Q, P extends QualityBasedProblem<S, Q>> GridPopulationState<G, S, Q, P> empty(
+            P problem, Predicate<State<?, ?>> stopCondition) {
+        return of(LocalDateTime.now(), 0, 0, problem, stopCondition, 0, 0, Grid.create(0, 0));
+    }
 
-  static <G, S, Q, P extends QualityBasedProblem<S, Q>> GridPopulationState<G, S, Q, P> of(
-      LocalDateTime startingDateTime,
-      long elapsedMillis,
-      long nOfIterations,
-      P problem,
-      Predicate<State<?, ?>> stopCondition,
-      long nOfBirths,
-      long nOfQualityEvaluations,
-      Grid<Individual<G, S, Q>> gridPopulation) {
-    PartialComparator<? super Individual<G, S, Q>> comparator =
-        (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
-    record HardState<G, S, Q, P extends QualityBasedProblem<S, Q>>(
-        LocalDateTime startingDateTime,
-        long elapsedMillis,
-        long nOfIterations,
-        P problem,
-        Predicate<State<?, ?>> stopCondition,
-        long nOfBirths,
-        long nOfQualityEvaluations,
-        PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
-        Grid<Individual<G, S, Q>> gridPopulation)
-        implements GridPopulationState<G, S, Q, P> {}
-    return new HardState<>(
-        startingDateTime,
-        elapsedMillis,
-        nOfIterations,
-        problem,
-        stopCondition,
-        nOfBirths,
-        nOfQualityEvaluations,
-        PartiallyOrderedCollection.from(
-            gridPopulation.values().stream()
-                .filter(Objects::nonNull)
-                .toList(),
-            comparator),
-        gridPopulation);
-  }
+    static <G, S, Q, P extends QualityBasedProblem<S, Q>> GridPopulationState<G, S, Q, P> of(
+            LocalDateTime startingDateTime,
+            long elapsedMillis,
+            long nOfIterations,
+            P problem,
+            Predicate<State<?, ?>> stopCondition,
+            long nOfBirths,
+            long nOfQualityEvaluations,
+            Grid<Individual<G, S, Q>> gridPopulation) {
+        PartialComparator<? super Individual<G, S, Q>> comparator =
+                (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
+        record HardState<G, S, Q, P extends QualityBasedProblem<S, Q>>(
+                LocalDateTime startingDateTime,
+                long elapsedMillis,
+                long nOfIterations,
+                P problem,
+                Predicate<State<?, ?>> stopCondition,
+                long nOfBirths,
+                long nOfQualityEvaluations,
+                PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
+                Grid<Individual<G, S, Q>> gridPopulation)
+                implements GridPopulationState<G, S, Q, P> {}
+        return new HardState<>(
+                startingDateTime,
+                elapsedMillis,
+                nOfIterations,
+                problem,
+                stopCondition,
+                nOfBirths,
+                nOfQualityEvaluations,
+                PartiallyOrderedCollection.from(
+                        gridPopulation.values().stream()
+                                .filter(Objects::nonNull)
+                                .toList(),
+                        comparator),
+                gridPopulation);
+    }
 
-  default GridPopulationState<G, S, Q, P> updatedWithIteration(
-      long nOfNewBirths, long nOfNewQualityEvaluations, Grid<Individual<G, S, Q>> gridPopulation) {
-    return of(
-        startingDateTime(),
-        ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
-        nOfIterations() + 1,
-        problem(),
-        stopCondition(),
-        nOfBirths() + nOfNewBirths,
-        nOfQualityEvaluations() + nOfNewQualityEvaluations,
-        gridPopulation);
-  }
+    default GridPopulationState<G, S, Q, P> updatedWithIteration(
+            long nOfNewBirths, long nOfNewQualityEvaluations, Grid<Individual<G, S, Q>> gridPopulation) {
+        return of(
+                startingDateTime(),
+                ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
+                nOfIterations() + 1,
+                problem(),
+                stopCondition(),
+                nOfBirths() + nOfNewBirths,
+                nOfQualityEvaluations() + nOfNewQualityEvaluations,
+                gridPopulation);
+    }
 
-  @Override
-  default GridPopulationState<G, S, Q, P> updatedWithProblem(P problem) {
-    return of(
-        startingDateTime(),
-        elapsedMillis(),
-        nOfIterations(),
-        problem,
-        stopCondition(),
-        nOfBirths(),
-        nOfQualityEvaluations(),
-        gridPopulation());
-  }
+    @Override
+    default GridPopulationState<G, S, Q, P> updatedWithProblem(P problem) {
+        return of(
+                startingDateTime(),
+                elapsedMillis(),
+                nOfIterations(),
+                problem,
+                stopCondition(),
+                nOfBirths(),
+                nOfQualityEvaluations(),
+                gridPopulation());
+    }
 }

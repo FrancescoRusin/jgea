@@ -28,25 +28,25 @@ import java.util.random.RandomGenerator;
 
 public class Tournament implements Selector<Object> {
 
-  private final int size;
+    private final int size;
 
-  public Tournament(int size) {
-    this.size = size;
-  }
-
-  @Override
-  public <K> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random) {
-    Collection<K> all = ks.all();
-    Collection<K> tournament = new ArrayList<>();
-    for (int i = 0; i < size; i++) {
-      tournament.add(Misc.pickRandomly(all, random));
+    public Tournament(int size) {
+        this.size = size;
     }
-    PartiallyOrderedCollection<K> poc = PartiallyOrderedCollection.from(tournament, ks.comparator());
-    return Misc.pickRandomly(poc.firsts(), random);
-  }
 
-  @Override
-  public String toString() {
-    return "Tournament{" + "size=" + size + '}';
-  }
+    @Override
+    public <K> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random) {
+        Collection<K> all = ks.all();
+        Collection<K> tournament = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            tournament.add(Misc.pickRandomly(all, random));
+        }
+        PartiallyOrderedCollection<K> poc = PartiallyOrderedCollection.from(tournament, ks.comparator());
+        return Misc.pickRandomly(poc.firsts(), random);
+    }
+
+    @Override
+    public String toString() {
+        return "Tournament{" + "size=" + size + '}';
+    }
 }

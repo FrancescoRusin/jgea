@@ -32,50 +32,50 @@ import java.util.function.Function;
 
 public class BooleanFunctionFitness extends ListCaseBasedFitness<List<Tree<Element>>, boolean[], Boolean, Double> {
 
-  public BooleanFunctionFitness(TargetFunction targetFunction, List<boolean[]> observations) {
-    super(observations, new Error(targetFunction), new ErrorRate());
-  }
+    public BooleanFunctionFitness(TargetFunction targetFunction, List<boolean[]> observations) {
+        super(observations, new Error(targetFunction), new ErrorRate());
+    }
 
-  public interface TargetFunction extends Function<boolean[], boolean[]> {
-    String[] varNames();
+    public interface TargetFunction extends Function<boolean[], boolean[]> {
+        String[] varNames();
 
-    static TargetFunction from(final Function<boolean[], boolean[]> function, final String... varNames) {
-      return new TargetFunction() {
-        @Override
-        public boolean[] apply(boolean[] values) {
-          return function.apply(values);
+        static TargetFunction from(final Function<boolean[], boolean[]> function, final String... varNames) {
+            return new TargetFunction() {
+                @Override
+                public boolean[] apply(boolean[] values) {
+                    return function.apply(values);
+                }
+
+                @Override
+                public String[] varNames() {
+                    return varNames;
+                }
+            };
         }
+    }
+
+    private record Error(TargetFunction targetFunction) implements BiFunction<List<Tree<Element>>, boolean[], Boolean> {
 
         @Override
-        public String[] varNames() {
-          return varNames;
+        public Boolean apply(List<Tree<Element>> solution, boolean[] observation) {
+            Map<String, Boolean> varValues = new LinkedHashMap<>();
+            for (int i = 0; i < targetFunction.varNames().length; i++) {
+                varValues.put(targetFunction.varNames()[i], observation[i]);
+            }
+            boolean[] computed = BooleanUtils.compute(solution, varValues);
+            return Arrays.equals(computed, targetFunction.apply(observation));
         }
-      };
     }
-  }
 
-  private record Error(TargetFunction targetFunction) implements BiFunction<List<Tree<Element>>, boolean[], Boolean> {
+    private static class ErrorRate implements Function<List<Boolean>, Double> {
 
-    @Override
-    public Boolean apply(List<Tree<Element>> solution, boolean[] observation) {
-      Map<String, Boolean> varValues = new LinkedHashMap<>();
-      for (int i = 0; i < targetFunction.varNames().length; i++) {
-        varValues.put(targetFunction.varNames()[i], observation[i]);
-      }
-      boolean[] computed = BooleanUtils.compute(solution, varValues);
-      return Arrays.equals(computed, targetFunction.apply(observation));
+        @Override
+        public Double apply(List<Boolean> vs) {
+            double errors = 0;
+            for (Boolean v : vs) {
+                errors = errors + (v ? 0d : 1d);
+            }
+            return errors / (double) vs.size();
+        }
     }
-  }
-
-  private static class ErrorRate implements Function<List<Boolean>, Double> {
-
-    @Override
-    public Double apply(List<Boolean> vs) {
-      double errors = 0;
-      for (Boolean v : vs) {
-        errors = errors + (v ? 0d : 1d);
-      }
-      return errors / (double) vs.size();
-    }
-  }
 }

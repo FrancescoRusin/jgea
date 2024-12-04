@@ -25,38 +25,38 @@ import java.util.*;
 
 public class GlobalBest implements CoMEStrategy {
 
-  private List<Double> bestCoords;
-  private Object bestQ;
+    private List<Double> bestCoords;
+    private Object bestQ;
 
-  public GlobalBest() {
-    bestCoords = null;
-    bestQ = null;
-  }
-
-  @Override
-  public List<Double> getOtherCoords(List<Double> theseCoords) {
-    if (bestCoords == null) {
-      return Collections.nCopies(theseCoords.size(), 0.5d);
+    public GlobalBest() {
+        bestCoords = null;
+        bestQ = null;
     }
-    return bestCoords;
-  }
 
-  @Override
-  public <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {
-    Optional<Observation<Q>> oBestObservation =
-        PartiallyOrderedCollection.from(newObservations, qComparator.comparing(Observation::q))
-            .firsts()
-            .stream()
-            .findAny();
-    if (oBestObservation.isPresent()) {
-      Observation<Q> bestObservation = oBestObservation.get();
-      //noinspection unchecked
-      if ((bestQ == null)
-          || (qComparator.compare(bestObservation.q(), (Q) bestQ)
-              == PartialComparator.PartialComparatorOutcome.BEFORE)) {
-        bestCoords = bestObservation.otherCoords();
-        bestQ = bestObservation.q();
-      }
+    @Override
+    public List<Double> getOtherCoords(List<Double> theseCoords) {
+        if (bestCoords == null) {
+            return Collections.nCopies(theseCoords.size(), 0.5d);
+        }
+        return bestCoords;
     }
-  }
+
+    @Override
+    public <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {
+        Optional<Observation<Q>> oBestObservation =
+                PartiallyOrderedCollection.from(newObservations, qComparator.comparing(Observation::q))
+                        .firsts()
+                        .stream()
+                        .findAny();
+        if (oBestObservation.isPresent()) {
+            Observation<Q> bestObservation = oBestObservation.get();
+            //noinspection unchecked
+            if ((bestQ == null)
+                    || (qComparator.compare(bestObservation.q(), (Q) bestQ)
+                            == PartialComparator.PartialComparatorOutcome.BEFORE)) {
+                bestCoords = bestObservation.otherCoords();
+                bestQ = bestObservation.q();
+            }
+        }
+    }
 }

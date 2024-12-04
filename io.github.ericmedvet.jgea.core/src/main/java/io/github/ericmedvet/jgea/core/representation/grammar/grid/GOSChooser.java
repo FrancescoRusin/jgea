@@ -32,38 +32,38 @@ import java.util.stream.Collectors;
 
 public class GOSChooser<S, O> implements Chooser<S, O> {
 
-  private final GrammarOptionString<S> gos;
-  private final Grammar<S, O> grammar;
-  private final Map<S, Integer> counters;
+    private final GrammarOptionString<S> gos;
+    private final Grammar<S, O> grammar;
+    private final Map<S, Integer> counters;
 
-  public GOSChooser(GrammarOptionString<S> gos, Grammar<S, O> grammar) {
-    this.gos = gos;
-    this.grammar = grammar;
-    counters = gos.options().keySet().stream().collect(Collectors.toMap(s -> s, s -> 0));
-  }
+    public GOSChooser(GrammarOptionString<S> gos, Grammar<S, O> grammar) {
+        this.gos = gos;
+        this.grammar = grammar;
+        counters = gos.options().keySet().stream().collect(Collectors.toMap(s -> s, s -> 0));
+    }
 
-  public static <T, D, O> Function<GrammarOptionString<T>, D> mapper(
-      Grammar<T, O> grammar, Developer<T, D, O> developer, D defaultDeveloped) {
-    return gos -> {
-      GOSChooser<T, O> chooser = new GOSChooser<>(gos, grammar);
-      return developer.develop(chooser).orElse(defaultDeveloped);
-    };
-  }
+    public static <T, D, O> Function<GrammarOptionString<T>, D> mapper(
+            Grammar<T, O> grammar, Developer<T, D, O> developer, D defaultDeveloped) {
+        return gos -> {
+            GOSChooser<T, O> chooser = new GOSChooser<>(gos, grammar);
+            return developer.develop(chooser).orElse(defaultDeveloped);
+        };
+    }
 
-  @Override
-  public Optional<O> chooseFor(S s) {
-    if (grammar.rules().get(s).size() == 1) {
-      return Optional.of(grammar.rules().get(s).getFirst());
+    @Override
+    public Optional<O> chooseFor(S s) {
+        if (grammar.rules().get(s).size() == 1) {
+            return Optional.of(grammar.rules().get(s).getFirst());
+        }
+        if (!gos.options().containsKey(s)) {
+            throw new IllegalArgumentException("Invalid genotype, it does not contain symbol %s".formatted(s));
+        }
+        List<Integer> optionIndexes = gos.options().get(s);
+        if (counters.get(s) >= optionIndexes.size()) {
+            return Optional.empty();
+        }
+        O chosen = grammar.rules().get(s).get(optionIndexes.get(counters.get(s)));
+        counters.computeIfPresent(s, (localS, c) -> c + 1);
+        return Optional.of(chosen);
     }
-    if (!gos.options().containsKey(s)) {
-      throw new IllegalArgumentException("Invalid genotype, it does not contain symbol %s".formatted(s));
-    }
-    List<Integer> optionIndexes = gos.options().get(s);
-    if (counters.get(s) >= optionIndexes.size()) {
-      return Optional.empty();
-    }
-    O chosen = grammar.rules().get(s).get(optionIndexes.get(counters.get(s)));
-    counters.computeIfPresent(s, (localS, c) -> c + 1);
-    return Optional.of(chosen);
-  }
 }

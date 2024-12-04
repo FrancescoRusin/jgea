@@ -31,35 +31,35 @@ import java.util.random.RandomGenerator;
 @FunctionalInterface
 public interface Mutation<G> extends GeneticOperator<G> {
 
-  G mutate(G g, RandomGenerator random);
+    G mutate(G g, RandomGenerator random);
 
-  static <K> Mutation<K> copy() {
-    return (k, random) -> k;
-  }
+    static <K> Mutation<K> copy() {
+        return (k, random) -> k;
+    }
 
-  static <K> Mutation<K> oneOf(Map<Mutation<K>, Double> operators) {
-    return (k, random) -> Misc.pickRandomly(operators, random).mutate(k, random);
-  }
+    static <K> Mutation<K> oneOf(Map<Mutation<K>, Double> operators) {
+        return (k, random) -> Misc.pickRandomly(operators, random).mutate(k, random);
+    }
 
-  static <G1, G2> Mutation<Pair<G1, G2>> pair(Mutation<G1> mutation1, Mutation<G2> mutation2) {
-    return (p, random) -> new Pair<>(mutation1.mutate(p.first(), random), mutation2.mutate(p.second(), random));
-  }
+    static <G1, G2> Mutation<Pair<G1, G2>> pair(Mutation<G1> mutation1, Mutation<G2> mutation2) {
+        return (p, random) -> new Pair<>(mutation1.mutate(p.first(), random), mutation2.mutate(p.second(), random));
+    }
 
-  @Override
-  default List<? extends G> apply(List<? extends G> gs, RandomGenerator random) {
-    return Collections.singletonList(mutate(gs.getFirst(), random));
-  }
+    @Override
+    default List<? extends G> apply(List<? extends G> gs, RandomGenerator random) {
+        return Collections.singletonList(mutate(gs.getFirst(), random));
+    }
 
-  @Override
-  default int arity() {
-    return 1;
-  }
+    @Override
+    default int arity() {
+        return 1;
+    }
 
-  default Mutation<G> withChecker(Predicate<? super G> checker) {
-    Mutation<G> thisMutation = this;
-    return (parent, random) -> {
-      G child = thisMutation.mutate(parent, random);
-      return checker.test(child) ? child : parent;
-    };
-  }
+    default Mutation<G> withChecker(Predicate<? super G> checker) {
+        Mutation<G> thisMutation = this;
+        return (parent, random) -> {
+            G child = thisMutation.mutate(parent, random);
+            return checker.test(child) ? child : parent;
+        };
+    }
 }

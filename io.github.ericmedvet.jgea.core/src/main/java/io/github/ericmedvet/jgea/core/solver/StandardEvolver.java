@@ -31,71 +31,71 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 
 public class StandardEvolver<G, S, Q>
-    extends AbstractStandardEvolver<
-        POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>,
-        QualityBasedProblem<S, Q>,
-        Individual<G, S, Q>,
-        G,
-        S,
-        Q> {
-  public StandardEvolver(
-      Function<? super G, ? extends S> solutionMapper,
-      Factory<? extends G> genotypeFactory,
-      int populationSize,
-      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
-          stopCondition,
-      Map<GeneticOperator<G>, Double> operators,
-      Selector<? super Individual<G, S, Q>> parentSelector,
-      Selector<? super Individual<G, S, Q>> unsurvivalSelector,
-      int offspringSize,
-      boolean overlapping,
-      int maxUniquenessAttempts,
-      boolean remap) {
-    super(
-        solutionMapper,
-        genotypeFactory,
-        populationSize,
-        stopCondition,
-        operators,
-        parentSelector,
-        unsurvivalSelector,
-        offspringSize,
-        overlapping,
-        maxUniquenessAttempts,
-        remap);
-  }
+        extends AbstractStandardEvolver<
+                POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>,
+                QualityBasedProblem<S, Q>,
+                Individual<G, S, Q>,
+                G,
+                S,
+                Q> {
+    public StandardEvolver(
+            Function<? super G, ? extends S> solutionMapper,
+            Factory<? extends G> genotypeFactory,
+            int populationSize,
+            Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
+                    stopCondition,
+            Map<GeneticOperator<G>, Double> operators,
+            Selector<? super Individual<G, S, Q>> parentSelector,
+            Selector<? super Individual<G, S, Q>> unsurvivalSelector,
+            int offspringSize,
+            boolean overlapping,
+            int maxUniquenessAttempts,
+            boolean remap) {
+        super(
+                solutionMapper,
+                genotypeFactory,
+                populationSize,
+                stopCondition,
+                operators,
+                parentSelector,
+                unsurvivalSelector,
+                offspringSize,
+                overlapping,
+                maxUniquenessAttempts,
+                remap);
+    }
 
-  @Override
-  protected POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> init(
-      QualityBasedProblem<S, Q> problem) {
-    return POCPopulationState.empty(problem, stopCondition());
-  }
+    @Override
+    protected POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> init(
+            QualityBasedProblem<S, Q> problem) {
+        return POCPopulationState.empty(problem, stopCondition());
+    }
 
-  @Override
-  protected Individual<G, S, Q> mapChildGenotype(
-      ChildGenotype<G> childGenotype,
-      POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
-      RandomGenerator random) {
-    return Individual.from(childGenotype, solutionMapper, state.problem().qualityFunction(), state.nOfIterations());
-  }
+    @Override
+    protected Individual<G, S, Q> mapChildGenotype(
+            ChildGenotype<G> childGenotype,
+            POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
+            RandomGenerator random) {
+        return Individual.from(childGenotype, solutionMapper, state.problem().qualityFunction(), state.nOfIterations());
+    }
 
-  @Override
-  protected Individual<G, S, Q> remapIndividual(
-      Individual<G, S, Q> individual,
-      POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
-      RandomGenerator random) {
-    return individual.updatedWithQuality(state);
-  }
+    @Override
+    protected Individual<G, S, Q> remapIndividual(
+            Individual<G, S, Q> individual,
+            POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
+            RandomGenerator random) {
+        return individual.updatedWithQuality(state);
+    }
 
-  @Override
-  protected POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> update(
-      POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
-      Collection<Individual<G, S, Q>> individuals,
-      long nOfNewBirths,
-      long nOfNewFitnessEvaluations) {
-    return state.updatedWithIteration(
-        nOfNewBirths,
-        nOfNewFitnessEvaluations,
-        PartiallyOrderedCollection.from(individuals, partialComparator(state.problem())));
-  }
+    @Override
+    protected POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> update(
+            POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state,
+            Collection<Individual<G, S, Q>> individuals,
+            long nOfNewBirths,
+            long nOfNewFitnessEvaluations) {
+        return state.updatedWithIteration(
+                nOfNewBirths,
+                nOfNewFitnessEvaluations,
+                PartiallyOrderedCollection.from(individuals, partialComparator(state.problem())));
+    }
 }

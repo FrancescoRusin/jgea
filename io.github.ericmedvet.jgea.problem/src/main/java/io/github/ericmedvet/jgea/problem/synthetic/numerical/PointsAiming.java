@@ -31,33 +31,33 @@ import java.util.List;
 
 public class PointsAiming implements ProblemWithExampleSolution<List<Double>>, MultiTargetProblem<List<Double>> {
 
-  private final List<List<Double>> targets;
-  private final int p;
+    private final List<List<Double>> targets;
+    private final int p;
 
-  private final Distance<List<Double>> distance;
+    private final Distance<List<Double>> distance;
 
-  public PointsAiming(List<List<Double>> targets) {
-    if (targets.isEmpty()) {
-      throw new IllegalArgumentException("No target points given");
+    public PointsAiming(List<List<Double>> targets) {
+        if (targets.isEmpty()) {
+            throw new IllegalArgumentException("No target points given");
+        }
+        checkLengthsList(targets);
+        this.targets = Collections.unmodifiableList(targets);
+        distance = (vs1, vs2) -> norm(diff(vs1, vs2), 2);
+        p = targets.getFirst().size();
     }
-    checkLengthsList(targets);
-    this.targets = Collections.unmodifiableList(targets);
-    distance = (vs1, vs2) -> norm(diff(vs1, vs2), 2);
-    p = targets.getFirst().size();
-  }
 
-  @Override
-  public Distance<List<Double>> distance() {
-    return distance;
-  }
+    @Override
+    public Distance<List<Double>> distance() {
+        return distance;
+    }
 
-  @Override
-  public Collection<List<Double>> targets() {
-    return targets;
-  }
+    @Override
+    public Collection<List<Double>> targets() {
+        return targets;
+    }
 
-  @Override
-  public List<Double> example() {
-    return Collections.nCopies(p, 0d);
-  }
+    @Override
+    public List<Double> example() {
+        return Collections.nCopies(p, 0d);
+    }
 }

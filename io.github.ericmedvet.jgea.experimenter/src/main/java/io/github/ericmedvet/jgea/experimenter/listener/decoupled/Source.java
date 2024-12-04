@@ -25,7 +25,7 @@ import java.util.Map;
 
 public interface Source<K, V> {
 
-  Map<Pair<LocalDateTime, K>, V> pull(LocalDateTime t);
+    Map<Pair<LocalDateTime, K>, V> pull(LocalDateTime t);
 
-  default void close() {}
+    default void close() {}
 }

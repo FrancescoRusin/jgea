@@ -34,38 +34,38 @@ import java.util.random.RandomGenerator;
 
 public class MutationOnly<G, S, Q> extends StandardEvolver<G, S, Q> {
 
-  private final Mutation<G> mutation;
+    private final Mutation<G> mutation;
 
-  public MutationOnly(
-      Function<? super G, ? extends S> solutionMapper,
-      Factory<? extends G> genotypeFactory,
-      int populationSize,
-      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
-          stopCondition,
-      Selector<? super Individual<? super G, ? super S, ? super Q>> unsurvivalSelector,
-      Mutation<G> mutation) {
-    super(
-        solutionMapper,
-        genotypeFactory,
-        populationSize,
-        stopCondition,
-        Map.of(mutation, 1d),
-        null,
-        unsurvivalSelector,
-        0,
-        true,
-        0,
-        false);
-    this.mutation = mutation;
-  }
+    public MutationOnly(
+            Function<? super G, ? extends S> solutionMapper,
+            Factory<? extends G> genotypeFactory,
+            int populationSize,
+            Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
+                    stopCondition,
+            Selector<? super Individual<? super G, ? super S, ? super Q>> unsurvivalSelector,
+            Mutation<G> mutation) {
+        super(
+                solutionMapper,
+                genotypeFactory,
+                populationSize,
+                stopCondition,
+                Map.of(mutation, 1d),
+                null,
+                unsurvivalSelector,
+                0,
+                true,
+                0,
+                false);
+        this.mutation = mutation;
+    }
 
-  @Override
-  protected Collection<ChildGenotype<G>> buildOffspringToMapGenotypes(
-      POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state, RandomGenerator random) {
-    AtomicLong counter = new AtomicLong(state.nOfBirths());
-    return state.pocPopulation().all().stream()
-        .map(i -> new ChildGenotype<>(
-            counter.getAndIncrement(), mutation.mutate(i.genotype(), random), List.of(i.id())))
-        .toList();
-  }
+    @Override
+    protected Collection<ChildGenotype<G>> buildOffspringToMapGenotypes(
+            POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>> state, RandomGenerator random) {
+        AtomicLong counter = new AtomicLong(state.nOfBirths());
+        return state.pocPopulation().all().stream()
+                .map(i -> new ChildGenotype<>(
+                        counter.getAndIncrement(), mutation.mutate(i.genotype(), random), List.of(i.id())))
+                .toList();
+    }
 }

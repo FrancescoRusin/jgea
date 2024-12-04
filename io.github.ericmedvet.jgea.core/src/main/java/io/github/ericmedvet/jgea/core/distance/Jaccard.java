@@ -24,13 +24,13 @@ import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.Set;
 
 public class Jaccard<T> implements Distance<Set<T>> {
-  @Override
-  public Double apply(Set<T> s1, Set<T> s2) {
-    if (s1.isEmpty() && s2.isEmpty()) {
-      return 0d;
+    @Override
+    public Double apply(Set<T> s1, Set<T> s2) {
+        if (s1.isEmpty() && s2.isEmpty()) {
+            return 0d;
+        }
+        return 1d
+                - (double) Misc.intersection(s1, s2).size()
+                        / (double) Misc.union(s1, s2).size();
     }
-    return 1d
-        - (double) Misc.intersection(s1, s2).size()
-            / (double) Misc.union(s1, s2).size();
-  }
 }

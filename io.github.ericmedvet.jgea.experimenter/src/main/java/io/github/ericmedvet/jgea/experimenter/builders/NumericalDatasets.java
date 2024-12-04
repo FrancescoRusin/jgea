@@ -33,39 +33,39 @@ import java.util.function.Supplier;
 
 @Discoverable(prefixTemplate = "ea.problem|p.dataset|d.numerical|num")
 public class NumericalDatasets {
-  private NumericalDatasets() {}
+    private NumericalDatasets() {}
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static Supplier<NumericalDataset> empty(
-      @Param("xVars") List<String> xVarNames, @Param("yVars") List<String> yVarNames) {
-    return () -> new ListNumericalDataset(List.of(), xVarNames, yVarNames);
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static Supplier<NumericalDataset> empty(
+            @Param("xVars") List<String> xVarNames, @Param("yVars") List<String> yVarNames) {
+        return () -> new ListNumericalDataset(List.of(), xVarNames, yVarNames);
+    }
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static Supplier<NumericalDataset> fromFile(
-      @Param("filePath") String filePath,
-      @Param(
-              value = "folds",
-              dIs = {0})
-          List<Integer> folds,
-      @Param(value = "nFolds", dI = 1) int nFolds,
-      @Param(value = "xVarNamePattern", dS = "x.*") String xVarNamePattern,
-      @Param(value = "yVarNamePattern", dS = "y.*") String yVarNamePattern) {
-    return () -> {
-      try {
-        return new LazyNumericalDataset(filePath, xVarNamePattern, yVarNamePattern).folds(folds, nFolds);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    };
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static Supplier<NumericalDataset> fromFile(
+            @Param("filePath") String filePath,
+            @Param(
+                            value = "folds",
+                            dIs = {0})
+                    List<Integer> folds,
+            @Param(value = "nFolds", dI = 1) int nFolds,
+            @Param(value = "xVarNamePattern", dS = "x.*") String xVarNamePattern,
+            @Param(value = "yVarNamePattern", dS = "y.*") String yVarNamePattern) {
+        return () -> {
+            try {
+                return new LazyNumericalDataset(filePath, xVarNamePattern, yVarNamePattern).folds(folds, nFolds);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static Supplier<NumericalDataset> fromProblem(
-      @Param("problem") UnivariateRegressionProblem<UnivariateRegressionFitness> problem) {
-    return () -> problem.qualityFunction().getDataset();
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static Supplier<NumericalDataset> fromProblem(
+            @Param("problem") UnivariateRegressionProblem<UnivariateRegressionFitness> problem) {
+        return () -> problem.qualityFunction().getDataset();
+    }
 }

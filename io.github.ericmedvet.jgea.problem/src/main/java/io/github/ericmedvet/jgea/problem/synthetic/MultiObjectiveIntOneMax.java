@@ -30,33 +30,33 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 public class MultiObjectiveIntOneMax
-    implements MultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
-  private final int p;
-  private final int upperBound;
+        implements MultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
+    private final int p;
+    private final int upperBound;
 
-  public MultiObjectiveIntOneMax(int p, int upperBound) {
-    this.p = p;
-    this.upperBound = upperBound;
-  }
+    public MultiObjectiveIntOneMax(int p, int upperBound) {
+        this.p = p;
+        this.upperBound = upperBound;
+    }
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    return Collections.nCopies(upperBound - 1, Double::compareTo);
-  }
+    @Override
+    public List<Comparator<Double>> comparators() {
+        return Collections.nCopies(upperBound - 1, Double::compareTo);
+    }
 
-  @Override
-  public IntString example() {
-    return new IntString(Collections.nCopies(p, 0), 0, upperBound);
-  }
+    @Override
+    public IntString example() {
+        return new IntString(Collections.nCopies(p, 0), 0, upperBound);
+    }
 
-  @Override
-  public Function<IntString, List<Double>> qualityFunction() {
-    return is -> IntStream.range(1, upperBound)
-        .mapToObj(i -> 1d
-            - (double) is.genes().stream()
-                    .filter(gi -> gi.equals(i))
-                    .count()
-                / (double) is.size())
-        .toList();
-  }
+    @Override
+    public Function<IntString, List<Double>> qualityFunction() {
+        return is -> IntStream.range(1, upperBound)
+                .mapToObj(i -> 1d
+                        - (double) is.genes().stream()
+                                        .filter(gi -> gi.equals(i))
+                                        .count()
+                                / (double) is.size())
+                .toList();
+    }
 }

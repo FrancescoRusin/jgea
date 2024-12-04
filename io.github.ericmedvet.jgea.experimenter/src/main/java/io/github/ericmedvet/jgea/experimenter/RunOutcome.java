@@ -26,6 +26,6 @@ import java.util.List;
 
 @Discoverable(prefixTemplate = "ea")
 public record RunOutcome(
-    @Param("index") String index,
-    @Param("run") Run<?, ?, ?, ?> run,
-    @Param("serializedGenotypes") List<String> serializedGenotypes) {}
+        @Param("index") String index,
+        @Param("run") Run<?, ?, ?, ?> run,
+        @Param("serializedGenotypes") List<String> serializedGenotypes) {}

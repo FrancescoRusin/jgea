@@ -32,78 +32,78 @@ import java.util.List;
 import java.util.function.Function;
 
 public class MultipleOutputParallelMultiplier
-    implements GrammarBasedProblem<String, List<Tree<Element>>>,
-        ComparableQualityBasedProblem<List<Tree<Element>>, Double> {
+        implements GrammarBasedProblem<String, List<Tree<Element>>>,
+                ComparableQualityBasedProblem<List<Tree<Element>>, Double> {
 
-  private final StringGrammar<String> grammar;
-  private final Function<Tree<String>, List<Tree<Element>>> solutionMapper;
-  private final Function<List<Tree<Element>>, Double> fitnessFunction;
+    private final StringGrammar<String> grammar;
+    private final Function<Tree<String>, List<Tree<Element>>> solutionMapper;
+    private final Function<List<Tree<Element>>, Double> fitnessFunction;
 
-  public MultipleOutputParallelMultiplier(final int size) throws IOException {
-    grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/boolean-parity-var.bnf"));
-    List<List<String>> vars = new ArrayList<>();
-    for (int j = 0; j < 2; j++) {
-      for (int i = 0; i < size; i++) {
-        vars.add(Collections.singletonList("c" + j + "." + i));
-      }
-    }
-    grammar.rules().put("<v>", vars);
-    List<String> output = new ArrayList<>();
-    for (int i = 0; i < 2 * size; i++) {
-      output.add("<e>");
-    }
-    grammar.rules().put(FormulaMapper.MULTIPLE_OUTPUT_NON_TERMINAL, Collections.singletonList(output));
-    grammar.setStartingSymbol(FormulaMapper.MULTIPLE_OUTPUT_NON_TERMINAL);
-    solutionMapper = new FormulaMapper();
-    TargetFunction targetFunction = new TargetFunction(size);
-    fitnessFunction = new BooleanFunctionFitness(
-        targetFunction, BooleanUtils.buildCompleteObservations(targetFunction.varNames));
-  }
-
-  private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
-
-    private final int size;
-    private final String[] varNames;
-
-    public TargetFunction(int size) {
-      this.size = size;
-      varNames = new String[2 * size];
-      for (int j = 0; j < 2; j++) {
-        for (int i = 0; i < size; i++) {
-          varNames[(size * j) + i] = "c" + j + "." + i;
+    public MultipleOutputParallelMultiplier(final int size) throws IOException {
+        grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/boolean-parity-var.bnf"));
+        List<List<String>> vars = new ArrayList<>();
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < size; i++) {
+                vars.add(Collections.singletonList("c" + j + "." + i));
+            }
         }
-      }
+        grammar.rules().put("<v>", vars);
+        List<String> output = new ArrayList<>();
+        for (int i = 0; i < 2 * size; i++) {
+            output.add("<e>");
+        }
+        grammar.rules().put(FormulaMapper.MULTIPLE_OUTPUT_NON_TERMINAL, Collections.singletonList(output));
+        grammar.setStartingSymbol(FormulaMapper.MULTIPLE_OUTPUT_NON_TERMINAL);
+        solutionMapper = new FormulaMapper();
+        TargetFunction targetFunction = new TargetFunction(size);
+        fitnessFunction = new BooleanFunctionFitness(
+                targetFunction, BooleanUtils.buildCompleteObservations(targetFunction.varNames));
+    }
+
+    private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
+
+        private final int size;
+        private final String[] varNames;
+
+        public TargetFunction(int size) {
+            this.size = size;
+            varNames = new String[2 * size];
+            for (int j = 0; j < 2; j++) {
+                for (int i = 0; i < size; i++) {
+                    varNames[(size * j) + i] = "c" + j + "." + i;
+                }
+            }
+        }
+
+        @Override
+        public boolean[] apply(boolean[] arguments) {
+            boolean[] a1 = new boolean[size];
+            boolean[] a2 = new boolean[size];
+            System.arraycopy(arguments, 0, a1, 0, size);
+            System.arraycopy(arguments, size, a2, 0, size);
+            int n1 = BooleanUtils.fromBinary(a1);
+            int n2 = BooleanUtils.fromBinary(a2);
+            return BooleanUtils.toBinary(n1 * n2, 2 * size);
+        }
+
+        @Override
+        public String[] varNames() {
+            return varNames;
+        }
     }
 
     @Override
-    public boolean[] apply(boolean[] arguments) {
-      boolean[] a1 = new boolean[size];
-      boolean[] a2 = new boolean[size];
-      System.arraycopy(arguments, 0, a1, 0, size);
-      System.arraycopy(arguments, size, a2, 0, size);
-      int n1 = BooleanUtils.fromBinary(a1);
-      int n2 = BooleanUtils.fromBinary(a2);
-      return BooleanUtils.toBinary(n1 * n2, 2 * size);
+    public StringGrammar<String> getGrammar() {
+        return grammar;
     }
 
     @Override
-    public String[] varNames() {
-      return varNames;
+    public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
+        return solutionMapper;
     }
-  }
 
-  @Override
-  public StringGrammar<String> getGrammar() {
-    return grammar;
-  }
-
-  @Override
-  public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
-    return solutionMapper;
-  }
-
-  @Override
-  public Function<List<Tree<Element>>, Double> qualityFunction() {
-    return fitnessFunction;
-  }
+    @Override
+    public Function<List<Tree<Element>>, Double> qualityFunction() {
+        return fitnessFunction;
+    }
 }

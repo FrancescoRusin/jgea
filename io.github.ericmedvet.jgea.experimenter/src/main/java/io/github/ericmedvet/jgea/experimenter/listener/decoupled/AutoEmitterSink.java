@@ -27,21 +27,21 @@ import java.util.function.Supplier;
 
 public class AutoEmitterSink<K, V> {
 
-  private final ScheduledExecutorService executor;
+    private final ScheduledExecutorService executor;
 
-  public AutoEmitterSink(int millisInterval, Supplier<Pair<K, V>> pairSupplier, Sink<K, V> sink) {
-    executor = Executors.newSingleThreadScheduledExecutor();
-    executor.scheduleAtFixedRate(
-        () -> {
-          Pair<K, V> pair = pairSupplier.get();
-          sink.push(pair.first(), pair.second());
-        },
-        0,
-        millisInterval,
-        TimeUnit.MILLISECONDS);
-  }
+    public AutoEmitterSink(int millisInterval, Supplier<Pair<K, V>> pairSupplier, Sink<K, V> sink) {
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(
+                () -> {
+                    Pair<K, V> pair = pairSupplier.get();
+                    sink.push(pair.first(), pair.second());
+                },
+                0,
+                millisInterval,
+                TimeUnit.MILLISECONDS);
+    }
 
-  public void shutdown() {
-    executor.shutdownNow();
-  }
+    public void shutdown() {
+        executor.shutdownNow();
+    }
 }

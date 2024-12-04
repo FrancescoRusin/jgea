@@ -26,5 +26,5 @@ import java.util.random.RandomGenerator;
 @FunctionalInterface
 public interface Selector<T> {
 
-  <K extends T> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random);
+    <K extends T> K select(PartiallyOrderedCollection<K> ks, RandomGenerator random);
 }

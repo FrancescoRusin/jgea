@@ -18,28 +18,28 @@
  * =========================LICENSE_END==================================
  */
 module io.github.ericmedvet.jgea.experimenter {
-  opens io.github.ericmedvet.jgea.experimenter.builders to
-      io.github.ericmedvet.jnb.core;
-  opens io.github.ericmedvet.jgea.experimenter.listener.net to
-      jcommander;
+    opens io.github.ericmedvet.jgea.experimenter.builders to
+            io.github.ericmedvet.jnb.core;
+    opens io.github.ericmedvet.jgea.experimenter.listener.net to
+            jcommander;
 
-  exports io.github.ericmedvet.jgea.experimenter;
-  exports io.github.ericmedvet.jgea.experimenter.listener;
-  exports io.github.ericmedvet.jgea.experimenter.listener.plot;
+    exports io.github.ericmedvet.jgea.experimenter;
+    exports io.github.ericmedvet.jgea.experimenter.listener;
+    exports io.github.ericmedvet.jgea.experimenter.listener.plot;
 
-  requires io.github.ericmedvet.jnb.core;
-  requires io.github.ericmedvet.jnb.datastructure;
-  requires io.github.ericmedvet.jgea.core;
-  requires io.github.ericmedvet.jgea.problem;
-  requires io.github.ericmedvet.jsdynsym.core;
-  requires io.github.ericmedvet.jsdynsym.control;
-  requires io.github.ericmedvet.jsdynsym.buildable;
-  requires io.github.ericmedvet.jviz.core;
-  requires java.desktop;
-  requires telegram.bot.api;
-  requires java.logging;
-  requires jdk.management;
-  requires com.googlecode.lanterna;
-  requires jcommander;
-  requires org.apache.commons.csv;
+    requires io.github.ericmedvet.jnb.core;
+    requires io.github.ericmedvet.jnb.datastructure;
+    requires io.github.ericmedvet.jgea.core;
+    requires io.github.ericmedvet.jgea.problem;
+    requires io.github.ericmedvet.jsdynsym.core;
+    requires io.github.ericmedvet.jsdynsym.control;
+    requires io.github.ericmedvet.jsdynsym.buildable;
+    requires io.github.ericmedvet.jviz.core;
+    requires java.desktop;
+    requires telegram.bot.api;
+    requires java.logging;
+    requires jdk.management;
+    requires com.googlecode.lanterna;
+    requires jcommander;
+    requires org.apache.commons.csv;
 }

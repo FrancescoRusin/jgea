@@ -31,16 +31,16 @@ import java.util.function.Supplier;
 
 @Discoverable(prefixTemplate = "ea.problem|p.multivariateRegression|mr")
 public class MultivariateRegressionProblems {
-  private MultivariateRegressionProblems() {}
+    private MultivariateRegressionProblems() {}
 
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static MultivariateRegressionProblem<MultivariateRegressionFitness> fromData(
-      @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
-      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric) {
-    return new MultivariateRegressionProblem<>(
-        new MultivariateRegressionFitness(trainingDataset.get(), metric),
-        new MultivariateRegressionFitness(testDataset.get(), metric));
-  }
+    @SuppressWarnings("unused")
+    @Cacheable
+    public static MultivariateRegressionProblem<MultivariateRegressionFitness> fromData(
+            @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
+            @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
+            @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric) {
+        return new MultivariateRegressionProblem<>(
+                new MultivariateRegressionFitness(trainingDataset.get(), metric),
+                new MultivariateRegressionFitness(testDataset.get(), metric));
+    }
 }

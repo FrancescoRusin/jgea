@@ -33,66 +33,66 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class VectorialFieldSEPAF<E, R, X, F>
-    extends AbstractSingleEPAF<E, VectorialFieldPlot, R, List<VectorialFieldDataSeries>, X> {
-  private final List<Function<? super E, F>> fieldFunctions;
-  private final List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions;
+        extends AbstractSingleEPAF<E, VectorialFieldPlot, R, List<VectorialFieldDataSeries>, X> {
+    private final List<Function<? super E, F>> fieldFunctions;
+    private final List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions;
 
-  public VectorialFieldSEPAF(
-      Function<? super R, String> titleFunction,
-      Function<? super E, X> predicateValueFunction,
-      Predicate<? super X> predicate,
-      boolean unique,
-      List<Function<? super E, F>> fieldFunctions,
-      List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions) {
-    super(titleFunction, predicateValueFunction, predicate, unique);
-    this.fieldFunctions = fieldFunctions;
-    this.pointPairsFunctions = pointPairsFunctions;
-  }
+    public VectorialFieldSEPAF(
+            Function<? super R, String> titleFunction,
+            Function<? super E, X> predicateValueFunction,
+            Predicate<? super X> predicate,
+            boolean unique,
+            List<Function<? super E, F>> fieldFunctions,
+            List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions) {
+        super(titleFunction, predicateValueFunction, predicate, unique);
+        this.fieldFunctions = fieldFunctions;
+        this.pointPairsFunctions = pointPairsFunctions;
+    }
 
-  @Override
-  protected List<Map.Entry<String, List<VectorialFieldDataSeries>>> buildData(E e, R r) {
-    return fieldFunctions.stream()
-        .map(ff -> {
-          F field = ff.apply(e);
-          return Map.entry(
-              NamedFunction.name(ff),
-              pointPairsFunctions.stream()
-                  .map(ppf -> VectorialFieldDataSeries.of(
-                      NamedFunction.name(ppf),
-                      ppf.apply(field).entrySet().stream()
-                          .collect(Collectors.toMap(
-                              me -> new VectorialFieldDataSeries.Point(
-                                  me.getKey().getFirst(),
-                                  me.getKey().get(1)),
-                              me -> new VectorialFieldDataSeries.Point(
-                                  me.getValue()
-                                      .getFirst(),
-                                  me.getValue()
-                                      .get(1))))))
-                  .toList());
-        })
-        .toList();
-  }
+    @Override
+    protected List<Map.Entry<String, List<VectorialFieldDataSeries>>> buildData(E e, R r) {
+        return fieldFunctions.stream()
+                .map(ff -> {
+                    F field = ff.apply(e);
+                    return Map.entry(
+                            NamedFunction.name(ff),
+                            pointPairsFunctions.stream()
+                                    .map(ppf -> VectorialFieldDataSeries.of(
+                                            NamedFunction.name(ppf),
+                                            ppf.apply(field).entrySet().stream()
+                                                    .collect(Collectors.toMap(
+                                                            me -> new VectorialFieldDataSeries.Point(
+                                                                    me.getKey().getFirst(),
+                                                                    me.getKey().get(1)),
+                                                            me -> new VectorialFieldDataSeries.Point(
+                                                                    me.getValue()
+                                                                            .getFirst(),
+                                                                    me.getValue()
+                                                                            .get(1))))))
+                                    .toList());
+                })
+                .toList();
+    }
 
-  @Override
-  protected VectorialFieldPlot buildPlot(Table<String, String, List<VectorialFieldDataSeries>> data, R r) {
-    return new VectorialFieldPlot(
-        titleFunction.apply(r),
-        NamedFunction.name(predicateValueFunction),
-        "value",
-        "x",
-        "y",
-        DoubleRange.UNBOUNDED,
-        DoubleRange.UNBOUNDED,
-        Grid.create(
-            data.nColumns(),
-            data.nRows(),
-            (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
-  }
+    @Override
+    protected VectorialFieldPlot buildPlot(Table<String, String, List<VectorialFieldDataSeries>> data, R r) {
+        return new VectorialFieldPlot(
+                titleFunction.apply(r),
+                NamedFunction.name(predicateValueFunction),
+                "value",
+                "x",
+                "y",
+                DoubleRange.UNBOUNDED,
+                DoubleRange.UNBOUNDED,
+                Grid.create(
+                        data.nColumns(),
+                        data.nRows(),
+                        (x, y) -> new XYPlot.TitledData<>(
+                                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+    }
 
-  @Override
-  public String toString() {
-    return "vFieldSEPAF(fieldFunctions=" + fieldFunctions + ')';
-  }
+    @Override
+    public String toString() {
+        return "vFieldSEPAF(fieldFunctions=" + fieldFunctions + ')';
+    }
 }

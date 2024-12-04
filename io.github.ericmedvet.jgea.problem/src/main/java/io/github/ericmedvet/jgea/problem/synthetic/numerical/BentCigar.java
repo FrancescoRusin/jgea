@@ -22,13 +22,13 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 import java.util.stream.IntStream;
 
 public class BentCigar extends AbstractNumericalProblem {
-  public BentCigar(int p) {
-    super(
-        p,
-        vs -> vs.getFirst() * vs.getFirst()
-            + 1000000d
-                * IntStream.range(1, p)
-                    .mapToDouble(i -> vs.get(i) * vs.get(i))
-                    .sum());
-  }
+    public BentCigar(int p) {
+        super(
+                p,
+                vs -> vs.getFirst() * vs.getFirst()
+                        + 1000000d
+                                * IntStream.range(1, p)
+                                        .mapToDouble(i -> vs.get(i) * vs.get(i))
+                                        .sum());
+    }
 }

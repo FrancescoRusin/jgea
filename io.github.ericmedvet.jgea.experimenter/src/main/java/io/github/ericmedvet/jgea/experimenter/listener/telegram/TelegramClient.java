@@ -40,125 +40,125 @@ import javax.imageio.ImageIO;
 
 public class TelegramClient {
 
-  protected static final Logger L = Logger.getLogger(TelegramClient.class.getName());
-  protected final long chatId;
-  protected TelegramBot bot;
+    protected static final Logger L = Logger.getLogger(TelegramClient.class.getName());
+    protected final long chatId;
+    protected TelegramBot bot;
 
-  public TelegramClient(String botToken, long chatId) {
-    this.chatId = chatId;
-    try {
-      bot = new TelegramBot(botToken);
-    } catch (RuntimeException e) {
-      L.severe(String.format("Cannot create bot: %s", e));
-    }
-  }
-
-  public TelegramClient(File credentialFile, long chatId) {
-    this(Utils.getCredentialFromFile(credentialFile), chatId);
-  }
-
-  public String getChatInfo() {
-    GetChatResponse chatResponse = bot.execute(new GetChat(chatId));
-    GetChatMemberCountResponse chatMemberCountResponse = bot.execute(new GetChatMemberCount(chatId));
-    String title = chatResponse.chat().title();
-    if (title == null) {
-      title = chatResponse.chat().firstName() + " " + chatResponse.chat().lastName();
-    }
-    return "%s (%d members)".formatted(title, chatMemberCountResponse.count());
-  }
-
-  public void send(String title, Object o) {
-    try {
-      switch (o) {
-        case BufferedImage image -> {
-          if (!title.isEmpty()) {
-            sendMarkdownText("Image from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
-          }
-          sendImage(image);
+    public TelegramClient(String botToken, long chatId) {
+        this.chatId = chatId;
+        try {
+            bot = new TelegramBot(botToken);
+        } catch (RuntimeException e) {
+            L.severe(String.format("Cannot create bot: %s", e));
         }
-        case String s -> {
-          if (!title.isEmpty()) {
-            sendMarkdownText("Text from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
-          }
-          sendText(s);
+    }
+
+    public TelegramClient(File credentialFile, long chatId) {
+        this(Utils.getCredentialFromFile(credentialFile), chatId);
+    }
+
+    public String getChatInfo() {
+        GetChatResponse chatResponse = bot.execute(new GetChat(chatId));
+        GetChatMemberCountResponse chatMemberCountResponse = bot.execute(new GetChatMemberCount(chatId));
+        String title = chatResponse.chat().title();
+        if (title == null) {
+            title = chatResponse.chat().firstName() + " " + chatResponse.chat().lastName();
         }
-        case Video video -> {
-          if (!title.isEmpty()) {
-            sendMarkdownText("Video from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
-          }
-          sendVideo(video);
+        return "%s (%d members)".formatted(title, chatMemberCountResponse.count());
+    }
+
+    public void send(String title, Object o) {
+        try {
+            switch (o) {
+                case BufferedImage image -> {
+                    if (!title.isEmpty()) {
+                        sendMarkdownText("Image from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
+                    }
+                    sendImage(image);
+                }
+                case String s -> {
+                    if (!title.isEmpty()) {
+                        sendMarkdownText("Text from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
+                    }
+                    sendText(s);
+                }
+                case Video video -> {
+                    if (!title.isEmpty()) {
+                        sendMarkdownText("Video from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
+                    }
+                    sendVideo(video);
+                }
+                case NamedParamMap npm -> {
+                    if (!title.isEmpty()) {
+                        sendMarkdownText(
+                                "NamedParamMap from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
+                    }
+                    sendText(MapNamedParamMap.prettyToString(npm));
+                }
+                case null -> throw new IllegalArgumentException("Cannot send null data of type %s");
+                default -> throw new IllegalArgumentException(
+                        "Cannot send data of type %s".formatted(o.getClass().getSimpleName()));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot send '%s'".formatted(title), e);
         }
-        case NamedParamMap npm -> {
-          if (!title.isEmpty()) {
-            sendMarkdownText(
-                "NamedParamMap from: %s\n`%s`".formatted(StringUtils.getUserMachineName(), title));
-          }
-          sendText(MapNamedParamMap.prettyToString(npm));
+    }
+
+    public void sendFile(File file) {
+        try {
+            SendResponse response = bot.execute(new SendDocument(chatId, file));
+            if (!response.isOk()) {
+                L.warning(String.format("Response is not ok: %s", response));
+            }
+        } catch (Throwable t) {
+            L.warning(String.format("Cannot send document: %s", t));
         }
-        case null -> throw new IllegalArgumentException("Cannot send null data of type %s");
-        default -> throw new IllegalArgumentException(
-            "Cannot send data of type %s".formatted(o.getClass().getSimpleName()));
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Cannot send '%s'".formatted(title), e);
     }
-  }
 
-  public void sendFile(File file) {
-    try {
-      SendResponse response = bot.execute(new SendDocument(chatId, file));
-      if (!response.isOk()) {
-        L.warning(String.format("Response is not ok: %s", response));
-      }
-    } catch (Throwable t) {
-      L.warning(String.format("Cannot send document: %s", t));
+    public void sendImage(BufferedImage image) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            baos.close();
+            SendResponse response = bot.execute(new SendPhoto(chatId, baos.toByteArray()));
+            if (!response.isOk()) {
+                L.warning(String.format("Response is not ok: %s", response));
+            }
+        } catch (Throwable t) {
+            L.warning(String.format("Cannot send image: %s", t));
+        }
     }
-  }
 
-  public void sendImage(BufferedImage image) {
-    try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ImageIO.write(image, "png", baos);
-      baos.close();
-      SendResponse response = bot.execute(new SendPhoto(chatId, baos.toByteArray()));
-      if (!response.isOk()) {
-        L.warning(String.format("Response is not ok: %s", response));
-      }
-    } catch (Throwable t) {
-      L.warning(String.format("Cannot send image: %s", t));
+    public void sendMarkdownText(String string) {
+        try {
+            SendResponse response = bot.execute(new SendMessage(chatId, string).parseMode(ParseMode.Markdown));
+            if (!response.isOk()) {
+                L.warning(String.format("Response is not ok: %s", response));
+            }
+        } catch (Throwable t) {
+            L.warning(String.format("Cannot send text: %s", t));
+        }
     }
-  }
 
-  public void sendMarkdownText(String string) {
-    try {
-      SendResponse response = bot.execute(new SendMessage(chatId, string).parseMode(ParseMode.Markdown));
-      if (!response.isOk()) {
-        L.warning(String.format("Response is not ok: %s", response));
-      }
-    } catch (Throwable t) {
-      L.warning(String.format("Cannot send text: %s", t));
+    public void sendText(String string) {
+        try {
+            SendResponse response = bot.execute(new SendMessage(chatId, string));
+            if (!response.isOk()) {
+                L.warning(String.format("Response is not ok: %s", response));
+            }
+        } catch (Throwable t) {
+            L.warning(String.format("Cannot send text: %s", t));
+        }
     }
-  }
 
-  public void sendText(String string) {
-    try {
-      SendResponse response = bot.execute(new SendMessage(chatId, string));
-      if (!response.isOk()) {
-        L.warning(String.format("Response is not ok: %s", response));
-      }
-    } catch (Throwable t) {
-      L.warning(String.format("Cannot send text: %s", t));
+    public void sendVideo(Video video) throws IOException {
+        try {
+            SendResponse response = bot.execute(new SendVideo(chatId, video.data()));
+            if (!response.isOk()) {
+                L.warning(String.format("Response is not ok: %s", response));
+            }
+        } catch (Throwable t) {
+            L.warning(String.format("Cannot send video: %s", t));
+        }
     }
-  }
-
-  public void sendVideo(Video video) throws IOException {
-    try {
-      SendResponse response = bot.execute(new SendVideo(chatId, video.data()));
-      if (!response.isOk()) {
-        L.warning(String.format("Response is not ok: %s", response));
-      }
-    } catch (Throwable t) {
-      L.warning(String.format("Cannot send video: %s", t));
-    }
-  }
 }

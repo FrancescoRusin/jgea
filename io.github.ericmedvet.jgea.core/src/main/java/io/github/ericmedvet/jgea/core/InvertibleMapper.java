@@ -24,46 +24,46 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public interface InvertibleMapper<T, R> {
-  T exampleFor(R r);
+    T exampleFor(R r);
 
-  Function<T, R> mapperFor(R r);
+    Function<T, R> mapperFor(R r);
 
-  static <T, R> InvertibleMapper<T, R> from(BiFunction<R, T, R> mapperF, Function<R, T> exampleF, String name) {
-    return new InvertibleMapper<>() {
-      @Override
-      public T exampleFor(R r) {
-        return exampleF.apply(r);
-      }
+    static <T, R> InvertibleMapper<T, R> from(BiFunction<R, T, R> mapperF, Function<R, T> exampleF, String name) {
+        return new InvertibleMapper<>() {
+            @Override
+            public T exampleFor(R r) {
+                return exampleF.apply(r);
+            }
 
-      @Override
-      public Function<T, R> mapperFor(R r) {
-        return t -> mapperF.apply(r, t);
-      }
+            @Override
+            public Function<T, R> mapperFor(R r) {
+                return t -> mapperF.apply(r, t);
+            }
 
-      @Override
-      public String toString() {
-        return name;
-      }
-    };
-  }
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
+    }
 
-  static <T> InvertibleMapper<T, T> identity() {
-    return InvertibleMapper.from((t, t2) -> t2, t -> t, "");
-  }
+    static <T> InvertibleMapper<T, T> identity() {
+        return InvertibleMapper.from((t, t2) -> t2, t -> t, "");
+    }
 
-  default <Q> InvertibleMapper<T, Q> andThen(InvertibleMapper<R, Q> otherMapper) {
-    InvertibleMapper<T, R> thisMapper = this;
-    return from(
-        (q, t) -> otherMapper
-            .mapperFor(q)
-            .apply(thisMapper.mapperFor(otherMapper.exampleFor(q)).apply(t)),
-        q -> thisMapper.exampleFor(otherMapper.exampleFor(q)),
-        toString() == null || toString().isEmpty()
-            ? otherMapper.toString()
-            : (this + "→" + otherMapper.toString()));
-  }
+    default <Q> InvertibleMapper<T, Q> andThen(InvertibleMapper<R, Q> otherMapper) {
+        InvertibleMapper<T, R> thisMapper = this;
+        return from(
+                (q, t) -> otherMapper
+                        .mapperFor(q)
+                        .apply(thisMapper.mapperFor(otherMapper.exampleFor(q)).apply(t)),
+                q -> thisMapper.exampleFor(otherMapper.exampleFor(q)),
+                toString() == null || toString().isEmpty()
+                        ? otherMapper.toString()
+                        : (this + "→" + otherMapper.toString()));
+    }
 
-  default <Q> InvertibleMapper<Q, R> compose(InvertibleMapper<Q, T> otherMapper) {
-    return otherMapper.andThen(this);
-  }
+    default <Q> InvertibleMapper<Q, R> compose(InvertibleMapper<Q, T> otherMapper) {
+        return otherMapper.andThen(this);
+    }
 }

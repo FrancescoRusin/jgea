@@ -30,50 +30,50 @@ import java.util.stream.IntStream;
 
 public interface CoMEStrategy {
 
-  enum Prepared implements Supplier<CoMEStrategy> {
-    RANDOM(() -> {
-      RandomGenerator rg = new Random(0);
-      return tc ->
-          IntStream.range(0, tc.size()).mapToObj(i -> rg.nextDouble()).toList();
-    }),
-    CENTRAL(() -> tc -> Collections.nCopies(tc.size(), 0.5d)),
-    IDENTITY(() -> tc -> tc),
-    GLOBAL_BEST(GlobalBest::new),
-    LOCAL_BEST(LocalBest::new),
-    SMOOTHED_LOCAL_BEST(() -> new SmoothedLocalBest(0.1));
-    private final Supplier<CoMEStrategy> supplier;
+    enum Prepared implements Supplier<CoMEStrategy> {
+        RANDOM(() -> {
+            RandomGenerator rg = new Random(0);
+            return tc ->
+                    IntStream.range(0, tc.size()).mapToObj(i -> rg.nextDouble()).toList();
+        }),
+        CENTRAL(() -> tc -> Collections.nCopies(tc.size(), 0.5d)),
+        IDENTITY(() -> tc -> tc),
+        GLOBAL_BEST(GlobalBest::new),
+        LOCAL_BEST(LocalBest::new),
+        SMOOTHED_LOCAL_BEST(() -> new SmoothedLocalBest(0.1));
+        private final Supplier<CoMEStrategy> supplier;
 
-    Prepared(Supplier<CoMEStrategy> supplier) {
-      this.supplier = supplier;
+        Prepared(Supplier<CoMEStrategy> supplier) {
+            this.supplier = supplier;
+        }
+
+        @Override
+        public CoMEStrategy get() {
+            return supplier.get();
+        }
     }
 
-    @Override
-    public CoMEStrategy get() {
-      return supplier.get();
+    record Observation<Q>(List<Double> theseCoords, List<Double> otherCoords, Q q) {}
+
+    List<Double> getOtherCoords(List<Double> theseCoords);
+
+    default Map<List<Double>, List<Double>> asField(List<Integer> counts, boolean relative) {
+        return Misc.cartesian(counts.stream()
+                        .map(c -> IntStream.range(0, c)
+                                .mapToObj(i -> new DoubleRange(0, c - 1).normalize(i))
+                                .toList())
+                        .toList())
+                .stream()
+                .collect(Collectors.toMap(tc -> tc, tc -> {
+                    List<Double> oc = getOtherCoords(tc);
+                    if (relative) {
+                        return IntStream.range(0, tc.size())
+                                .mapToObj(i -> oc.get(i) - tc.get(i))
+                                .toList();
+                    }
+                    return oc;
+                }));
     }
-  }
 
-  record Observation<Q>(List<Double> theseCoords, List<Double> otherCoords, Q q) {}
-
-  List<Double> getOtherCoords(List<Double> theseCoords);
-
-  default Map<List<Double>, List<Double>> asField(List<Integer> counts, boolean relative) {
-    return Misc.cartesian(counts.stream()
-            .map(c -> IntStream.range(0, c)
-                .mapToObj(i -> new DoubleRange(0, c - 1).normalize(i))
-                .toList())
-            .toList())
-        .stream()
-        .collect(Collectors.toMap(tc -> tc, tc -> {
-          List<Double> oc = getOtherCoords(tc);
-          if (relative) {
-            return IntStream.range(0, tc.size())
-                .mapToObj(i -> oc.get(i) - tc.get(i))
-                .toList();
-          }
-          return oc;
-        }));
-  }
-
-  default <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {}
+    default <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {}
 }

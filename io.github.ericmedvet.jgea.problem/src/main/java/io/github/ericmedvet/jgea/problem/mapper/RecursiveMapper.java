@@ -30,88 +30,88 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RecursiveMapper<T> extends WeightedHierarchicalMapper<T> {
 
-  private final Tree<Element> optionChooser;
-  private final Tree<Element> genoAssigner;
-  private final int maxMappingDepth;
+    private final Tree<Element> optionChooser;
+    private final Tree<Element> genoAssigner;
+    private final int maxMappingDepth;
 
-  public RecursiveMapper(
-      Tree<Element> optionChooser,
-      Tree<Element> genoAssigner,
-      int maxMappingDepth,
-      int maxDepth,
-      StringGrammar<T> grammar) {
-    super(maxDepth, grammar);
-    this.maxMappingDepth = maxMappingDepth;
-    this.optionChooser = optionChooser;
-    this.genoAssigner = genoAssigner;
-  }
+    public RecursiveMapper(
+            Tree<Element> optionChooser,
+            Tree<Element> genoAssigner,
+            int maxMappingDepth,
+            int maxDepth,
+            StringGrammar<T> grammar) {
+        super(maxDepth, grammar);
+        this.maxMappingDepth = maxMappingDepth;
+        this.optionChooser = optionChooser;
+        this.genoAssigner = genoAssigner;
+    }
 
-  @Override
-  public Tree<T> apply(BitString genotype) {
-    AtomicInteger mappingGlobalCounter = new AtomicInteger();
-    AtomicInteger finalizationGlobalCounter = new AtomicInteger();
-    return mapRecursively(grammar.startingSymbol(), genotype, mappingGlobalCounter, finalizationGlobalCounter, 0);
-  }
+    @Override
+    public Tree<T> apply(BitString genotype) {
+        AtomicInteger mappingGlobalCounter = new AtomicInteger();
+        AtomicInteger finalizationGlobalCounter = new AtomicInteger();
+        return mapRecursively(grammar.startingSymbol(), genotype, mappingGlobalCounter, finalizationGlobalCounter, 0);
+    }
 
-  private Tree<T> mapRecursively(
-      T symbol,
-      BitString genotype,
-      AtomicInteger mappingGlobalCounter,
-      AtomicInteger finalizationGlobalCounter,
-      int depth) {
-    Tree<T> tree = Tree.of(symbol);
-    if (!grammar.rules().containsKey(symbol)) {
-      return tree;
+    private Tree<T> mapRecursively(
+            T symbol,
+            BitString genotype,
+            AtomicInteger mappingGlobalCounter,
+            AtomicInteger finalizationGlobalCounter,
+            int depth) {
+        Tree<T> tree = Tree.of(symbol);
+        if (!grammar.rules().containsKey(symbol)) {
+            return tree;
+        }
+        if (depth >= maxMappingDepth) {
+            List<Integer> shortestOptionIndexTies = shortestOptionIndexesMap.get(symbol);
+            List<T> shortestOption = grammar.rules()
+                    .get(symbol)
+                    .get(shortestOptionIndexTies.get(
+                            finalizationGlobalCounter.getAndIncrement() % shortestOptionIndexTies.size()));
+            for (T optionSymbol : shortestOption) {
+                tree.addChild(mapRecursively(
+                        optionSymbol, genotype, mappingGlobalCounter, finalizationGlobalCounter, depth + 1));
+            }
+            return tree;
+        }
+        // choose option
+        List<List<T>> options = grammar.rules().get(symbol);
+        List<Double> expressivenesses = new ArrayList<>(options.size());
+        for (List<T> option : options) {
+            double expressiveness = 1d;
+            for (T optionSymbol : option) {
+                expressiveness = expressiveness * (double) weightsMap.getOrDefault(optionSymbol, 1);
+            }
+            expressivenesses.add(expressiveness);
+        }
+        int optionIndex = ((Double)
+                        MapperUtils.compute(optionChooser, genotype, expressivenesses, depth, mappingGlobalCounter))
+                .intValue();
+        optionIndex = Math.min(optionIndex, options.size() - 1);
+        optionIndex = Math.max(0, optionIndex);
+        // split genotype
+        expressivenesses.clear();
+        for (T optionSymbol : options.get(optionIndex)) {
+            expressivenesses.add((double) weightsMap.getOrDefault(optionSymbol, 1));
+        }
+        @SuppressWarnings("unchecked")
+        List<BitString> pieces = ((List<BitString>)
+                MapperUtils.compute(genoAssigner, genotype, expressivenesses, depth, mappingGlobalCounter));
+        for (int i = 0; i < options.get(optionIndex).size(); i++) {
+            BitString piece;
+            if (pieces.size() > i) {
+                piece = pieces.get(i);
+            } else {
+                piece = new BitString(0);
+            }
+            tree.addChild(mapRecursively(
+                    options.get(optionIndex).get(i),
+                    piece,
+                    mappingGlobalCounter,
+                    finalizationGlobalCounter,
+                    depth + 1));
+        }
+        return tree;
     }
-    if (depth >= maxMappingDepth) {
-      List<Integer> shortestOptionIndexTies = shortestOptionIndexesMap.get(symbol);
-      List<T> shortestOption = grammar.rules()
-          .get(symbol)
-          .get(shortestOptionIndexTies.get(
-              finalizationGlobalCounter.getAndIncrement() % shortestOptionIndexTies.size()));
-      for (T optionSymbol : shortestOption) {
-        tree.addChild(mapRecursively(
-            optionSymbol, genotype, mappingGlobalCounter, finalizationGlobalCounter, depth + 1));
-      }
-      return tree;
-    }
-    // choose option
-    List<List<T>> options = grammar.rules().get(symbol);
-    List<Double> expressivenesses = new ArrayList<>(options.size());
-    for (List<T> option : options) {
-      double expressiveness = 1d;
-      for (T optionSymbol : option) {
-        expressiveness = expressiveness * (double) weightsMap.getOrDefault(optionSymbol, 1);
-      }
-      expressivenesses.add(expressiveness);
-    }
-    int optionIndex = ((Double)
-            MapperUtils.compute(optionChooser, genotype, expressivenesses, depth, mappingGlobalCounter))
-        .intValue();
-    optionIndex = Math.min(optionIndex, options.size() - 1);
-    optionIndex = Math.max(0, optionIndex);
-    // split genotype
-    expressivenesses.clear();
-    for (T optionSymbol : options.get(optionIndex)) {
-      expressivenesses.add((double) weightsMap.getOrDefault(optionSymbol, 1));
-    }
-    @SuppressWarnings("unchecked")
-    List<BitString> pieces = ((List<BitString>)
-        MapperUtils.compute(genoAssigner, genotype, expressivenesses, depth, mappingGlobalCounter));
-    for (int i = 0; i < options.get(optionIndex).size(); i++) {
-      BitString piece;
-      if (pieces.size() > i) {
-        piece = pieces.get(i);
-      } else {
-        piece = new BitString(0);
-      }
-      tree.addChild(mapRecursively(
-          options.get(optionIndex).get(i),
-          piece,
-          mappingGlobalCounter,
-          finalizationGlobalCounter,
-          depth + 1));
-    }
-    return tree;
-  }
 }

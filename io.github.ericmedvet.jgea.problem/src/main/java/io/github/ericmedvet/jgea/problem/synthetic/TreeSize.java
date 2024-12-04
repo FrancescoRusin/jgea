@@ -29,38 +29,38 @@ import java.util.List;
 import java.util.function.Function;
 
 public class TreeSize
-    implements GrammarBasedProblem<Boolean, Tree<Boolean>>, ComparableQualityBasedProblem<Tree<Boolean>, Double> {
+        implements GrammarBasedProblem<Boolean, Tree<Boolean>>, ComparableQualityBasedProblem<Tree<Boolean>, Double> {
 
-  private static final Function<Tree<Boolean>, Double> FITNESS_FUNCTION = t -> 1d / (double) t.size();
-  private final StringGrammar<Boolean> grammar;
+    private static final Function<Tree<Boolean>, Double> FITNESS_FUNCTION = t -> 1d / (double) t.size();
+    private final StringGrammar<Boolean> grammar;
 
-  public TreeSize(int nonTerminals, int terminals) {
-    this.grammar = new StringGrammar<>();
-    grammar.setStartingSymbol(false);
-    grammar.rules().put(false, List.of(r(nonTerminals, false), r(terminals, true)));
-  }
-
-  @SafeVarargs
-  private static <T> List<T> r(int n, T... ts) {
-    List<T> list = new ArrayList<>(n * ts.length);
-    for (int i = 0; i < n; i++) {
-      list.addAll(List.of(ts));
+    public TreeSize(int nonTerminals, int terminals) {
+        this.grammar = new StringGrammar<>();
+        grammar.setStartingSymbol(false);
+        grammar.rules().put(false, List.of(r(nonTerminals, false), r(terminals, true)));
     }
-    return list;
-  }
 
-  @Override
-  public StringGrammar<Boolean> getGrammar() {
-    return grammar;
-  }
+    @SafeVarargs
+    private static <T> List<T> r(int n, T... ts) {
+        List<T> list = new ArrayList<>(n * ts.length);
+        for (int i = 0; i < n; i++) {
+            list.addAll(List.of(ts));
+        }
+        return list;
+    }
 
-  @Override
-  public Function<Tree<Boolean>, Tree<Boolean>> getSolutionMapper() {
-    return Function.identity();
-  }
+    @Override
+    public StringGrammar<Boolean> getGrammar() {
+        return grammar;
+    }
 
-  @Override
-  public Function<Tree<Boolean>, Double> qualityFunction() {
-    return FITNESS_FUNCTION;
-  }
+    @Override
+    public Function<Tree<Boolean>, Tree<Boolean>> getSolutionMapper() {
+        return Function.identity();
+    }
+
+    @Override
+    public Function<Tree<Boolean>, Double> qualityFunction() {
+        return FITNESS_FUNCTION;
+    }
 }

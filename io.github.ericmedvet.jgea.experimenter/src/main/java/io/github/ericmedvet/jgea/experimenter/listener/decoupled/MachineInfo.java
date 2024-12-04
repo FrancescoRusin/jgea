@@ -24,12 +24,12 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record MachineInfo(String machineName, int numberOfProcessors, double cpuLoad, LocalDateTime localDateTime)
-    implements Serializable {
-  public static MachineInfo local() {
-    return new MachineInfo(
-        NetUtils.getMachineName(),
-        NetUtils.getNumberOfProcessors(),
-        NetUtils.getCPULoad(),
-        LocalDateTime.now());
-  }
+        implements Serializable {
+    public static MachineInfo local() {
+        return new MachineInfo(
+                NetUtils.getMachineName(),
+                NetUtils.getNumberOfProcessors(),
+                NetUtils.getCPULoad(),
+                LocalDateTime.now());
+    }
 }

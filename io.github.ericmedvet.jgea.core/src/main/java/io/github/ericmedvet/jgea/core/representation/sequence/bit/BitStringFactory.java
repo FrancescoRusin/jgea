@@ -25,18 +25,18 @@ import java.util.random.RandomGenerator;
 
 public class BitStringFactory implements IndependentFactory<BitString> {
 
-  private final int size;
+    private final int size;
 
-  public BitStringFactory(int size) {
-    this.size = size;
-  }
-
-  @Override
-  public BitString build(RandomGenerator random) {
-    BitString bitString = new BitString(size);
-    for (int i = 0; i < bitString.size(); i++) {
-      bitString.bits()[i] = random.nextBoolean();
+    public BitStringFactory(int size) {
+        this.size = size;
     }
-    return bitString;
-  }
+
+    @Override
+    public BitString build(RandomGenerator random) {
+        BitString bitString = new BitString(size);
+        for (int i = 0; i < bitString.size(); i++) {
+            bitString.bits()[i] = random.nextBoolean();
+        }
+        return bitString;
+    }
 }

@@ -24,39 +24,39 @@ import io.github.ericmedvet.jgea.core.util.IntRange;
 import java.util.*;
 
 public interface Extractor<S> {
-  Set<IntRange> extract(List<S> sequence);
+    Set<IntRange> extract(List<S> sequence);
 
-  boolean match(List<S> sequence);
+    boolean match(List<S> sequence);
 
-  default Set<IntRange> extractNonOverlapping(List<S> sequence) {
-    List<IntRange> all = new ArrayList<>(extract(sequence));
-    all.sort(Comparator.comparing(IntRange::min));
-    boolean[] discarded = new boolean[all.size()];
-    for (int i = 0; i < all.size(); i++) {
-      if (discarded[i]) {
-        continue;
-      }
-      for (int j = i + 1; j < all.size(); j++) {
-        if (all.get(j).min() >= all.get(i).max()) {
-          break;
+    default Set<IntRange> extractNonOverlapping(List<S> sequence) {
+        List<IntRange> all = new ArrayList<>(extract(sequence));
+        all.sort(Comparator.comparing(IntRange::min));
+        boolean[] discarded = new boolean[all.size()];
+        for (int i = 0; i < all.size(); i++) {
+            if (discarded[i]) {
+                continue;
+            }
+            for (int j = i + 1; j < all.size(); j++) {
+                if (all.get(j).min() >= all.get(i).max()) {
+                    break;
+                }
+                if (discarded[j]) {
+                    continue;
+                }
+                if (all.get(j).contains(all.get(i))) {
+                    discarded[i] = true;
+                    break;
+                } else {
+                    discarded[j] = true;
+                }
+            }
         }
-        if (discarded[j]) {
-          continue;
+        Set<IntRange> kept = new LinkedHashSet<>();
+        for (int i = 0; i < all.size(); i++) {
+            if (!discarded[i]) {
+                kept.add(all.get(i));
+            }
         }
-        if (all.get(j).contains(all.get(i))) {
-          discarded[i] = true;
-          break;
-        } else {
-          discarded[j] = true;
-        }
-      }
+        return kept;
     }
-    Set<IntRange> kept = new LinkedHashSet<>();
-    for (int i = 0; i < all.size(); i++) {
-      if (!discarded[i]) {
-        kept.add(all.get(i));
-      }
-    }
-    return kept;
-  }
 }

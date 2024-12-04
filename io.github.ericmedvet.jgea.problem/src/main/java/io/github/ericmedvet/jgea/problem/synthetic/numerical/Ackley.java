@@ -22,16 +22,16 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 public class Ackley extends AbstractNumericalProblem {
 
-  private static final double A = 20;
-  private static final double B = 0.2;
-  private static final double C = 2 * Math.PI;
+    private static final double A = 20;
+    private static final double B = 0.2;
+    private static final double C = 2 * Math.PI;
 
-  public Ackley(int p) {
-    super(p, vs -> {
-      double d = vs.size();
-      double squaredSum = vs.stream().mapToDouble(v -> v * v).sum();
-      double cosSum = vs.stream().mapToDouble(v -> Math.cos(C * v)).sum();
-      return -A * Math.exp(-B * Math.sqrt(squaredSum / d)) - Math.exp(cosSum / d) + A + Math.exp(1);
-    });
-  }
+    public Ackley(int p) {
+        super(p, vs -> {
+            double d = vs.size();
+            double squaredSum = vs.stream().mapToDouble(v -> v * v).sum();
+            double cosSum = vs.stream().mapToDouble(v -> Math.cos(C * v)).sum();
+            return -A * Math.exp(-B * Math.sqrt(squaredSum / d)) - Math.exp(cosSum / d) + A + Math.exp(1);
+        });
+    }
 }

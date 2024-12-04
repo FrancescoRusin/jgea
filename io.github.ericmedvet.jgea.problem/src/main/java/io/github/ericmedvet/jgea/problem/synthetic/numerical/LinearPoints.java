@@ -22,16 +22,16 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 public class LinearPoints extends AbstractNumericalProblem {
 
-  public LinearPoints(int p) {
-    super(p, vs -> {
-      double m = (vs.getLast() - vs.getFirst()) / (double) vs.size();
-      double q = vs.getFirst();
-      double sumOfSquaredErrors = 0;
-      for (int i = 0; i < vs.size(); i++) {
-        double error = vs.get(i) - (m * (double) i + q);
-        sumOfSquaredErrors = sumOfSquaredErrors + error * error;
-      }
-      return sumOfSquaredErrors / (double) vs.size();
-    });
-  }
+    public LinearPoints(int p) {
+        super(p, vs -> {
+            double m = (vs.getLast() - vs.getFirst()) / (double) vs.size();
+            double q = vs.getFirst();
+            double sumOfSquaredErrors = 0;
+            for (int i = 0; i < vs.size(); i++) {
+                double error = vs.get(i) - (m * (double) i + q);
+                sumOfSquaredErrors = sumOfSquaredErrors + error * error;
+            }
+            return sumOfSquaredErrors / (double) vs.size();
+        });
+    }
 }

@@ -23,13 +23,13 @@ import io.github.ericmedvet.jgea.experimenter.listener.tui.util.TuiDrawer;
 
 public record EmptyCell() implements Cell {
 
-  @Override
-  public void draw(TuiDrawer td, int width) {
-    td.drawString(0, 0, "-", td.getConfiguration().secondaryStringColor());
-  }
+    @Override
+    public void draw(TuiDrawer td, int width) {
+        td.drawString(0, 0, "-", td.getConfiguration().secondaryStringColor());
+    }
 
-  @Override
-  public int preferredWidth() {
-    return 1;
-  }
+    @Override
+    public int preferredWidth() {
+        return 1;
+    }
 }

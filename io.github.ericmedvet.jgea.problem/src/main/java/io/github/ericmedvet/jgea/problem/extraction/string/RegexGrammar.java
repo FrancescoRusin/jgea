@@ -28,99 +28,99 @@ import java.util.stream.Collectors;
 
 public class RegexGrammar extends StringGrammar<String> {
 
-  public static final String TO_BE_ESCAPED = "{}[]()?+*.\\^";
+    public static final String TO_BE_ESCAPED = "{}[]()?+*.\\^";
 
-  public RegexGrammar(Collection<String> texts, Set<Option> options) {
-    this(
-        texts.stream()
-            .map(s -> s.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()))
-            .reduce(Misc::union)
-            .orElse(Set.of()),
-        options);
-  }
+    public RegexGrammar(Collection<String> texts, Set<Option> options) {
+        this(
+                texts.stream()
+                        .map(s -> s.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()))
+                        .reduce(Misc::union)
+                        .orElse(Set.of()),
+                options);
+    }
 
-  public RegexGrammar(ExtractionFitness<Character> fitness, Set<Option> options) {
-    this(
-        fitness.getDesiredExtractions().stream()
-            .map(r -> (Set<Character>)
-                (new HashSet<>(fitness.getSequence().subList(r.min(), r.max()))))
-            .reduce(Misc::union)
-            .orElse(Set.of()),
-        options);
-  }
+    public RegexGrammar(ExtractionFitness<Character> fitness, Set<Option> options) {
+        this(
+                fitness.getDesiredExtractions().stream()
+                        .map(r -> (Set<Character>)
+                                (new HashSet<>(fitness.getSequence().subList(r.min(), r.max()))))
+                        .reduce(Misc::union)
+                        .orElse(Set.of()),
+                options);
+    }
 
-  public RegexGrammar(Set<Character> alphabet, Set<Option> options) {
-    super();
-    rules().put("<regex>", l(l("<concat>")));
-    if (options.contains(Option.OR)) {
-      rules().get("<regex>").add(l("<union>"));
-      rules().put("<union>", l(l("<regex>", "|", "<concat>")));
+    public RegexGrammar(Set<Character> alphabet, Set<Option> options) {
+        super();
+        rules().put("<regex>", l(l("<concat>")));
+        if (options.contains(Option.OR)) {
+            rules().get("<regex>").add(l("<union>"));
+            rules().put("<union>", l(l("<regex>", "|", "<concat>")));
+        }
+        rules().put("<concat>", l(l("<term>", "<concat>"), l("<term>")));
+        if (options.contains(Option.ENHANCED_CONCATENATION)) {
+            rules().get("<concat>").add(l("<concat>", "<concat>"));
+        }
+        rules().put("<term>", l(l("<element>")));
+        if (options.contains(Option.QUANTIFIERS)) {
+            rules().get("<term>").add(l("<element>", "<quantifier>"));
+            rules().put("<quantifier>", l(l("?+"), l("++"), l("*+")));
+        }
+        rules().put("<term>", l(l("<element>")));
+        if (options.contains(Option.NON_EMPTY_QUANTIFIER)) {
+            rules().get("<term>").add(l("<element>", "<quantifier>"));
+            rules().put("<quantifier>", l(l("++")));
+        }
+        if (options.contains(Option.BOUNDED_QUANTIFIERS)) {
+            rules().get("<term>").add(l("<element>", "{", "<digit>", ",", "<digit>", "}"));
+            rules().put("<digit>", l(l("1"), l("2"), l("3"), l("4"), l("5"), l("6"), l("7"), l("8"), l("9")));
+        }
+        rules().put("<element>", l(l("<char>")));
+        if (options.contains(Option.CHAR_CLASS)) {
+            rules().get("<element>").add(l("[", "<constChars>", "]"));
+            rules().put("<constChars>", l(l("<constChar>"), l("<constChars>", "<constChar>")));
+            if (options.contains(Option.ENHANCED_CONCATENATION)) {
+                rules().get("<constChars>").add(l("<constChars>", "<constChars>"));
+            }
+        }
+        if (options.contains(Option.NEGATED_CHAR_CLASS)) {
+            rules().get("<element>").add(l("[^", "<constChars>", "]"));
+            rules().put("<constChars>", l(l("<constChar>"), l("<constChars>", "<constChar>")));
+        }
+        if (options.contains(Option.NON_CAPTURING_GROUP)) {
+            rules().get("<element>").add(l("(?:", "<regex>", ")"));
+        }
+        rules().put("<char>", l(l("<constChar>")));
+        if (options.contains(Option.ANY)) {
+            rules().get("<char>").add(l("."));
+        }
+        rules().put("<constChar>", new ArrayList<>());
+        for (Character character : alphabet) {
+            rules().get("<constChar>").add(l(escape(character.toString())));
+        }
+        setStartingSymbol("<regex>");
     }
-    rules().put("<concat>", l(l("<term>", "<concat>"), l("<term>")));
-    if (options.contains(Option.ENHANCED_CONCATENATION)) {
-      rules().get("<concat>").add(l("<concat>", "<concat>"));
-    }
-    rules().put("<term>", l(l("<element>")));
-    if (options.contains(Option.QUANTIFIERS)) {
-      rules().get("<term>").add(l("<element>", "<quantifier>"));
-      rules().put("<quantifier>", l(l("?+"), l("++"), l("*+")));
-    }
-    rules().put("<term>", l(l("<element>")));
-    if (options.contains(Option.NON_EMPTY_QUANTIFIER)) {
-      rules().get("<term>").add(l("<element>", "<quantifier>"));
-      rules().put("<quantifier>", l(l("++")));
-    }
-    if (options.contains(Option.BOUNDED_QUANTIFIERS)) {
-      rules().get("<term>").add(l("<element>", "{", "<digit>", ",", "<digit>", "}"));
-      rules().put("<digit>", l(l("1"), l("2"), l("3"), l("4"), l("5"), l("6"), l("7"), l("8"), l("9")));
-    }
-    rules().put("<element>", l(l("<char>")));
-    if (options.contains(Option.CHAR_CLASS)) {
-      rules().get("<element>").add(l("[", "<constChars>", "]"));
-      rules().put("<constChars>", l(l("<constChar>"), l("<constChars>", "<constChar>")));
-      if (options.contains(Option.ENHANCED_CONCATENATION)) {
-        rules().get("<constChars>").add(l("<constChars>", "<constChars>"));
-      }
-    }
-    if (options.contains(Option.NEGATED_CHAR_CLASS)) {
-      rules().get("<element>").add(l("[^", "<constChars>", "]"));
-      rules().put("<constChars>", l(l("<constChar>"), l("<constChars>", "<constChar>")));
-    }
-    if (options.contains(Option.NON_CAPTURING_GROUP)) {
-      rules().get("<element>").add(l("(?:", "<regex>", ")"));
-    }
-    rules().put("<char>", l(l("<constChar>")));
-    if (options.contains(Option.ANY)) {
-      rules().get("<char>").add(l("."));
-    }
-    rules().put("<constChar>", new ArrayList<>());
-    for (Character character : alphabet) {
-      rules().get("<constChar>").add(l(escape(character.toString())));
-    }
-    setStartingSymbol("<regex>");
-  }
 
-  public enum Option {
-    OR,
-    QUANTIFIERS,
-    NON_EMPTY_QUANTIFIER,
-    BOUNDED_QUANTIFIERS,
-    CHAR_CLASS,
-    NEGATED_CHAR_CLASS,
-    NON_CAPTURING_GROUP,
-    ANY,
-    ENHANCED_CONCATENATION
-  }
-
-  private String escape(String c) {
-    if (TO_BE_ESCAPED.contains(c)) {
-      return "\\" + c;
+    public enum Option {
+        OR,
+        QUANTIFIERS,
+        NON_EMPTY_QUANTIFIER,
+        BOUNDED_QUANTIFIERS,
+        CHAR_CLASS,
+        NEGATED_CHAR_CLASS,
+        NON_CAPTURING_GROUP,
+        ANY,
+        ENHANCED_CONCATENATION
     }
-    return c;
-  }
 
-  @SafeVarargs
-  private <T> List<T> l(T... ts) {
-    return new ArrayList<>(Arrays.asList(ts));
-  }
+    private String escape(String c) {
+        if (TO_BE_ESCAPED.contains(c)) {
+            return "\\" + c;
+        }
+        return c;
+    }
+
+    @SafeVarargs
+    private <T> List<T> l(T... ts) {
+        return new ArrayList<>(Arrays.asList(ts));
+    }
 }

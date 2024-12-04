@@ -30,37 +30,37 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class GaussianMixture2D
-    implements ProblemWithExampleSolution<List<Double>>, ComparableQualityBasedProblem<List<Double>, Double> {
+        implements ProblemWithExampleSolution<List<Double>>, ComparableQualityBasedProblem<List<Double>, Double> {
 
-  private final List<Double> example;
-  private final Function<List<Double>, Double> qualityFunction;
+    private final List<Double> example;
+    private final Function<List<Double>, Double> qualityFunction;
 
-  public GaussianMixture2D(Map<List<Double>, Double> optima, double c) {
-    example = List.of(0d, 0d);
-    qualityFunction = x -> optima.entrySet().stream()
-        .mapToDouble(e -> e.getValue() * Math.exp(-VectorUtils.norm(VectorUtils.diff(x, e.getKey()), 2) * c))
-        .sum();
-  }
+    public GaussianMixture2D(Map<List<Double>, Double> optima, double c) {
+        example = List.of(0d, 0d);
+        qualityFunction = x -> optima.entrySet().stream()
+                .mapToDouble(e -> e.getValue() * Math.exp(-VectorUtils.norm(VectorUtils.diff(x, e.getKey()), 2) * c))
+                .sum();
+    }
 
-  public GaussianMixture2D(List<Double> xs, double c) {
-    this(
-        IntStream.range(0, xs.size()).boxed().collect(Collectors.toMap(i -> List.of(xs.get(i), 0d), i ->
-            (double) (i + 1))),
-        c);
-  }
+    public GaussianMixture2D(List<Double> xs, double c) {
+        this(
+                IntStream.range(0, xs.size()).boxed().collect(Collectors.toMap(i -> List.of(xs.get(i), 0d), i ->
+                        (double) (i + 1))),
+                c);
+    }
 
-  @Override
-  public List<Double> example() {
-    return example;
-  }
+    @Override
+    public List<Double> example() {
+        return example;
+    }
 
-  @Override
-  public Function<List<Double>, Double> qualityFunction() {
-    return qualityFunction;
-  }
+    @Override
+    public Function<List<Double>, Double> qualityFunction() {
+        return qualityFunction;
+    }
 
-  @Override
-  public Comparator<Double> totalOrderComparator() {
-    return ((Comparator<Double>) Double::compareTo).reversed();
-  }
+    @Override
+    public Comparator<Double> totalOrderComparator() {
+        return ((Comparator<Double>) Double::compareTo).reversed();
+    }
 }

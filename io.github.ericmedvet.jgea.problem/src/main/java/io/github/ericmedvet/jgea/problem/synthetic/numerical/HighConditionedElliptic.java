@@ -22,9 +22,9 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 import java.util.stream.IntStream;
 
 public class HighConditionedElliptic extends AbstractNumericalProblem {
-  public HighConditionedElliptic(int p) {
-    super(p, vs -> IntStream.range(0, p)
-        .mapToDouble(i -> vs.get(i) * vs.get(i) * Math.pow(1000000d, (double) i / (p - 1)))
-        .sum());
-  }
+    public HighConditionedElliptic(int p) {
+        super(p, vs -> IntStream.range(0, p)
+                .mapToDouble(i -> vs.get(i) * vs.get(i) * Math.pow(1000000d, (double) i / (p - 1)))
+                .sum());
+    }
 }

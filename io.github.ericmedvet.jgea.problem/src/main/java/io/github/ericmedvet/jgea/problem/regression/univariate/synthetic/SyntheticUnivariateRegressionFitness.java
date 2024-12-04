@@ -28,19 +28,19 @@ import java.util.List;
 
 public class SyntheticUnivariateRegressionFitness extends UnivariateRegressionFitness {
 
-  private final UnivariateRealFunction targetFunction;
+    private final UnivariateRealFunction targetFunction;
 
-  public SyntheticUnivariateRegressionFitness(
-      UnivariateRealFunction targetFunction, List<double[]> points, Metric metric) {
-    super(
-        new ListNumericalDataset(points.stream()
-            .map(xs -> new NumericalDataset.Example(xs, targetFunction.applyAsDouble(xs)))
-            .toList()),
-        metric);
-    this.targetFunction = targetFunction;
-  }
+    public SyntheticUnivariateRegressionFitness(
+            UnivariateRealFunction targetFunction, List<double[]> points, Metric metric) {
+        super(
+                new ListNumericalDataset(points.stream()
+                        .map(xs -> new NumericalDataset.Example(xs, targetFunction.applyAsDouble(xs)))
+                        .toList()),
+                metric);
+        this.targetFunction = targetFunction;
+    }
 
-  public UnivariateRealFunction getTargetFunction() {
-    return targetFunction;
-  }
+    public UnivariateRealFunction getTargetFunction() {
+        return targetFunction;
+    }
 }

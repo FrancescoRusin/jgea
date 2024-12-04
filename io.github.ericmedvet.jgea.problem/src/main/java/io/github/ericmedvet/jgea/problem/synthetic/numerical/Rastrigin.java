@@ -22,12 +22,12 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 public class Rastrigin extends AbstractNumericalProblem {
 
-  public Rastrigin(int p) {
-    super(
-        p,
-        vs -> 10d * (double) vs.size()
-            + vs.stream()
-                .mapToDouble(v -> v * v - 10 * Math.cos(2 * Math.PI * v))
-                .sum());
-  }
+    public Rastrigin(int p) {
+        super(
+                p,
+                vs -> 10d * (double) vs.size()
+                        + vs.stream()
+                                .mapToDouble(v -> v * v - 10 * Math.cos(2 * Math.PI * v))
+                                .sum());
+    }
 }

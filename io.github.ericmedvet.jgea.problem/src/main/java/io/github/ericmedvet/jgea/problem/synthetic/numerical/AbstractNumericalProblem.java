@@ -27,27 +27,27 @@ import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
 public abstract class AbstractNumericalProblem
-    implements ComparableQualityBasedProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
-  private final int p;
-  private final ToDoubleFunction<List<Double>> f;
+        implements ComparableQualityBasedProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+    private final int p;
+    private final ToDoubleFunction<List<Double>> f;
 
-  public AbstractNumericalProblem(int p, ToDoubleFunction<List<Double>> f) {
-    this.p = p;
-    this.f = f;
-  }
+    public AbstractNumericalProblem(int p, ToDoubleFunction<List<Double>> f) {
+        this.p = p;
+        this.f = f;
+    }
 
-  @Override
-  public List<Double> example() {
-    return Collections.nCopies(p, 0d);
-  }
+    @Override
+    public List<Double> example() {
+        return Collections.nCopies(p, 0d);
+    }
 
-  @Override
-  public Function<List<Double>, Double> qualityFunction() {
-    return vs -> {
-      if (vs.size() != p) {
-        throw new IllegalArgumentException("Wrong input size: %d expected, %d found".formatted(p, vs.size()));
-      }
-      return f.applyAsDouble(vs);
-    };
-  }
+    @Override
+    public Function<List<Double>, Double> qualityFunction() {
+        return vs -> {
+            if (vs.size() != p) {
+                throw new IllegalArgumentException("Wrong input size: %d expected, %d found".formatted(p, vs.size()));
+            }
+            return f.applyAsDouble(vs);
+        };
+    }
 }

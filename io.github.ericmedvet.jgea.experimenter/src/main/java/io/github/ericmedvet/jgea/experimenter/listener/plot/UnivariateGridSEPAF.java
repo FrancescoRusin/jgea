@@ -33,63 +33,63 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class UnivariateGridSEPAF<E, R, X, G> extends AbstractSingleEPAF<E, UnivariateGridPlot, R, Grid<Double>, X> {
-  private final List<Function<? super E, Grid<G>>> gridFunctions;
-  private final List<Function<? super G, ? extends Number>> gridValueFunctions;
-  private final DoubleRange valueRange;
+    private final List<Function<? super E, Grid<G>>> gridFunctions;
+    private final List<Function<? super G, ? extends Number>> gridValueFunctions;
+    private final DoubleRange valueRange;
 
-  public UnivariateGridSEPAF(
-      Function<? super R, String> titleFunction,
-      Function<? super E, X> predicateValueFunction,
-      Predicate<? super X> predicate,
-      boolean unique,
-      List<Function<? super E, Grid<G>>> gridFunctions,
-      List<Function<? super G, ? extends Number>> gridValueFunctions,
-      DoubleRange valueRange) {
-    super(titleFunction, predicateValueFunction, predicate, unique);
-    this.gridFunctions = gridFunctions;
-    this.gridValueFunctions = gridValueFunctions;
-    this.valueRange = valueRange;
-  }
+    public UnivariateGridSEPAF(
+            Function<? super R, String> titleFunction,
+            Function<? super E, X> predicateValueFunction,
+            Predicate<? super X> predicate,
+            boolean unique,
+            List<Function<? super E, Grid<G>>> gridFunctions,
+            List<Function<? super G, ? extends Number>> gridValueFunctions,
+            DoubleRange valueRange) {
+        super(titleFunction, predicateValueFunction, predicate, unique);
+        this.gridFunctions = gridFunctions;
+        this.gridValueFunctions = gridValueFunctions;
+        this.valueRange = valueRange;
+    }
 
-  @Override
-  protected List<Map.Entry<String, Grid<Double>>> buildData(E e, R r) {
-    return gridFunctions.stream()
-        .map(gf -> {
-          Grid<G> grid = gf.apply(e);
-          return gridValueFunctions.stream()
-              .map(gvf -> Map.entry(
-                  gridFunctions.size() == 1
-                      ? NamedFunction.name(gvf)
-                      : "%s on %s".formatted(NamedFunction.name(gvf), NamedFunction.name(gf)),
-                  grid.map(g -> Objects.isNull(g)
-                      ? null
-                      : gvf.apply(g).doubleValue())))
-              .toList();
-        })
-        .flatMap(List::stream)
-        .toList();
-  }
+    @Override
+    protected List<Map.Entry<String, Grid<Double>>> buildData(E e, R r) {
+        return gridFunctions.stream()
+                .map(gf -> {
+                    Grid<G> grid = gf.apply(e);
+                    return gridValueFunctions.stream()
+                            .map(gvf -> Map.entry(
+                                    gridFunctions.size() == 1
+                                            ? NamedFunction.name(gvf)
+                                            : "%s on %s".formatted(NamedFunction.name(gvf), NamedFunction.name(gf)),
+                                    grid.map(g -> Objects.isNull(g)
+                                            ? null
+                                            : gvf.apply(g).doubleValue())))
+                            .toList();
+                })
+                .flatMap(List::stream)
+                .toList();
+    }
 
-  @Override
-  protected UnivariateGridPlot buildPlot(Table<String, String, Grid<Double>> data, R r) {
-    return new UnivariateGridPlot(
-        titleFunction.apply(r),
-        NamedFunction.name(predicateValueFunction),
-        "value",
-        data.get(0, 0) instanceof RangedGrid<?> rg ? rg.xName() : "x",
-        data.get(0, 0) instanceof RangedGrid<?> rg ? rg.yName() : "y",
-        DoubleRange.UNBOUNDED,
-        DoubleRange.UNBOUNDED,
-        valueRange,
-        Grid.create(
-            data.nColumns(),
-            data.nRows(),
-            (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
-  }
+    @Override
+    protected UnivariateGridPlot buildPlot(Table<String, String, Grid<Double>> data, R r) {
+        return new UnivariateGridPlot(
+                titleFunction.apply(r),
+                NamedFunction.name(predicateValueFunction),
+                "value",
+                data.get(0, 0) instanceof RangedGrid<?> rg ? rg.xName() : "x",
+                data.get(0, 0) instanceof RangedGrid<?> rg ? rg.yName() : "y",
+                DoubleRange.UNBOUNDED,
+                DoubleRange.UNBOUNDED,
+                valueRange,
+                Grid.create(
+                        data.nColumns(),
+                        data.nRows(),
+                        (x, y) -> new XYPlot.TitledData<>(
+                                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+    }
 
-  @Override
-  public String toString() {
-    return "gridSEPAF(gridValueFunctions=" + gridValueFunctions + ')';
-  }
+    @Override
+    public String toString() {
+        return "gridSEPAF(gridValueFunctions=" + gridValueFunctions + ')';
+    }
 }

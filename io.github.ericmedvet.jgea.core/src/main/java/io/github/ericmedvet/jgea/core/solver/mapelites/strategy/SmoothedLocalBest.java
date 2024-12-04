@@ -26,38 +26,38 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class SmoothedLocalBest extends LocalBest {
-  private final double step;
+    private final double step;
 
-  public SmoothedLocalBest(double step) {
-    this.step = step;
-  }
-
-  @Override
-  protected <Q> PartialObservation<Q> computeNewOtherCoords(
-      List<Double> theseCoords,
-      Collection<PartialObservation<Q>> observations,
-      PartialComparator<Q> qComparator) {
-    Collection<PartialObservation<Q>> firsts = PartiallyOrderedCollection.from(
-            observations, (PartialComparator<? super PartialObservation<Q>>)
-                (po1, po2) -> qComparator.compare(po1.q(), po2.q()))
-        .firsts();
-    PartialObservation<Q> bestPO = firsts.stream().findFirst().orElseThrow();
-    List<Double> currentOtherCoords = getOtherCoords(theseCoords);
-    List<Double> newOtherCoords = IntStream.range(0, currentOtherCoords.size())
-        .mapToObj(i ->
-            step(currentOtherCoords.get(i), bestPO.otherCoords().get(i)))
-        .toList();
-    return new PartialObservation<>(newOtherCoords, bestPO.q());
-  }
-
-  private double step(double current, double target) {
-    double d = target - current;
-    if (Math.abs(d) <= step) {
-      return target;
+    public SmoothedLocalBest(double step) {
+        this.step = step;
     }
-    if (target < current) {
-      return current - step;
+
+    @Override
+    protected <Q> PartialObservation<Q> computeNewOtherCoords(
+            List<Double> theseCoords,
+            Collection<PartialObservation<Q>> observations,
+            PartialComparator<Q> qComparator) {
+        Collection<PartialObservation<Q>> firsts = PartiallyOrderedCollection.from(
+                        observations, (PartialComparator<? super PartialObservation<Q>>)
+                                (po1, po2) -> qComparator.compare(po1.q(), po2.q()))
+                .firsts();
+        PartialObservation<Q> bestPO = firsts.stream().findFirst().orElseThrow();
+        List<Double> currentOtherCoords = getOtherCoords(theseCoords);
+        List<Double> newOtherCoords = IntStream.range(0, currentOtherCoords.size())
+                .mapToObj(i ->
+                        step(currentOtherCoords.get(i), bestPO.otherCoords().get(i)))
+                .toList();
+        return new PartialObservation<>(newOtherCoords, bestPO.q());
     }
-    return current + step;
-  }
+
+    private double step(double current, double target) {
+        double d = target - current;
+        if (Math.abs(d) <= step) {
+            return target;
+        }
+        if (target < current) {
+            return current - step;
+        }
+        return current + step;
+    }
 }

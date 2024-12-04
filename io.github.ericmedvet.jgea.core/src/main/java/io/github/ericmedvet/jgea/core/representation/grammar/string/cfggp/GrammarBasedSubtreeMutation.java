@@ -29,32 +29,32 @@ import java.util.random.RandomGenerator;
 
 public class GrammarBasedSubtreeMutation<T> implements Mutation<Tree<T>> {
 
-  private final int maxDepth;
-  private final GrowGrammarTreeFactory<T> factory;
+    private final int maxDepth;
+    private final GrowGrammarTreeFactory<T> factory;
 
-  public GrammarBasedSubtreeMutation(int maxDepth, StringGrammar<T> grammar) {
-    this.maxDepth = maxDepth;
-    factory = new GrowGrammarTreeFactory<>(0, grammar);
-  }
+    public GrammarBasedSubtreeMutation(int maxDepth, StringGrammar<T> grammar) {
+        this.maxDepth = maxDepth;
+        factory = new GrowGrammarTreeFactory<>(0, grammar);
+    }
 
-  @Override
-  public Tree<T> mutate(Tree<T> parent, RandomGenerator random) {
-    Tree<T> child = Tree.copyOf(parent);
-    List<Tree<T>> nonTerminalTrees = Misc.shuffle(child.topSubtrees(), random);
-    boolean done = false;
-    for (Tree<T> toReplaceSubTree : nonTerminalTrees) {
-      // TODO should select a depth randomly such that the resulting child is <= maxDepth
-      Tree<T> newSubTree = factory.build(random, toReplaceSubTree.content(), toReplaceSubTree.height());
-      if (newSubTree != null) {
-        toReplaceSubTree.clearChildren();
-        newSubTree.childStream().forEach(toReplaceSubTree::addChild);
-        done = true;
-        break;
-      }
+    @Override
+    public Tree<T> mutate(Tree<T> parent, RandomGenerator random) {
+        Tree<T> child = Tree.copyOf(parent);
+        List<Tree<T>> nonTerminalTrees = Misc.shuffle(child.topSubtrees(), random);
+        boolean done = false;
+        for (Tree<T> toReplaceSubTree : nonTerminalTrees) {
+            // TODO should select a depth randomly such that the resulting child is <= maxDepth
+            Tree<T> newSubTree = factory.build(random, toReplaceSubTree.content(), toReplaceSubTree.height());
+            if (newSubTree != null) {
+                toReplaceSubTree.clearChildren();
+                newSubTree.childStream().forEach(toReplaceSubTree::addChild);
+                done = true;
+                break;
+            }
+        }
+        if (!done) {
+            return null;
+        }
+        return child;
     }
-    if (!done) {
-      return null;
-    }
-    return child;
-  }
 }

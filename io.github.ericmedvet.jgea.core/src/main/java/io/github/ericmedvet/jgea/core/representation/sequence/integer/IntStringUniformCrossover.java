@@ -27,10 +27,10 @@ import java.util.random.RandomGenerator;
 
 public class IntStringUniformCrossover implements Crossover<IntString> {
 
-  private final Crossover<List<Integer>> inner = new UniformCrossover<>();
+    private final Crossover<List<Integer>> inner = new UniformCrossover<>();
 
-  @Override
-  public IntString recombine(IntString p1, IntString p2, RandomGenerator random) {
-    return new IntString(inner.recombine(p1.genes(), p2.genes(), random), p1.lowerBound(), p1.upperBound());
-  }
+    @Override
+    public IntString recombine(IntString p1, IntString p2, RandomGenerator random) {
+        return new IntString(inner.recombine(p1.genes(), p2.genes(), random), p1.lowerBound(), p1.upperBound());
+    }
 }

@@ -33,105 +33,105 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MRCAMorphogenesis
-    implements ComparableQualityBasedProblem<MultivariateRealGridCellularAutomaton, Double>,
-        ProblemWithExampleSolution<MultivariateRealGridCellularAutomaton> {
+        implements ComparableQualityBasedProblem<MultivariateRealGridCellularAutomaton, Double>,
+                ProblemWithExampleSolution<MultivariateRealGridCellularAutomaton> {
 
-  private static final DoubleRange STATE_RANGE = DoubleRange.SYMMETRIC_UNIT;
+    private static final DoubleRange STATE_RANGE = DoubleRange.SYMMETRIC_UNIT;
 
-  private final Grid<double[]> targetGrid;
-  private final IntRange convergenceRange;
-  private final Distance<double[]> distance;
-  private final DoubleRange caStateRange;
-  private final DoubleRange targetRange;
-
-  public MRCAMorphogenesis(
-      Grid<double[]> targetGrid,
-      IntRange convergenceRange,
-      Distance<double[]> distance,
-      DoubleRange caStateRange,
-      DoubleRange targetRange) {
-    this.targetGrid = targetGrid.map(
-        vs -> Arrays.stream(vs).map(targetRange::normalize).toArray());
-    this.convergenceRange = convergenceRange;
-    this.distance = distance;
-    this.caStateRange = caStateRange;
-    this.targetRange = targetRange;
-  }
-
-  public MRCAMorphogenesis(
-      Grid<double[]> targetGrid,
-      IntRange convergenceRange,
-      StateDistance stateDistance,
-      DoubleRange caStateRange,
-      DoubleRange targetRange) {
-    this(targetGrid, convergenceRange, stateDistance.get(), caStateRange, targetRange);
-  }
-
-  public enum StateDistance implements Supplier<Distance<double[]>> {
-    L1_1((vs1, vs2) -> Math.abs(vs1[0] - vs2[0])),
-    L1_3((vs1, vs2) -> Math.abs(vs1[0] - vs2[0]) + Math.abs(vs1[1] - vs2[1]) + Math.abs(vs1[2] - vs2[2])),
-    L2_3((vs1, vs2) -> Math.sqrt((vs1[0] - vs2[0]) * (vs1[0] - vs2[0])
-        + (vs1[1] - vs2[1]) * (vs1[1] - vs2[1])
-        + (vs1[2] - vs2[2]) * (vs1[2] - vs2[2])));
+    private final Grid<double[]> targetGrid;
+    private final IntRange convergenceRange;
     private final Distance<double[]> distance;
+    private final DoubleRange caStateRange;
+    private final DoubleRange targetRange;
 
-    StateDistance(Distance<double[]> distance) {
-      this.distance = distance;
+    public MRCAMorphogenesis(
+            Grid<double[]> targetGrid,
+            IntRange convergenceRange,
+            Distance<double[]> distance,
+            DoubleRange caStateRange,
+            DoubleRange targetRange) {
+        this.targetGrid = targetGrid.map(
+                vs -> Arrays.stream(vs).map(targetRange::normalize).toArray());
+        this.convergenceRange = convergenceRange;
+        this.distance = distance;
+        this.caStateRange = caStateRange;
+        this.targetRange = targetRange;
+    }
+
+    public MRCAMorphogenesis(
+            Grid<double[]> targetGrid,
+            IntRange convergenceRange,
+            StateDistance stateDistance,
+            DoubleRange caStateRange,
+            DoubleRange targetRange) {
+        this(targetGrid, convergenceRange, stateDistance.get(), caStateRange, targetRange);
+    }
+
+    public enum StateDistance implements Supplier<Distance<double[]>> {
+        L1_1((vs1, vs2) -> Math.abs(vs1[0] - vs2[0])),
+        L1_3((vs1, vs2) -> Math.abs(vs1[0] - vs2[0]) + Math.abs(vs1[1] - vs2[1]) + Math.abs(vs1[2] - vs2[2])),
+        L2_3((vs1, vs2) -> Math.sqrt((vs1[0] - vs2[0]) * (vs1[0] - vs2[0])
+                + (vs1[1] - vs2[1]) * (vs1[1] - vs2[1])
+                + (vs1[2] - vs2[2]) * (vs1[2] - vs2[2])));
+        private final Distance<double[]> distance;
+
+        StateDistance(Distance<double[]> distance) {
+            this.distance = distance;
+        }
+
+        @Override
+        public Distance<double[]> get() {
+            return distance;
+        }
     }
 
     @Override
-    public Distance<double[]> get() {
-      return distance;
+    public MultivariateRealGridCellularAutomaton example() {
+        int stateSize = targetGrid.get(0, 0).length;
+        return new MultivariateRealGridCellularAutomaton(
+                Grid.create(targetGrid.w(), targetGrid.h(), new double[stateSize]),
+                DoubleRange.SYMMETRIC_UNIT,
+                MultivariateRealGridCellularAutomaton.Kernel.SUM.get(),
+                NamedMultivariateRealFunction.from(
+                        MultivariateRealFunction.from(vs -> new double[stateSize], stateSize, stateSize),
+                        MultivariateRealFunction.varNames("c", stateSize),
+                        MultivariateRealFunction.varNames("c", stateSize)),
+                1,
+                0d,
+                true);
     }
-  }
 
-  @Override
-  public MultivariateRealGridCellularAutomaton example() {
-    int stateSize = targetGrid.get(0, 0).length;
-    return new MultivariateRealGridCellularAutomaton(
-        Grid.create(targetGrid.w(), targetGrid.h(), new double[stateSize]),
-        DoubleRange.SYMMETRIC_UNIT,
-        MultivariateRealGridCellularAutomaton.Kernel.SUM.get(),
-        NamedMultivariateRealFunction.from(
-            MultivariateRealFunction.from(vs -> new double[stateSize], stateSize, stateSize),
-            MultivariateRealFunction.varNames("c", stateSize),
-            MultivariateRealFunction.varNames("c", stateSize)),
-        1,
-        0d,
-        true);
-  }
+    public Grid<double[]> getTargetGrid() {
+        return targetGrid.map(
+                vs -> Arrays.stream(vs).map(targetRange::denormalize).toArray());
+    }
 
-  public Grid<double[]> getTargetGrid() {
-    return targetGrid.map(
-        vs -> Arrays.stream(vs).map(targetRange::denormalize).toArray());
-  }
-
-  @Override
-  public Function<MultivariateRealGridCellularAutomaton, Double> qualityFunction() {
-    return ca -> {
-      // evolve the CA
-      List<Grid<double[]>> states = ca.evolve(convergenceRange.max());
-      // compute avg distance
-      return states.subList(convergenceRange.min(), convergenceRange.max()).stream()
-          .mapToDouble(g -> {
-            if (g.w() != targetGrid.w() || g.h() != targetGrid.h()) {
-              throw new IllegalArgumentException(
-                  "Unexpected different sizes for the grid: evaluated is %dx%d, target is %dx%d"
-                      .formatted(
-                          g.w(), g.h(),
-                          targetGrid.w(), targetGrid.h()));
-            }
-            return g.entries().stream()
-                .mapToDouble(e -> distance.apply(
-                    Arrays.stream(e.value())
-                        .map(caStateRange::normalize)
-                        .toArray(),
-                    targetGrid.get(e.key())))
-                .average()
-                .orElseThrow();
-          })
-          .average()
-          .orElseThrow();
-    };
-  }
+    @Override
+    public Function<MultivariateRealGridCellularAutomaton, Double> qualityFunction() {
+        return ca -> {
+            // evolve the CA
+            List<Grid<double[]>> states = ca.evolve(convergenceRange.max());
+            // compute avg distance
+            return states.subList(convergenceRange.min(), convergenceRange.max()).stream()
+                    .mapToDouble(g -> {
+                        if (g.w() != targetGrid.w() || g.h() != targetGrid.h()) {
+                            throw new IllegalArgumentException(
+                                    "Unexpected different sizes for the grid: evaluated is %dx%d, target is %dx%d"
+                                            .formatted(
+                                                    g.w(), g.h(),
+                                                    targetGrid.w(), targetGrid.h()));
+                        }
+                        return g.entries().stream()
+                                .mapToDouble(e -> distance.apply(
+                                        Arrays.stream(e.value())
+                                                .map(caStateRange::normalize)
+                                                .toArray(),
+                                        targetGrid.get(e.key())))
+                                .average()
+                                .orElseThrow();
+                    })
+                    .average()
+                    .orElseThrow();
+        };
+    }
 }

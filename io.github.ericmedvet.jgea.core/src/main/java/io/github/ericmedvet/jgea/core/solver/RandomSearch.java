@@ -27,13 +27,13 @@ import java.util.function.Predicate;
 
 public class RandomSearch<G, S, Q> extends RandomWalk<G, S, Q> {
 
-  public RandomSearch(
-      Function<? super G, ? extends S> solutionMapper,
-      Factory<? extends G> genotypeFactory,
-      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
-          stopCondition) {
-    super(solutionMapper, genotypeFactory, stopCondition, (g, random) -> genotypeFactory
-        .build(1, random)
-        .getFirst());
-  }
+    public RandomSearch(
+            Function<? super G, ? extends S> solutionMapper,
+            Factory<? extends G> genotypeFactory,
+            Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
+                    stopCondition) {
+        super(solutionMapper, genotypeFactory, stopCondition, (g, random) -> genotypeFactory
+                .build(1, random)
+                .getFirst());
+    }
 }

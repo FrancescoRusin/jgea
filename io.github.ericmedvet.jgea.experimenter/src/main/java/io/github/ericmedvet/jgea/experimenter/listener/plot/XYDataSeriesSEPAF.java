@@ -34,69 +34,69 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class XYDataSeriesSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, XYDataSeriesPlot, R, List<XYDataSeries>, X> {
-  private final List<Function<? super E, Collection<P>>> pointFunctions;
-  private final Function<? super P, ? extends Number> xFunction;
-  private final Function<? super P, ? extends Number> yFunction;
-  private final DoubleRange xRange;
-  private final DoubleRange yRange;
+    private final List<Function<? super E, Collection<P>>> pointFunctions;
+    private final Function<? super P, ? extends Number> xFunction;
+    private final Function<? super P, ? extends Number> yFunction;
+    private final DoubleRange xRange;
+    private final DoubleRange yRange;
 
-  public XYDataSeriesSEPAF(
-      Function<? super R, String> titleFunction,
-      Function<? super E, X> predicateValueFunction,
-      Predicate<? super X> predicate,
-      boolean unique,
-      List<Function<? super E, Collection<P>>> pointFunctions,
-      Function<? super P, ? extends Number> xFunction,
-      Function<? super P, ? extends Number> yFunction,
-      DoubleRange xRange,
-      DoubleRange yRange) {
-    super(titleFunction, predicateValueFunction, predicate, unique);
-    this.pointFunctions = pointFunctions;
-    this.xFunction = xFunction;
-    this.yFunction = yFunction;
-    this.xRange = xRange;
-    this.yRange = yRange;
-  }
+    public XYDataSeriesSEPAF(
+            Function<? super R, String> titleFunction,
+            Function<? super E, X> predicateValueFunction,
+            Predicate<? super X> predicate,
+            boolean unique,
+            List<Function<? super E, Collection<P>>> pointFunctions,
+            Function<? super P, ? extends Number> xFunction,
+            Function<? super P, ? extends Number> yFunction,
+            DoubleRange xRange,
+            DoubleRange yRange) {
+        super(titleFunction, predicateValueFunction, predicate, unique);
+        this.pointFunctions = pointFunctions;
+        this.xFunction = xFunction;
+        this.yFunction = yFunction;
+        this.xRange = xRange;
+        this.yRange = yRange;
+    }
 
-  @Override
-  protected List<Map.Entry<String, List<XYDataSeries>>> buildData(E e, R r) {
-    return List.of(Map.entry(
-        "",
-        pointFunctions.stream()
-            .map(pf -> XYDataSeries.of(
-                    NamedFunction.name(pf),
-                    pf.apply(e).stream()
-                        .map(p -> new XYDataSeries.Point(
-                            Value.of(xFunction
-                                .apply(p)
-                                .doubleValue()),
-                            Value.of(yFunction
-                                .apply(p)
-                                .doubleValue())))
-                        .toList())
-                .sorted())
-            .toList()));
-  }
+    @Override
+    protected List<Map.Entry<String, List<XYDataSeries>>> buildData(E e, R r) {
+        return List.of(Map.entry(
+                "",
+                pointFunctions.stream()
+                        .map(pf -> XYDataSeries.of(
+                                        NamedFunction.name(pf),
+                                        pf.apply(e).stream()
+                                                .map(p -> new XYDataSeries.Point(
+                                                        Value.of(xFunction
+                                                                .apply(p)
+                                                                .doubleValue()),
+                                                        Value.of(yFunction
+                                                                .apply(p)
+                                                                .doubleValue())))
+                                                .toList())
+                                .sorted())
+                        .toList()));
+    }
 
-  @Override
-  protected XYDataSeriesPlot buildPlot(Table<String, String, List<XYDataSeries>> data, R r) {
-    return new XYDataSeriesPlot(
-        titleFunction.apply(r),
-        NamedFunction.name(predicateValueFunction),
-        "",
-        NamedFunction.name(xFunction),
-        NamedFunction.name(yFunction),
-        xRange,
-        yRange,
-        Grid.create(
-            data.nColumns(),
-            data.nRows(),
-            (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
-  }
+    @Override
+    protected XYDataSeriesPlot buildPlot(Table<String, String, List<XYDataSeries>> data, R r) {
+        return new XYDataSeriesPlot(
+                titleFunction.apply(r),
+                NamedFunction.name(predicateValueFunction),
+                "",
+                NamedFunction.name(xFunction),
+                NamedFunction.name(yFunction),
+                xRange,
+                yRange,
+                Grid.create(
+                        data.nColumns(),
+                        data.nRows(),
+                        (x, y) -> new XYPlot.TitledData<>(
+                                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+    }
 
-  @Override
-  public String toString() {
-    return "xySEPAF(xFunction=" + xFunction + ";yFunction=" + yFunction + ')';
-  }
+    @Override
+    public String toString() {
+        return "xySEPAF(xFunction=" + xFunction + ";yFunction=" + yFunction + ')';
+    }
 }

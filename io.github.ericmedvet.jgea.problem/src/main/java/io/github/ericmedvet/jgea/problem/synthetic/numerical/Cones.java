@@ -27,29 +27,29 @@ import java.util.List;
 import java.util.function.Function;
 
 public class Cones
-    implements MultiHomogeneousObjectiveProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+        implements MultiHomogeneousObjectiveProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    Comparator<Double> comparator = Double::compareTo;
-    return List.of(comparator, comparator, comparator.reversed());
-  }
+    @Override
+    public List<Comparator<Double>> comparators() {
+        Comparator<Double> comparator = Double::compareTo;
+        return List.of(comparator, comparator, comparator.reversed());
+    }
 
-  @Override
-  public List<Double> example() {
-    return List.of(0d, 0d);
-  }
+    @Override
+    public List<Double> example() {
+        return List.of(0d, 0d);
+    }
 
-  @Override
-  public Function<List<Double>, List<Double>> qualityFunction() {
-    return list -> {
-      double r = list.get(0);
-      double h = list.get(1);
-      double s = Math.sqrt(r * r + h * h);
-      double lateralSurface = Math.PI * r * s;
-      double totalSurface = Math.PI * r * (r + s);
-      double volume = Math.PI * r * r * h / 3;
-      return List.of(lateralSurface, totalSurface, volume);
-    };
-  }
+    @Override
+    public Function<List<Double>, List<Double>> qualityFunction() {
+        return list -> {
+            double r = list.get(0);
+            double h = list.get(1);
+            double s = Math.sqrt(r * r + h * h);
+            double lateralSurface = Math.PI * r * s;
+            double totalSurface = Math.PI * r * (r + s);
+            double volume = Math.PI * r * r * h / 3;
+            return List.of(lateralSurface, totalSurface, volume);
+        };
+    }
 }

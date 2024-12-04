@@ -37,12 +37,12 @@ import java.util.function.Predicate;
 
 @Discoverable(prefixTemplate = "ea.plot.single|s")
 public class SinglePlots {
-  private SinglePlots() {}
+    private SinglePlots() {}
 
-  @SuppressWarnings("unused")
-  @Alias(
-      name = "fieldRun",
-      value = // spotless:off
+    @SuppressWarnings("unused")
+    @Alias(
+            name = "fieldRun",
+            value = // spotless:off
           """
               field(
                 title = ea.f.runString(name = title; s = "{run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -50,9 +50,9 @@ public class SinglePlots {
                 condition = predicate.inD(values = [0; 0.1; 0.25; 0.50; 1])
               )
               """) // spotless:on
-  @Alias(
-      name = "coMeStrategies",
-      value = // spotless:off
+    @Alias(
+            name = "coMeStrategies",
+            value = // spotless:off
           """
               fieldRun(
                 title = ea.f.runString(name = title; s = "Strategies (2D fields) of {run.solver.name} on {run.problem.name} (seed={runrandomGenerator.seed})");
@@ -60,22 +60,22 @@ public class SinglePlots {
                 pointPairs = [f.identity()]
               )
               """) // spotless:on
-  public static <E, R, X, F> VectorialFieldSEPAF<E, R, X, F> field(
-      @Param("title") Function<? super R, String> titleFunction,
-      @Param("fields") List<Function<? super E, F>> fieldFunctions,
-      @Param("pointPairs")
-          List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions,
-      @Param("predicateValue") Function<E, X> predicateValueFunction,
-      @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
-      @Param(value = "unique", dB = true) boolean unique) {
-    return new VectorialFieldSEPAF<>(
-        titleFunction, predicateValueFunction, condition, unique, fieldFunctions, pointPairsFunctions);
-  }
+    public static <E, R, X, F> VectorialFieldSEPAF<E, R, X, F> field(
+            @Param("title") Function<? super R, String> titleFunction,
+            @Param("fields") List<Function<? super E, F>> fieldFunctions,
+            @Param("pointPairs")
+                    List<Function<? super F, ? extends Map<List<Double>, List<Double>>>> pointPairsFunctions,
+            @Param("predicateValue") Function<E, X> predicateValueFunction,
+            @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
+            @Param(value = "unique", dB = true) boolean unique) {
+        return new VectorialFieldSEPAF<>(
+                titleFunction, predicateValueFunction, condition, unique, fieldFunctions, pointPairsFunctions);
+    }
 
-  @SuppressWarnings("unused")
-  @Alias(
-      name = "gridRun",
-      value = // spotless:off
+    @SuppressWarnings("unused")
+    @Alias(
+            name = "gridRun",
+            value = // spotless:off
           """
               grid(
                 title = ea.f.runString(name = title; s = "{run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -83,12 +83,12 @@ public class SinglePlots {
                 condition = predicate.inD(values = [0; 0.1; 0.25; 0.50; 1])
               )
               """) // spotless:on
-  @Alias(
-      name = "me",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "me",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               gridRun(
                 title = ea.f.runString(name = title; s = "Archive of {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -96,12 +96,12 @@ public class SinglePlots {
                 grids = [ea.f.archiveToGrid(of = ea.f.meArchive())]
               )
               """) // spotless:on
-  @Alias(
-      name = "coMe",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "coMe",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               gridRun(
                 title = ea.f.runString(name = title; s = "Archives of {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -109,12 +109,12 @@ public class SinglePlots {
                 grids = [ea.f.archiveToGrid(of = ea.f.coMeArchive1()); ea.f.archiveToGrid(of = ea.f.coMeArchive2())]
               )
               """) // spotless:on
-  @Alias(
-      name = "maMe2",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "maMe2",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               gridRun(
                 title = ea.f.runString(name = title; s = "Archives of {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -122,12 +122,12 @@ public class SinglePlots {
                 grids = [ea.f.archiveToGrid(of = ea.f.maMeArchive(n = 0)); ea.f.archiveToGrid(of = ea.f.maMeArchive(n = 1))]
               )
               """) // spotless:on
-  @Alias(
-      name = "gridState",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "gridState",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               gridRun(
                 title = ea.f.runString(name = title; s = "Grid population of {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -135,79 +135,79 @@ public class SinglePlots {
                 grids = [ea.f.stateGrid()]
               )
               """) // spotless:on
-  public static <E, R, X, G> UnivariateGridSEPAF<E, R, X, G> grid(
-      @Param("title") Function<? super R, String> titleFunction,
-      @Param("values") List<Function<? super G, ? extends Number>> valueFunctions,
-      @Param("grids") List<Function<? super E, Grid<G>>> gridFunctions,
-      @Param("predicateValue") Function<E, X> predicateValueFunction,
-      @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
-      @Param(value = "valueRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange valueRange,
-      @Param(value = "unique", dB = true) boolean unique) {
-    return new UnivariateGridSEPAF<>(
-        titleFunction, predicateValueFunction, condition, unique, gridFunctions, valueFunctions, valueRange);
-  }
+    public static <E, R, X, G> UnivariateGridSEPAF<E, R, X, G> grid(
+            @Param("title") Function<? super R, String> titleFunction,
+            @Param("values") List<Function<? super G, ? extends Number>> valueFunctions,
+            @Param("grids") List<Function<? super E, Grid<G>>> gridFunctions,
+            @Param("predicateValue") Function<E, X> predicateValueFunction,
+            @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
+            @Param(value = "valueRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange valueRange,
+            @Param(value = "unique", dB = true) boolean unique) {
+        return new UnivariateGridSEPAF<>(
+                titleFunction, predicateValueFunction, condition, unique, gridFunctions, valueFunctions, valueRange);
+    }
 
-  @SuppressWarnings("unused")
-  public static <X, Q, P extends QualityBasedProblem<S, Q>, S>
-      LandscapeSEPAF<
-              POCPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
-              Run<?, List<Double>, S, Q>,
-              X,
-              Individual<List<Double>, S, Q>>
-          landscape(
-              @Param(
-                      value = "title",
-                      dNPM =
-                          "ea.f.runString(name=title;s=\"{run.solver.name} on {run.problem.name} (seed={run.randomGenerator"
-                              + ".seed})\")")
-                  Function<? super Run<?, List<Double>, S, Q>, String> titleFunction,
-              @Param(
-                      value = "predicateValue",
-                      dNPM =
-                          "f.quantized(of=ea.f.rate(of=ea.f.progress());q=0.05;format=\"%.2f\")")
-                  Function<
-                          POCPopulationState<
-                              Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
-                          X>
-                      predicateValueFunction,
-              @Param(value = "condition", dNPM = "predicate.inD(values=[0;0.1;0.25;0.50;1])")
-                  Predicate<X> condition,
-              @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<List<Double>, S> mapper,
-              @Param(value = "q", dNPM = "ea.m.identity()") Function<Q, Double> qFunction,
-              @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
-              @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange,
-              @Param(value = "xF", dNPM = "f.nTh(of=ea.f.genotype();n=0)")
-                  Function<Individual<List<Double>, S, Q>, Double> xF,
-              @Param(value = "yF", dNPM = "f.nTh(of=ea.f.genotype();n=1)")
-                  Function<Individual<List<Double>, S, Q>, Double> yF,
-              @Param(value = "valueRange", dNPM = "m.range(min=-Infinity;max=Infinity)")
-                  DoubleRange valueRange,
-              @Param(value = "unique", dB = true) boolean unique) {
-    return new LandscapeSEPAF<>(
-        titleFunction,
-        predicateValueFunction,
-        condition,
-        unique,
-        List.of(NamedFunction.from(s -> s.pocPopulation().all(), "all")),
-        xF,
-        yF,
-        s -> (x, y) -> s.problem()
-            .qualityFunction()
-            .andThen(qFunction)
-            .apply(mapper.mapperFor(s.pocPopulation()
-                    .all()
-                    .iterator()
-                    .next()
-                    .solution())
-                .apply(List.of(x, y))),
-        xRange,
-        yRange,
-        valueRange);
-  }
+    @SuppressWarnings("unused")
+    public static <X, Q, P extends QualityBasedProblem<S, Q>, S>
+            LandscapeSEPAF<
+                            POCPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
+                            Run<?, List<Double>, S, Q>,
+                            X,
+                            Individual<List<Double>, S, Q>>
+                    landscape(
+                            @Param(
+                                            value = "title",
+                                            dNPM =
+                                                    "ea.f.runString(name=title;s=\"{run.solver.name} on {run.problem.name} (seed={run.randomGenerator"
+                                                            + ".seed})\")")
+                                    Function<? super Run<?, List<Double>, S, Q>, String> titleFunction,
+                            @Param(
+                                            value = "predicateValue",
+                                            dNPM =
+                                                    "f.quantized(of=ea.f.rate(of=ea.f.progress());q=0.05;format=\"%.2f\")")
+                                    Function<
+                                                    POCPopulationState<
+                                                            Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
+                                                    X>
+                                            predicateValueFunction,
+                            @Param(value = "condition", dNPM = "predicate.inD(values=[0;0.1;0.25;0.50;1])")
+                                    Predicate<X> condition,
+                            @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<List<Double>, S> mapper,
+                            @Param(value = "q", dNPM = "ea.m.identity()") Function<Q, Double> qFunction,
+                            @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
+                            @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange,
+                            @Param(value = "xF", dNPM = "f.nTh(of=ea.f.genotype();n=0)")
+                                    Function<Individual<List<Double>, S, Q>, Double> xF,
+                            @Param(value = "yF", dNPM = "f.nTh(of=ea.f.genotype();n=1)")
+                                    Function<Individual<List<Double>, S, Q>, Double> yF,
+                            @Param(value = "valueRange", dNPM = "m.range(min=-Infinity;max=Infinity)")
+                                    DoubleRange valueRange,
+                            @Param(value = "unique", dB = true) boolean unique) {
+        return new LandscapeSEPAF<>(
+                titleFunction,
+                predicateValueFunction,
+                condition,
+                unique,
+                List.of(NamedFunction.from(s -> s.pocPopulation().all(), "all")),
+                xF,
+                yF,
+                s -> (x, y) -> s.problem()
+                        .qualityFunction()
+                        .andThen(qFunction)
+                        .apply(mapper.mapperFor(s.pocPopulation()
+                                        .all()
+                                        .iterator()
+                                        .next()
+                                        .solution())
+                                .apply(List.of(x, y))),
+                xRange,
+                yRange,
+                valueRange);
+    }
 
-  @Alias(
-      name = "biObjectivePopulation",
-      value = // spotless:off
+    @Alias(
+            name = "biObjectivePopulation",
+            value = // spotless:off
           """
               xyes(
                 title = ea.f.runString(name = title; s = "Fronts with {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -222,13 +222,13 @@ public class SinglePlots {
                 condition = predicate.inD(values = [0; 0.1; 0.25; 0.50; 1])
               )
               """) // spotless:on
-  @Alias(
-      name = "populationValidation",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP),
-        @PassThroughParam(name = "v", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "populationValidation",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP),
+                @PassThroughParam(name = "v", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               xyes(
                 title = ea.f.runString(name = title; s = "Population validation of {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
@@ -239,50 +239,50 @@ public class SinglePlots {
                 condition = predicate.inD(values = [0; 0.1; 0.25; 0.50; 1])
               )
               """) // spotless:on
-  public static <E, R, X, P> XYDataSeriesSEPAF<E, R, X, P> xyes(
-      @Param("title") Function<? super R, String> titleFunction,
-      @Param("points") List<Function<? super E, Collection<P>>> pointFunctions,
-      @Param("x") Function<? super P, ? extends Number> xFunction,
-      @Param("y") Function<? super P, ? extends Number> yFunction,
-      @Param("predicateValue") Function<E, X> predicateValueFunction,
-      @Param(value = "unique", dB = true) boolean unique,
-      @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
-      @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
-    return new XYDataSeriesSEPAF<>(
-        titleFunction,
-        predicateValueFunction,
-        condition,
-        unique,
-        pointFunctions,
-        xFunction,
-        yFunction,
-        xRange,
-        yRange);
-  }
+    public static <E, R, X, P> XYDataSeriesSEPAF<E, R, X, P> xyes(
+            @Param("title") Function<? super R, String> titleFunction,
+            @Param("points") List<Function<? super E, Collection<P>>> pointFunctions,
+            @Param("x") Function<? super P, ? extends Number> xFunction,
+            @Param("y") Function<? super P, ? extends Number> yFunction,
+            @Param("predicateValue") Function<E, X> predicateValueFunction,
+            @Param(value = "unique", dB = true) boolean unique,
+            @Param(value = "condition", dNPM = "predicate.ltEq(t=1)") Predicate<X> condition,
+            @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
+            @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+        return new XYDataSeriesSEPAF<>(
+                titleFunction,
+                predicateValueFunction,
+                condition,
+                unique,
+                pointFunctions,
+                xFunction,
+                yFunction,
+                xRange,
+                yRange);
+    }
 
-  @SuppressWarnings("unused")
-  @Alias(
-      name = "xyrsRun",
-      value = // spotless:off
+    @SuppressWarnings("unused")
+    @Alias(
+            name = "xyrsRun",
+            value = // spotless:off
           """
               xyrs(
                 title = ea.f.runString(name = title; s = "{run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
                 x = ea.f.nOfEvals()
               )
               """) // spotless:on
-  @Alias(
-      name = "quality",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+    @Alias(
+            name = "quality",
+            passThroughParams = {
+                @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+            },
+            value = // spotless:off
           """
               xyrsRun(ys = [f.composition(of = ea.f.quality(of = ea.f.best()); then = $q)])
               """) // spotless:on
-  @Alias(
-      name = "uniqueness",
-      value = // spotless:off
+    @Alias(
+            name = "uniqueness",
+            value = // spotless:off
           """
               xyrsRun(
                 ys = [
@@ -292,12 +292,12 @@ public class SinglePlots {
                 ]
               )
               """) // spotless:on
-  public static <E, R> XYDataSeriesSRPAF<E, R> xyrs(
-      @Param("title") Function<? super R, String> titleFunction,
-      @Param("x") Function<? super E, ? extends Number> xFunction,
-      @Param("ys") List<Function<? super E, ? extends Number>> yFunctions,
-      @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
-    return new XYDataSeriesSRPAF<>(titleFunction, xFunction, yFunctions, xRange, yRange, true, false);
-  }
+    public static <E, R> XYDataSeriesSRPAF<E, R> xyrs(
+            @Param("title") Function<? super R, String> titleFunction,
+            @Param("x") Function<? super E, ? extends Number> xFunction,
+            @Param("ys") List<Function<? super E, ? extends Number>> yFunctions,
+            @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
+            @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+        return new XYDataSeriesSRPAF<>(titleFunction, xFunction, yFunctions, xRange, yRange, true, false);
+    }
 }

@@ -27,42 +27,42 @@ import java.util.function.Function;
 
 public abstract class AbstractSingleRPAF<E, P extends XYPlot<D>, R, D> implements PlotAccumulatorFactory<E, P, R, D> {
 
-  protected final Function<? super R, String> titleFunction;
+    protected final Function<? super R, String> titleFunction;
 
-  public AbstractSingleRPAF(Function<? super R, String> titleFunction) {
-    this.titleFunction = titleFunction;
-  }
+    public AbstractSingleRPAF(Function<? super R, String> titleFunction) {
+        this.titleFunction = titleFunction;
+    }
 
-  protected abstract D buildData(List<E> es, R r);
+    protected abstract D buildData(List<E> es, R r);
 
-  protected abstract P buildPlot(D data, R r);
+    protected abstract P buildPlot(D data, R r);
 
-  @Override
-  public Accumulator<E, P> build(R r) {
-    List<E> es = new ArrayList<>();
-    return new Accumulator<>() {
-      @Override
-      public P get() {
-        synchronized (es) {
-          return buildPlot(buildData(es, r), r);
-        }
-      }
+    @Override
+    public Accumulator<E, P> build(R r) {
+        List<E> es = new ArrayList<>();
+        return new Accumulator<>() {
+            @Override
+            public P get() {
+                synchronized (es) {
+                    return buildPlot(buildData(es, r), r);
+                }
+            }
 
-      @Override
-      public void listen(E e) {
-        synchronized (es) {
-          es.add(e);
-        }
-      }
+            @Override
+            public void listen(E e) {
+                synchronized (es) {
+                    es.add(e);
+                }
+            }
 
-      @Override
-      public String toString() {
-        return name();
-      }
-    };
-  }
+            @Override
+            public String toString() {
+                return name();
+            }
+        };
+    }
 
-  private String name() {
-    return toString();
-  }
+    private String name() {
+        return toString();
+    }
 }

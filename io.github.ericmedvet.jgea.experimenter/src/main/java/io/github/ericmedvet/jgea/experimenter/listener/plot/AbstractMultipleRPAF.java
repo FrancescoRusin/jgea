@@ -26,59 +26,59 @@ import io.github.ericmedvet.jviz.core.plot.XYPlot;
 import java.util.function.Function;
 
 public abstract class AbstractMultipleRPAF<E, P extends XYPlot<D>, R, D, K, V>
-    implements PlotAccumulatorFactory<E, P, R, D> {
+        implements PlotAccumulatorFactory<E, P, R, D> {
 
-  protected final Function<? super R, ? extends K> xSubplotFunction;
-  protected final Function<? super R, ? extends K> ySubplotFunction;
+    protected final Function<? super R, ? extends K> xSubplotFunction;
+    protected final Function<? super R, ? extends K> ySubplotFunction;
 
-  private final Table<K, K, V> table;
+    private final Table<K, K, V> table;
 
-  public AbstractMultipleRPAF(
-      Function<? super R, ? extends K> xSubplotFunction, Function<? super R, ? extends K> ySubplotFunction) {
-    this.xSubplotFunction = xSubplotFunction;
-    this.ySubplotFunction = ySubplotFunction;
-    table = new HashMapTable<>();
-  }
+    public AbstractMultipleRPAF(
+            Function<? super R, ? extends K> xSubplotFunction, Function<? super R, ? extends K> ySubplotFunction) {
+        this.xSubplotFunction = xSubplotFunction;
+        this.ySubplotFunction = ySubplotFunction;
+        table = new HashMapTable<>();
+    }
 
-  protected abstract D buildData(K xK, K yK, V v);
+    protected abstract D buildData(K xK, K yK, V v);
 
-  protected abstract P buildPlot(Table<K, K, D> data);
+    protected abstract P buildPlot(Table<K, K, D> data);
 
-  protected abstract V init(K xK, K yK);
+    protected abstract V init(K xK, K yK);
 
-  protected abstract V update(K xK, K yK, V v, E e, R r);
+    protected abstract V update(K xK, K yK, V v, E e, R r);
 
-  @Override
-  public Accumulator<E, P> build(R r) {
-    K xK = xSubplotFunction.apply(r);
-    K yK = ySubplotFunction.apply(r);
-    return new Accumulator<>() {
-      @Override
-      public P get() {
-        synchronized (table) {
-          return buildPlot(table.map((xK, yK, v) -> buildData(xK, yK, v == null ? init(xK, yK) : v)));
-        }
-      }
+    @Override
+    public Accumulator<E, P> build(R r) {
+        K xK = xSubplotFunction.apply(r);
+        K yK = ySubplotFunction.apply(r);
+        return new Accumulator<>() {
+            @Override
+            public P get() {
+                synchronized (table) {
+                    return buildPlot(table.map((xK, yK, v) -> buildData(xK, yK, v == null ? init(xK, yK) : v)));
+                }
+            }
 
-      @Override
-      public void listen(E e) {
-        synchronized (table) {
-          V v = table.get(yK, xK);
-          if (v == null) {
-            v = init(xK, yK);
-          }
-          table.set(yK, xK, update(xK, yK, v, e, r));
-        }
-      }
+            @Override
+            public void listen(E e) {
+                synchronized (table) {
+                    V v = table.get(yK, xK);
+                    if (v == null) {
+                        v = init(xK, yK);
+                    }
+                    table.set(yK, xK, update(xK, yK, v, e, r));
+                }
+            }
 
-      @Override
-      public String toString() {
-        return name();
-      }
-    };
-  }
+            @Override
+            public String toString() {
+                return name();
+            }
+        };
+    }
 
-  private String name() {
-    return toString();
-  }
+    private String name() {
+        return toString();
+    }
 }

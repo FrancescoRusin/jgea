@@ -30,46 +30,46 @@ import java.util.random.RandomGenerator;
 @FunctionalInterface
 public interface Factory<T> {
 
-  List<T> build(int n, RandomGenerator random);
+    List<T> build(int n, RandomGenerator random);
 
-  static <T1, T2> Factory<Pair<T1, T2>> pair(Factory<T1> factory1, Factory<T2> factory2) {
-    return (n, random) -> {
-      List<T1> t1s = factory1.build(n, random);
-      List<T2> t2s = factory2.build(n, random);
-      if (t1s.size() != n || t2s.size() != n) {
-        throw new RuntimeException(String.format(
-            "The two internal factories produced a different number of elements:" + " %d and %d",
-            t1s.size(), t2s.size()));
-      }
-      List<Pair<T1, T2>> pairs = new ArrayList<>(n);
-      for (int i = 0; i < n; i++) {
-        pairs.add(new Pair<>(t1s.get(i), t2s.get(i)));
-      }
-      return pairs;
-    };
-  }
+    static <T1, T2> Factory<Pair<T1, T2>> pair(Factory<T1> factory1, Factory<T2> factory2) {
+        return (n, random) -> {
+            List<T1> t1s = factory1.build(n, random);
+            List<T2> t2s = factory2.build(n, random);
+            if (t1s.size() != n || t2s.size() != n) {
+                throw new RuntimeException(String.format(
+                        "The two internal factories produced a different number of elements:" + " %d and %d",
+                        t1s.size(), t2s.size()));
+            }
+            List<Pair<T1, T2>> pairs = new ArrayList<>(n);
+            for (int i = 0; i < n; i++) {
+                pairs.add(new Pair<>(t1s.get(i), t2s.get(i)));
+            }
+            return pairs;
+        };
+    }
 
-  default IndependentFactory<T> independent() {
-    Factory<T> thisFactory = this;
-    return random -> thisFactory.build(1, random).getFirst();
-  }
+    default IndependentFactory<T> independent() {
+        Factory<T> thisFactory = this;
+        return random -> thisFactory.build(1, random).getFirst();
+    }
 
-  default <K> Factory<K> then(Function<T, K> f) {
-    Factory<T> thisFactory = this;
-    return (n, random) -> thisFactory.build(n, random).stream().map(f).toList();
-  }
+    default <K> Factory<K> then(Function<T, K> f) {
+        Factory<T> thisFactory = this;
+        return (n, random) -> thisFactory.build(n, random).stream().map(f).toList();
+    }
 
-  default Factory<T> withOptimisticUniqueness(int maxAttempts) {
-    Factory<T> innerFactory = this;
-    return (n, random) -> {
-      int attempts = 0;
-      List<T> ts = new ArrayList<>(n);
-      while ((ts.size() < n) && (attempts < maxAttempts)) {
-        attempts = attempts + 1;
-        ts.addAll(new LinkedHashSet<>(innerFactory.build(n - ts.size(), random)));
-      }
-      ts.addAll(innerFactory.build(n - ts.size(), random));
-      return ts;
-    };
-  }
+    default Factory<T> withOptimisticUniqueness(int maxAttempts) {
+        Factory<T> innerFactory = this;
+        return (n, random) -> {
+            int attempts = 0;
+            List<T> ts = new ArrayList<>(n);
+            while ((ts.size() < n) && (attempts < maxAttempts)) {
+                attempts = attempts + 1;
+                ts.addAll(new LinkedHashSet<>(innerFactory.build(n - ts.size(), random)));
+            }
+            ts.addAll(innerFactory.build(n - ts.size(), random));
+            return ts;
+        };
+    }
 }
