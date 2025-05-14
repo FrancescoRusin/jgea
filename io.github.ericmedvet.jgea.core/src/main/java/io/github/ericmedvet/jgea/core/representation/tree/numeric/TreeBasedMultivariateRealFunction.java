@@ -32,10 +32,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class TreeBasedMultivariateRealFunction
-    implements NamedMultivariateRealFunction,
-        Sized,
-        Parametrized<TreeBasedMultivariateRealFunction, List<Tree<Element>>> {
+public class TreeBasedMultivariateRealFunction implements NamedMultivariateRealFunction, Sized, Parametrized<TreeBasedMultivariateRealFunction, List<Tree<Element>>> {
 
   private final List<String> xVarNames;
   private final List<String> yVarNames;
@@ -46,7 +43,8 @@ public class TreeBasedMultivariateRealFunction
       List<Tree<Element>> trees,
       List<String> xVarNames,
       List<String> yVarNames,
-      DoubleUnaryOperator postOperator) {
+      DoubleUnaryOperator postOperator
+  ) {
     this.xVarNames = xVarNames;
     this.yVarNames = yVarNames;
     this.postOperator = postOperator;
@@ -54,7 +52,10 @@ public class TreeBasedMultivariateRealFunction
   }
 
   public TreeBasedMultivariateRealFunction(
-      List<Tree<Element>> trees, List<String> xVarNames, List<String> yVarNames) {
+      List<Tree<Element>> trees,
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) {
     this(trees, xVarNames, yVarNames, x -> x);
   }
 
@@ -65,20 +66,27 @@ public class TreeBasedMultivariateRealFunction
             Element.Operator.ADDITION,
             xVarNames.stream()
                 .map(s -> Tree.of((Element) (new Element.Variable(s))))
-                .toList()));
+                .toList()
+        )
+    );
   }
 
   public static Function<List<Tree<Element>>, NamedMultivariateRealFunction> mapper(
-      List<String> xVarNames, List<String> yVarNames) {
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) {
     return ts -> new TreeBasedMultivariateRealFunction(ts, xVarNames, yVarNames);
   }
 
   @Override
   public Map<String, Double> compute(Map<String, Double> input) {
     return IntStream.range(0, yVarNames().size())
-        .mapToObj(i -> Map.entry(
-            yVarNames.get(i),
-            postOperator.applyAsDouble(TreeBasedUnivariateRealFunction.compute(trees.get(i), input))))
+        .mapToObj(
+            i -> Map.entry(
+                yVarNames.get(i),
+                postOperator.applyAsDouble(TreeBasedUnivariateRealFunction.compute(trees.get(i), input))
+            )
+        )
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
@@ -100,8 +108,10 @@ public class TreeBasedMultivariateRealFunction
   @Override
   public void setParams(List<Tree<Element>> trees) {
     if (trees.size() != yVarNames().size()) {
-      throw new IllegalArgumentException("Wrong number of trees: %d expected, %d found"
-          .formatted(yVarNames().size(), trees.size()));
+      throw new IllegalArgumentException(
+          "Wrong number of trees: %d expected, %d found"
+              .formatted(yVarNames().size(), trees.size())
+      );
     }
     this.trees = trees;
   }

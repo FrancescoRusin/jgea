@@ -57,12 +57,15 @@ public class ShallowFactory implements IndependentFactory<Graph<Node, OperatorGr
     inputs.forEach(g::addNode);
     outputs.forEach(g::addNode);
     constantNodes.forEach(g::addNode);
-    outputs.forEach(o -> g.setArcValue(
-        random.nextBoolean()
-            ? inputs.get(random.nextInt(inputs.size()))
-            : constantNodes.get(random.nextInt(constantNodes.size())),
-        o,
-        OperatorGraph.NON_VALUED_ARC));
+    outputs.forEach(
+        o -> g.setArcValue(
+            random.nextBoolean() ? inputs.get(random.nextInt(inputs.size())) : constantNodes.get(
+                random.nextInt(constantNodes.size())
+            ),
+            o,
+            OperatorGraph.NON_VALUED_ARC
+        )
+    );
     return g;
   }
 }

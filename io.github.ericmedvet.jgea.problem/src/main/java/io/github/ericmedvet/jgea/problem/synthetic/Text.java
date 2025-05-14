@@ -41,23 +41,26 @@ public class Text implements GrammarBasedProblem<String, String>, ComparableQual
 
   public Text(String targetString) throws IOException {
     grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/text.bnf"));
-    solutionMapper = (Tree<String> tree) -> tree.leaves().stream()
+    solutionMapper = (Tree<String> tree) -> tree.leaves()
+        .stream()
         .map(Tree::content)
         .collect(Collectors.joining())
         .replace("_", " ");
     target = targetString.chars().mapToObj(c -> (char) c).toList();
     this.distance = new Edit<>();
-    fitnessFunction = string ->
-        distance.apply(target, string.chars().mapToObj(c -> (char) c).toList()) / (double) target.size();
+    fitnessFunction = string -> distance.apply(
+        target,
+        string.chars().mapToObj(c -> (char) c).toList()
+    ) / (double) target.size();
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, String> getSolutionMapper() {
+  public Function<Tree<String>, String> solutionMapper() {
     return solutionMapper;
   }
 

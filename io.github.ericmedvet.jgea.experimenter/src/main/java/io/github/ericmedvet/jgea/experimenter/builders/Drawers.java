@@ -30,7 +30,8 @@ import java.util.Map;
 @Discoverable(prefixTemplate = "ea.drawer|d")
 public class Drawers {
 
-  private Drawers() {}
+  private Drawers() {
+  }
 
   @SuppressWarnings("unused")
   @Cacheable
@@ -38,12 +39,16 @@ public class Drawers {
       @Param(value = "maxW", dI = 0) int maxW,
       @Param(value = "maxH", dI = 0) int maxH,
       @Param(value = "colors", dNPM = "ea.misc.map(entries=[])") Map<Character, Color> colors,
-      @Param(value = "borderColor", dNPM = "ea.misc.colorByName(name=white)") Color borderColor) {
-    return new PolyominoDrawer(new PolyominoDrawer.Configuration(
-        maxW == 0 ? null : maxW,
-        maxH == 0 ? null : maxH,
-        colors.isEmpty() ? PolyominoDrawer.Configuration.DEFAULT.colors() : colors,
-        borderColor,
-        PolyominoDrawer.Configuration.DEFAULT.marginRate()));
+      @Param(value = "borderColor", dNPM = "ea.misc.colorByName(name=white)") Color borderColor
+  ) {
+    return new PolyominoDrawer(
+        new PolyominoDrawer.Configuration(
+            maxW == 0 ? null : maxW,
+            maxH == 0 ? null : maxH,
+            colors.isEmpty() ? PolyominoDrawer.Configuration.DEFAULT.colors() : colors,
+            borderColor,
+            PolyominoDrawer.Configuration.DEFAULT.marginRate()
+        )
+    );
   }
 }

@@ -25,5 +25,5 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ExperimentInfo(
-    String map, int nOfRuns, List<Pair<String, String>> formats, LocalDateTime startLocalDateTime)
-    implements Serializable {}
+    String map, int nOfRuns, List<Pair<String, String>> formats, LocalDateTime startLocalDateTime
+) implements Serializable {}

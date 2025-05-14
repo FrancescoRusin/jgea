@@ -38,7 +38,8 @@ public class RampedHalfAndHalf<N> implements Factory<Tree<N>> {
       int maxHeight,
       ToIntFunction<N> arityFunction,
       IndependentFactory<N> nonTerminalFactory,
-      IndependentFactory<N> terminalFactory) {
+      IndependentFactory<N> terminalFactory
+  ) {
     this.minHeight = minHeight;
     this.maxHeight = maxHeight;
     fullTreeFactory = new FullTreeBuilder<>(arityFunction, nonTerminalFactory, terminalFactory);

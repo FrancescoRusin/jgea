@@ -30,7 +30,8 @@ public record MiniplotCell(TextPlotter.Miniplot miniplot) implements Cell {
         0,
         miniplot.toString(),
         td.getConfiguration().primaryPlotColor(),
-        td.getConfiguration().secondaryPlotColor());
+        td.getConfiguration().secondaryPlotColor()
+    );
   }
 
   @Override

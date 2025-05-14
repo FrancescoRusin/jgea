@@ -42,6 +42,7 @@ public class UniformIntStringFactory implements IndependentFactory<IntString> {
             .mapToObj(i -> random.nextInt(lowerBound, upperBound))
             .toList(),
         lowerBound,
-        upperBound);
+        upperBound
+    );
   }
 }

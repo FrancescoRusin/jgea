@@ -35,7 +35,8 @@ public class LinkedHashMultiset<E> implements Multiset<E> {
   }
 
   public Collection<E> toCollection() {
-    return map.entrySet().stream()
+    return map.entrySet()
+        .stream()
         .map(entry -> Collections.nCopies(entry.getValue(), entry.getKey()))
         .flatMap(List::stream)
         .toList();
@@ -83,8 +84,7 @@ public class LinkedHashMultiset<E> implements Multiset<E> {
     if (!map.containsKey(o)) {
       return false;
     }
-    @SuppressWarnings("unchecked")
-    int count = map.merge((E) o, -1, Integer::sum);
+    @SuppressWarnings("unchecked") int count = map.merge((E) o, -1, Integer::sum);
     if (count <= 0) {
       map.remove(o);
     }
@@ -126,5 +126,18 @@ public class LinkedHashMultiset<E> implements Multiset<E> {
   @Override
   public Set<E> elementSet() {
     return map.keySet();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass())
+      return false;
+    LinkedHashMultiset<?> that = (LinkedHashMultiset<?>) o;
+    return Objects.equals(map, that.map);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(map);
   }
 }

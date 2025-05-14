@@ -23,11 +23,10 @@ import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.Crossover;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.Pair;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public record Representation<G>(Factory<G> factory, List<Mutation<G>> mutations, List<Crossover<G>> crossovers) {
@@ -44,13 +43,15 @@ public record Representation<G>(Factory<G> factory, List<Mutation<G>> mutations,
             .toList(),
         r1.crossovers.stream()
             .flatMap(xo1 -> r2.crossovers.stream().map(xo2 -> Crossover.pair(xo1, xo2)))
-            .toList());
+            .toList()
+    );
   }
 
   public Map<GeneticOperator<G>, Double> geneticOperators(double crossoverP) {
     return Stream.concat(
-            mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
-            crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size())))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (p1, p2) -> p1, LinkedHashMap::new));
+        mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
+        crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size()))
+    )
+        .collect(Misc.toSequencedMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver.pso;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public interface PSOIndividual<S, Q> extends Individual<List<Double>, S, Q> {
   List<Double> bestKnownPosition();
@@ -40,7 +41,8 @@ public interface PSOIndividual<S, Q> extends Individual<List<Double>, S, Q> {
       Q quality,
       long genotypeBirthIteration,
       long qualityMappingIteration,
-      Collection<Long> parentIds) {
+      Collection<Long> parentIds
+  ) {
     record HardIndividual<S, Q>(
         long id,
         List<Double> genotype,
@@ -51,8 +53,21 @@ public interface PSOIndividual<S, Q> extends Individual<List<Double>, S, Q> {
         Q quality,
         long genotypeBirthIteration,
         long qualityMappingIteration,
-        Collection<Long> parentIds)
-        implements PSOIndividual<S, Q> {}
+        Collection<Long> parentIds
+    ) implements PSOIndividual<S, Q> {
+      @Override
+      public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+          return false;
+        HardIndividual<?, ?> that = (HardIndividual<?, ?>) o;
+        return id == that.id;
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hashCode(id);
+      }
+    }
     return new HardIndividual<>(
         id,
         genotype,
@@ -63,7 +78,8 @@ public interface PSOIndividual<S, Q> extends Individual<List<Double>, S, Q> {
         quality,
         genotypeBirthIteration,
         qualityMappingIteration,
-        parentIds);
+        parentIds
+    );
   }
 
   default List<Double> position() {

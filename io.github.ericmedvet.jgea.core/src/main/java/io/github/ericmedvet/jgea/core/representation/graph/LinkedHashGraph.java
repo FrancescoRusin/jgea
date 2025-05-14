@@ -74,9 +74,13 @@ public class LinkedHashGraph<N, A> implements Graph<N, A>, Serializable {
   @Override
   public void setArcValue(Arc<N> arc, A value) {
     if (!nodes.contains(arc.getSource()) || !nodes.contains(arc.getTarget())) {
-      throw new IllegalArgumentException(String.format(
-          "Cannot set arc value between %s and %s because at least one endpoint node is not present",
-          arc.getSource(), arc.getTarget()));
+      throw new IllegalArgumentException(
+          String.format(
+              "Cannot set arc value between %s and %s because at least one endpoint node is not present",
+              arc.getSource(),
+              arc.getTarget()
+          )
+      );
     }
     arcs.put(arc, value);
   }
@@ -88,8 +92,10 @@ public class LinkedHashGraph<N, A> implements Graph<N, A>, Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     LinkedHashGraph<?, ?> that = (LinkedHashGraph<?, ?>) o;
     return nodes.equals(that.nodes) && arcs.equals(that.arcs);
   }

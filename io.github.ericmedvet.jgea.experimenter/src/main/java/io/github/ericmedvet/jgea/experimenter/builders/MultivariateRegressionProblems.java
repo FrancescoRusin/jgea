@@ -20,27 +20,33 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionFitness;
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.Map;
 
 @Discoverable(prefixTemplate = "ea.problem|p.multivariateRegression|mr")
 public class MultivariateRegressionProblems {
-  private MultivariateRegressionProblems() {}
+  private MultivariateRegressionProblems() {
+  }
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static MultivariateRegressionProblem<MultivariateRegressionFitness> fromData(
-      @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
-      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric) {
-    return new MultivariateRegressionProblem<>(
-        new MultivariateRegressionFitness(trainingDataset.get(), metric),
-        new MultivariateRegressionFitness(testDataset.get(), metric));
+  public static MultivariateRegressionProblem fromData(
+      @Param("provider") IndexedProvider<ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>>> provider,
+      @Param(value = "metrics", dSs = {"mse"}) List<UnivariateRegressionProblem.Metric> metrics,
+      @Param(value = "nFolds", dI = 10) int nFolds,
+      @Param(value = "testFold", dI = 0) int testFold
+  ) {
+    return MultivariateRegressionProblem.from(
+        metrics,
+        provider.negatedFold(testFold, nFolds),
+        provider.fold(testFold, nFolds)
+    );
   }
 }

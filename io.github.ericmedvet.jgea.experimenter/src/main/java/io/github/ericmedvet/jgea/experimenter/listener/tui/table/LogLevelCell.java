@@ -30,7 +30,8 @@ public record LogLevelCell(Level level) implements Cell {
       Map.entry(Level.SEVERE, TextColor.Factory.fromString("#EE3E38")),
       Map.entry(Level.WARNING, TextColor.Factory.fromString("#FBA465")),
       Map.entry(Level.INFO, TextColor.Factory.fromString("#D8E46B")),
-      Map.entry(Level.CONFIG, TextColor.Factory.fromString("#6D8700")));
+      Map.entry(Level.CONFIG, TextColor.Factory.fromString("#6D8700"))
+  );
 
   @Override
   public void draw(TuiDrawer td, int width) {
@@ -38,7 +39,8 @@ public record LogLevelCell(Level level) implements Cell {
         0,
         0,
         LEVEL_FORMAT.formatted(level.toString()),
-        LEVEL_COLORS.getOrDefault(level, td.getConfiguration().primaryStringColor()));
+        LEVEL_COLORS.getOrDefault(level, td.getConfiguration().primaryStringColor())
+    );
   }
 
   @Override

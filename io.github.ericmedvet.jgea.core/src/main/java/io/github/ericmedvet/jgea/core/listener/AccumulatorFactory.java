@@ -33,7 +33,8 @@ public interface AccumulatorFactory<E, O, K> extends ListenerFactory<E, K> {
     return from(
         "%s[if=%s]".formatted(this, predicate),
         k -> predicate.test(k) ? build(k) : Accumulator.nullAccumulator(),
-        this::shutdown);
+        this::shutdown
+    );
   }
 
   @Override
@@ -46,7 +47,10 @@ public interface AccumulatorFactory<E, O, K> extends ListenerFactory<E, K> {
   }
 
   static <E, O, K> AccumulatorFactory<E, O, K> from(
-      String name, Function<K, Accumulator<E, O>> aFunction, Runnable shutdownRunnable) {
+      String name,
+      Function<K, Accumulator<E, O>> aFunction,
+      Runnable shutdownRunnable
+  ) {
     return new AccumulatorFactory<>() {
       @Override
       public Accumulator<E, O> build(K k) {
@@ -69,7 +73,8 @@ public interface AccumulatorFactory<E, O, K> extends ListenerFactory<E, K> {
     return from(
         "last[then:%s]".formatted(function),
         k -> Accumulator.<E>last().then(NamedFunction.from(e -> function.apply(e, k), function.toString())),
-        () -> {});
+        () -> {}
+    );
   }
 
   default <Q> AccumulatorFactory<E, Q, K> then(Function<O, Q> function) {
@@ -80,7 +85,8 @@ public interface AccumulatorFactory<E, O, K> extends ListenerFactory<E, K> {
     return from(
         "%s[thenOnDone:%s]".formatted(this, consumer),
         k -> build(k).thenOnDone(Naming.named(consumer.toString(), (Consumer<O>) o -> consumer.accept(k, o))),
-        this::shutdown);
+        this::shutdown
+    );
   }
 
   default AccumulatorFactory<E, O, K> thenOnShutdown(Consumer<List<O>> consumer) {

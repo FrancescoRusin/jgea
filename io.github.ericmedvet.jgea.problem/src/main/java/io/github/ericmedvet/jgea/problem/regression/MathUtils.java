@@ -20,43 +20,37 @@
 
 package io.github.ericmedvet.jgea.problem.regression;
 
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.Sized;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.SyntheticUnivariateRegressionFitness;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jsdynsym.core.composed.AbstractComposed;
 import java.util.*;
 import java.util.function.UnaryOperator;
-import java.util.stream.IntStream;
 import org.apache.commons.math3.stat.StatUtils;
 
 public class MathUtils {
 
-  private static class ScaledUnivariateRealFunction extends AbstractComposed<NamedUnivariateRealFunction>
-      implements NamedUnivariateRealFunction {
+  private static class ScaledUnivariateRealFunction extends AbstractComposed<NamedUnivariateRealFunction> implements NamedUnivariateRealFunction {
     private final double a;
     private final double b;
 
     public ScaledUnivariateRealFunction(
-        NamedUnivariateRealFunction inner, UnivariateRegressionFitness univariateRegressionFitness) {
+        NamedUnivariateRealFunction inner,
+        UnivariateRegressionProblem urProblem
+    ) {
       super(inner);
-      double[] targetYs = IntStream.range(
-              0, univariateRegressionFitness.getDataset().size())
-          .mapToDouble(i -> univariateRegressionFitness
-              .getDataset()
-              .exampleProvider()
-              .apply(i)
-              .ys()[0])
+      double[] targetYs = urProblem.caseProvider()
+          .all()
+          .stream()
+          .mapToDouble(ExampleBasedProblem.Example::output)
+          .toArray();
+      double[] ys = urProblem.caseProvider()
+          .all()
+          .stream()
+          .mapToDouble(e -> inner.computeAsDouble(e.input()))
           .toArray();
       double targetMean = StatUtils.mean(targetYs);
-      double[] ys = IntStream.range(
-              0, univariateRegressionFitness.getDataset().size())
-          .mapToDouble(i -> inner().applyAsDouble(univariateRegressionFitness
-              .getDataset()
-              .exampleProvider()
-              .apply(i)
-              .xs()))
-          .toArray();
       double mean = StatUtils.mean(ys);
       double nCovariance = 0d;
       double nVariance = 0d;
@@ -85,8 +79,10 @@ public class MathUtils {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
       ScaledUnivariateRealFunction that = (ScaledUnivariateRealFunction) o;
       return Double.compare(that.a, a) == 0 && Double.compare(that.b, b) == 0;
     }
@@ -107,8 +103,9 @@ public class MathUtils {
 
     public SizedUnivariateScaledRealFunction(
         NamedUnivariateRealFunction innerF,
-        SyntheticUnivariateRegressionFitness syntheticSymbolicRegressionFitness) {
-      super(innerF, syntheticSymbolicRegressionFitness);
+        UnivariateRegressionProblem urProblem
+    ) {
+      super(innerF, urProblem);
       if (innerF instanceof Sized) {
         size = ((Sized) innerF).size();
       } else {
@@ -148,19 +145,26 @@ public class MathUtils {
   }
 
   public static UnaryOperator<NamedUnivariateRealFunction> linearScaler(
-      SyntheticUnivariateRegressionFitness syntheticSymbolicRegressionFitness) {
-    return f -> (f instanceof Sized)
-        ? new SizedUnivariateScaledRealFunction(f, syntheticSymbolicRegressionFitness)
-        : new ScaledUnivariateRealFunction(f, syntheticSymbolicRegressionFitness);
+      UnivariateRegressionProblem urProblem
+  ) {
+    return f -> (f instanceof Sized) ? new SizedUnivariateScaledRealFunction(
+        f,
+        urProblem
+    ) : new ScaledUnivariateRealFunction(f, urProblem);
   }
 
   public static List<double[]> pairwise(double[]... xs) {
     int l = xs[0].length;
     for (int i = 1; i < xs.length; i++) {
       if (xs[i].length != l) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid input arrays: %d-th length (%d) is different than " + "1st length (%d)",
-            i + 1, xs[i].length, l));
+        throw new IllegalArgumentException(
+            String.format(
+                "Invalid input arrays: %d-th length (%d) is different than " + "1st length (%d)",
+                i + 1,
+                xs[i].length,
+                l
+            )
+        );
       }
     }
     List<double[]> list = new ArrayList<>(l);

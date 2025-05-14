@@ -49,24 +49,37 @@ public class GrammarOptionStringFactory<S, C> implements IndependentFactory<Gram
     }
     // count options
     List<S> allSymbols = all.stream().flatMap(Collection::stream).toList();
-    Map<S, Long> rawCounts = grammar.rules().keySet().stream()
+    Map<S, Long> rawCounts = grammar.rules()
+        .keySet()
+        .stream()
         .filter(s -> grammar.rules().get(s).size() > 1)
-        .collect(Collectors.toMap(
-            s -> s,
-            s -> allSymbols.stream().filter(as -> as.equals(s)).count()));
+        .collect(
+            Collectors.toMap(
+                s -> s,
+                s -> allSymbols.stream().filter(as -> as.equals(s)).count()
+            )
+        );
     // adjust
     long sum = rawCounts.values().stream().mapToLong(n -> n).sum();
-    rawCounts = rawCounts.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e ->
-        (long) Math.max(1, Math.ceil((double) e.getValue() / (double) sum * (double) l))));
+    rawCounts = rawCounts.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> (long) Math.max(1, Math.ceil((double) e.getValue() / (double) sum * (double) l))
+            )
+        );
     while (rawCounts.values().stream().mapToLong(n -> n).sum() > l) {
-      S mostFrequentS = rawCounts.entrySet().stream()
+      S mostFrequentS = rawCounts.entrySet()
+          .stream()
           .max(Comparator.comparingLong(Map.Entry::getValue))
           .orElseThrow()
           .getKey();
       rawCounts.put(mostFrequentS, rawCounts.get(mostFrequentS) - 1);
     }
     // set
-    lengths = rawCounts.entrySet().stream()
+    lengths = rawCounts.entrySet()
+        .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().intValue()));
   }
 
@@ -81,27 +94,46 @@ public class GrammarOptionStringFactory<S, C> implements IndependentFactory<Gram
     if (!grammar.rules().containsKey(list.get(i))) {
       return List.of();
     }
-    return grammar.rules().get(list.get(i)).stream()
-        .map(c -> grammar.usedSymbols(c).stream()
-            .filter(us -> grammar.rules().containsKey(us))
-            .toList())
+    return grammar.rules()
+        .get(list.get(i))
+        .stream()
+        .map(
+            c -> grammar.usedSymbols(c)
+                .stream()
+                .filter(us -> grammar.rules().containsKey(us))
+                .toList()
+        )
         .filter(l -> !l.isEmpty())
-        .map(l -> Stream.concat(
+        .map(
+            l -> Stream.concat(
                 Stream.concat(list.subList(0, i).stream(), l.stream()),
-                list.subList(i + 1, list.size()).stream())
-            .toList())
+                list.subList(i + 1, list.size()).stream()
+            )
+                .toList()
+        )
         .toList();
   }
 
   @Override
   public GrammarOptionString<S> build(RandomGenerator random) {
     return new GrammarOptionString<>(
-        lengths.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> IntStream.range(0, e.getValue())
-                .map(i -> random.nextInt(
-                    0, grammar.rules().get(e.getKey()).size()))
-                .boxed()
-                .toList())),
-        grammar);
+        lengths.entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IntStream.range(0, e.getValue())
+                        .map(
+                            i -> random.nextInt(
+                                0,
+                                grammar.rules().get(e.getKey()).size()
+                            )
+                        )
+                        .boxed()
+                        .toList()
+                )
+            ),
+        grammar
+    );
   }
 }

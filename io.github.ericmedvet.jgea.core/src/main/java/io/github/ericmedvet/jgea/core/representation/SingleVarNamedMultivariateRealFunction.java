@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class SingleVarNamedMultivariateRealFunction extends AbstractComposed<NamedMultivariateRealFunction>
-    implements NamedUnivariateRealFunction {
+public class SingleVarNamedMultivariateRealFunction extends AbstractComposed<NamedMultivariateRealFunction> implements NamedUnivariateRealFunction {
 
   public SingleVarNamedMultivariateRealFunction(NamedMultivariateRealFunction inner) {
     super(inner);
@@ -39,7 +38,7 @@ public class SingleVarNamedMultivariateRealFunction extends AbstractComposed<Nam
 
   @Override
   public String yVarName() {
-    return inner().yVarNames().get(0);
+    return inner().yVarNames().getFirst();
   }
 
   @Override
@@ -49,8 +48,10 @@ public class SingleVarNamedMultivariateRealFunction extends AbstractComposed<Nam
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     SingleVarNamedMultivariateRealFunction that = (SingleVarNamedMultivariateRealFunction) o;
     return inner().equals(that.inner());
   }

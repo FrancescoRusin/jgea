@@ -43,17 +43,20 @@ public class GlobalBest implements CoMEStrategy {
 
   @Override
   public <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {
-    Optional<Observation<Q>> oBestObservation =
-        PartiallyOrderedCollection.from(newObservations, qComparator.comparing(Observation::q))
-            .firsts()
-            .stream()
-            .findAny();
+    Optional<Observation<Q>> oBestObservation = PartiallyOrderedCollection.from(
+        newObservations,
+        qComparator.comparing(Observation::q)
+    )
+        .firsts()
+        .stream()
+        .findAny();
     if (oBestObservation.isPresent()) {
       Observation<Q> bestObservation = oBestObservation.get();
       //noinspection unchecked
-      if ((bestQ == null)
-          || (qComparator.compare(bestObservation.q(), (Q) bestQ)
-              == PartialComparator.PartialComparatorOutcome.BEFORE)) {
+      if ((bestQ == null) || (qComparator.compare(
+          bestObservation.q(),
+          (Q) bestQ
+      ) == PartialComparator.PartialComparatorOutcome.BEFORE)) {
         bestCoords = bestObservation.otherCoords();
         bestQ = bestObservation.q();
       }

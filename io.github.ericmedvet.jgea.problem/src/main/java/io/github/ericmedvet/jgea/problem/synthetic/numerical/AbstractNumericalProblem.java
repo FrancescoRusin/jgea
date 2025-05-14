@@ -20,14 +20,13 @@
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
-public abstract class AbstractNumericalProblem
-    implements ComparableQualityBasedProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+public abstract class AbstractNumericalProblem implements ComparableQualityBasedProblem<List<Double>, Double> {
   private final int p;
   private final ToDoubleFunction<List<Double>> f;
 
@@ -37,8 +36,8 @@ public abstract class AbstractNumericalProblem
   }
 
   @Override
-  public List<Double> example() {
-    return Collections.nCopies(p, 0d);
+  public Optional<List<Double>> example() {
+    return Optional.of(Collections.nCopies(p, 0d));
   }
 
   @Override

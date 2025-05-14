@@ -40,11 +40,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class FunctionGraph
-    implements NamedMultivariateRealFunction,
-        Sized,
-        Serializable,
-        Parametrized<FunctionGraph, Graph<Node, Double>> {
+public class FunctionGraph implements NamedMultivariateRealFunction, Sized, Serializable, Parametrized<FunctionGraph, Graph<Node, Double>> {
 
   private final List<String> xVarNames;
   private final List<String> yVarNames;
@@ -55,7 +51,8 @@ public class FunctionGraph
       Graph<Node, Double> graph,
       List<String> xVarNames,
       List<String> yVarNames,
-      DoubleUnaryOperator postOperator) {
+      DoubleUnaryOperator postOperator
+  ) {
     this.xVarNames = xVarNames;
     this.yVarNames = yVarNames;
     this.postOperator = postOperator;
@@ -78,23 +75,28 @@ public class FunctionGraph
       throw new IllegalArgumentException("Invalid graph: it has cycles");
     }
     for (Node n : graph.nodes()) {
-      if (!((n instanceof Input)
-          || (n instanceof Output)
-          || (n instanceof FunctionNode)
-          || (n instanceof Constant))) {
+      if (!((n instanceof Input) || (n instanceof Output) || (n instanceof FunctionNode) || (n instanceof Constant))) {
         throw new IllegalArgumentException(
-            String.format("Invalid graph: node %s is of wrong type %s", n, n.getClass()));
+            String.format("Invalid graph: node %s is of wrong type %s", n, n.getClass())
+        );
       }
-      if ((n instanceof Constant || n instanceof Input)
-          && !graph.predecessors(n).isEmpty()) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: constant/input node %s has more than 0 predecessors (%d)",
-            n, graph.predecessors(n).size()));
+      if ((n instanceof Constant || n instanceof Input) && !graph.predecessors(n).isEmpty()) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Invalid graph: constant/input node %s has more than 0 predecessors (%d)",
+                n,
+                graph.predecessors(n).size()
+            )
+        );
       }
       if ((n instanceof Output) && !graph.successors(n).isEmpty()) {
-        throw new IllegalArgumentException(String.format(
-            "Invalid graph: output node %s has more than 0 successors " + "(%d)",
-            n, graph.predecessors(n).size()));
+        throw new IllegalArgumentException(
+            String.format(
+                "Invalid graph: output node %s has more than 0 successors " + "(%d)",
+                n,
+                graph.predecessors(n).size()
+            )
+        );
       }
     }
   }
@@ -111,13 +113,16 @@ public class FunctionGraph
   }
 
   public static Function<Graph<Node, Double>, NamedMultivariateRealFunction> mapper(
-      List<String> xVarNames, List<String> yVarNames) {
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) {
     return g -> new FunctionGraph(g, xVarNames, yVarNames);
   }
 
   @Override
   public Map<String, Double> compute(Map<String, Double> input) {
-    return graph.nodes().stream()
+    return graph.nodes()
+        .stream()
         .filter(n -> n instanceof Output)
         .map(n -> (Output) n)
         .map(n -> Map.entry(n.getName(), postOperator.applyAsDouble(outValue(n, input))))
@@ -152,15 +157,18 @@ public class FunctionGraph
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     FunctionGraph that = (FunctionGraph) o;
     return graph.equals(that.graph);
   }
 
   @Override
   public String toString() {
-    return graph.arcs().stream()
+    return graph.arcs()
+        .stream()
         .map(e -> String.format("%s-[%.3f]->%s", e.getSource(), graph.getArcValue(e), e.getTarget()))
         .collect(Collectors.joining(","));
   }
@@ -184,7 +192,8 @@ public class FunctionGraph
       return fNode.apply(sum);
     }
     throw new RuntimeException(
-        String.format("Unknown type of node: %s", node.getClass().getSimpleName()));
+        String.format("Unknown type of node: %s", node.getClass().getSimpleName())
+    );
   }
 
   @Override

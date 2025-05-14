@@ -41,14 +41,7 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
-public class CellularAutomataBasedSolver<G, S, Q>
-    extends AbstractPopulationBasedIterativeSolver<
-        GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>>,
-        QualityBasedProblem<S, Q>,
-        Individual<G, S, Q>,
-        G,
-        S,
-        Q> {
+public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBasedIterativeSolver<GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>>, QualityBasedProblem<S, Q>, Individual<G, S, Q>, G, S, Q> {
 
   protected final Map<GeneticOperator<G>, Double> operators;
   protected final Selector<? super Individual<G, S, Q>> parentSelector;
@@ -64,8 +57,10 @@ public class CellularAutomataBasedSolver<G, S, Q>
       Neighborhood neighborhood,
       double keepProbability,
       Map<GeneticOperator<G>, Double> operators,
-      Selector<? super Individual<G, S, Q>> parentSelector) {
-    super(solutionMapper, genotypeFactory, stopCondition, false);
+      Selector<? super Individual<G, S, Q>> parentSelector,
+      List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
+  ) {
+    super(solutionMapper, genotypeFactory, stopCondition, false, additionalIndividualComparators);
     this.substrate = substrate;
     this.neighborhood = neighborhood;
     this.keepProbability = keepProbability;
@@ -84,12 +79,13 @@ public class CellularAutomataBasedSolver<G, S, Q>
     @Override
     public <T> List<Grid.Key> of(Grid<T> grid, Grid.Key key) {
       return IntStream.rangeClosed(key.x() - radius, key.x() + radius)
-          .mapToObj(x -> IntStream.rangeClosed(key.y() - radius, key.y() + radius)
-              .mapToObj(y -> new Grid.Key(x, y))
-              .toList())
+          .mapToObj(
+              x -> IntStream.rangeClosed(key.y() - radius, key.y() + radius)
+                  .mapToObj(y -> new Grid.Key(x, y))
+                  .toList()
+          )
           .flatMap(List::stream)
-          .map(k ->
-              toroidal ? new Grid.Key(Math.floorMod(k.x(), grid.w()), Math.floorMod(k.y(), grid.h())) : k)
+          .map(k -> toroidal ? new Grid.Key(Math.floorMod(k.x(), grid.w()), Math.floorMod(k.y(), grid.h())) : k)
           .filter(grid::isValid)
           .toList();
     }
@@ -97,23 +93,28 @@ public class CellularAutomataBasedSolver<G, S, Q>
 
   @Override
   public GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> init(
-      QualityBasedProblem<S, Q> problem, RandomGenerator random, ExecutorService executor)
-      throws SolverException {
-    GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> newState =
-        GridPopulationState.empty(problem, stopCondition());
-    List<Grid.Key> freeCells =
-        substrate.keys().stream().filter(substrate::get).toList();
+      QualityBasedProblem<S, Q> problem,
+      RandomGenerator random,
+      ExecutorService executor
+  ) throws SolverException {
+    GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> newState = GridPopulationState.empty(
+        problem,
+        stopCondition()
+    );
+    List<Grid.Key> freeCells = substrate.keys().stream().filter(substrate::get).toList();
     AtomicLong counter = new AtomicLong(0);
     List<? extends G> genotypes = genotypeFactory.build(freeCells.size(), random);
-    List<Individual<G, S, Q>> newIndividuals = getAll(map(
+    List<Individual<G, S, Q>> newIndividuals = getAll(
+        map(
             genotypes.stream()
                 .map(g -> new ChildGenotype<G>(counter.getAndIncrement(), g, List.of()))
                 .toList(),
-            (cg, s, r) ->
-                Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()),
+            (cg, s, r) -> Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations()),
             newState,
             random,
-            executor))
+            executor
+        )
+    )
         .stream()
         .toList();
     Grid<Individual<G, S, Q>> grid = Grid.create(substrate.w(), substrate.h());
@@ -127,12 +128,15 @@ public class CellularAutomataBasedSolver<G, S, Q>
   public GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> update(
       RandomGenerator random,
       ExecutorService executor,
-      GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state)
-      throws SolverException {
+      GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state
+  ) throws SolverException {
     AtomicLong counter = new AtomicLong(state.nOfBirths());
-    List<Callable<CellProcessOutcome<Individual<G, S, Q>>>> callables = state.gridPopulation().entries().stream()
+    PartialComparator<? super Individual<G, S, Q>> partialComparator = partialComparator(state.problem());
+    List<Callable<CellProcessOutcome<Individual<G, S, Q>>>> callables = state.gridPopulation()
+        .entries()
+        .stream()
         .filter(e -> e.value() != null)
-        .map(e -> processCell(e, state, new Random(random.nextLong()), counter))
+        .map(e -> processCell(e, partialComparator, state, new Random(random.nextLong()), counter))
         // this new random is needed for determinism, because process is done concurrently
         .toList();
     Collection<CellProcessOutcome<Individual<G, S, Q>>> newEntries;
@@ -149,9 +153,11 @@ public class CellularAutomataBasedSolver<G, S, Q>
 
   private Callable<CellProcessOutcome<Individual<G, S, Q>>> processCell(
       Grid.Entry<Individual<G, S, Q>> entry,
+      PartialComparator<? super Individual<G, S, Q>> partialComparator,
       GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state,
       RandomGenerator random,
-      AtomicLong counter) {
+      AtomicLong counter
+  ) {
     return () -> {
       random.nextDouble(); // because the first double is always around 0.73
       // decide if to keep
@@ -159,13 +165,16 @@ public class CellularAutomataBasedSolver<G, S, Q>
         return new CellProcessOutcome<>(false, entry);
       }
       // find neighborhood
-      List<Individual<G, S, Q>> neighbors = neighborhood.of(state.gridPopulation(), entry.key()).stream()
+      List<Individual<G, S, Q>> neighbors = neighborhood.of(state.gridPopulation(), entry.key())
+          .stream()
           .filter(k -> !k.equals(entry.key()))
           .map(k -> state.gridPopulation().get(k))
           .filter(Objects::nonNull)
           .toList(); // neighbors does not include self
-      PartiallyOrderedCollection<Individual<G, S, Q>> localPoc =
-          PartiallyOrderedCollection.from(neighbors, partialComparator(state.problem()));
+      PartiallyOrderedCollection<Individual<G, S, Q>> localPoc = PartiallyOrderedCollection.from(
+          neighbors,
+          partialComparator
+      );
       GeneticOperator<G> operator = Misc.pickRandomly(operators, random);
       List<Individual<G, S, Q>> parents = new ArrayList<>(operator.arity());
       parents.add(entry.value()); // self is always the 1st parent
@@ -176,16 +185,19 @@ public class CellularAutomataBasedSolver<G, S, Q>
           new ChildGenotype<>(
               counter.getAndIncrement(),
               operator.apply(
-                      parents.stream()
-                          .map(Individual::genotype)
-                          .toList(),
-                      random)
-                  .get(0),
-              parents.stream().map(Individual::id).toList()),
+                  parents.stream()
+                      .map(Individual::genotype)
+                      .toList(),
+                  random
+              )
+                  .getFirst(),
+              parents.stream().map(Individual::id).toList()
+          ),
           solutionMapper,
           state.problem().qualityFunction(),
-          state.nOfIterations());
-      if (partialComparator(state.problem())
+          state.nOfIterations()
+      );
+      if (partialComparator
           .compare(child, entry.value())
           .equals(PartialComparator.PartialComparatorOutcome.BEFORE)) {
         return new CellProcessOutcome<>(true, new Grid.Entry<>(entry.key(), child));

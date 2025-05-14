@@ -23,13 +23,15 @@ import io.github.ericmedvet.jgea.experimenter.listener.net.NetUtils;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public record MachineInfo(String machineName, int numberOfProcessors, double cpuLoad, LocalDateTime localDateTime)
-    implements Serializable {
+public record MachineInfo(
+    String machineName, int numberOfProcessors, double cpuLoad, LocalDateTime localDateTime
+) implements Serializable {
   public static MachineInfo local() {
     return new MachineInfo(
         NetUtils.getMachineName(),
         NetUtils.getNumberOfProcessors(),
         NetUtils.getCPULoad(),
-        LocalDateTime.now());
+        LocalDateTime.now()
+    );
   }
 }

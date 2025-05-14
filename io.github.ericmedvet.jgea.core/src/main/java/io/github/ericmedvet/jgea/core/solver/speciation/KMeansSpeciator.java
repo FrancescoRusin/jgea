@@ -43,7 +43,11 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
   private KMeansPlusPlusClusterer<ClusterableIndividual> kMeans = null;
 
   public KMeansSpeciator(
-      int k, int maxIterations, Distance<double[]> distance, Function<Individual<G, S, F>, double[]> converter) {
+      int k,
+      int maxIterations,
+      Distance<double[]> distance,
+      Function<Individual<G, S, F>, double[]> converter
+  ) {
     if (k != -1) {
       this.kMeans = new KMeansPlusPlusClusterer<>(k, maxIterations, (DistanceMeasure) distance::apply);
     }
@@ -82,9 +86,14 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
     List<CentroidCluster<ClusterableIndividual>> clusters = new ArrayList<>();
     List<CentroidCluster<ClusterableIndividual>> result = new ArrayList<>();
     for (int nClusters = 1; nClusters < Math.min(13, points.size()); ++nClusters) {
-      result.addAll((new KMeansPlusPlusClusterer<ClusterableIndividual>(
-              nClusters, maxIterations, (DistanceMeasure) distance::apply))
-          .cluster(points));
+      result.addAll(
+          (new KMeansPlusPlusClusterer<ClusterableIndividual>(
+              nClusters,
+              maxIterations,
+              (DistanceMeasure) distance::apply
+          ))
+              .cluster(points)
+      );
       double silhouette = computeSilhouette(result, points.size());
       if (silhouette > maxSilhouette) {
         clusters.clear();
@@ -100,8 +109,7 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
     double[] s = new double[n];
     int k = 0;
     for (CentroidCluster<ClusterableIndividual> cluster : clusters) {
-      double[][] points =
-          cluster.getPoints().stream().map(Clusterable::getPoint).toArray(double[][]::new);
+      double[][] points = cluster.getPoints().stream().map(Clusterable::getPoint).toArray(double[][]::new);
       for (double[] point : points) {
         if (points.length == 1) {
           s[k++] = 0.0;
@@ -114,10 +122,13 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
             .orElse(0d);
         double b = clusters.stream()
             .filter(c -> c != cluster)
-            .mapToDouble(c -> c.getPoints().stream()
-                .mapToDouble(ci -> distance.apply(ci.getPoint(), point))
-                .average()
-                .orElse(0.0))
+            .mapToDouble(
+                c -> c.getPoints()
+                    .stream()
+                    .mapToDouble(ci -> distance.apply(ci.getPoint(), point))
+                    .average()
+                    .orElse(0.0)
+            )
             .min()
             .orElse(0.0);
         if (a < b) {
@@ -142,10 +153,8 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
     double[] minValues = new double[length];
     for (int i = 0; i < length; ++i) {
       int finalI = i;
-      maxValues[i] =
-          points.stream().mapToDouble(p -> p.getPoint()[finalI]).max().orElse(1d);
-      minValues[i] =
-          points.stream().mapToDouble(p -> p.getPoint()[finalI]).min().orElse(0d);
+      maxValues[i] = points.stream().mapToDouble(p -> p.getPoint()[finalI]).max().orElse(1d);
+      minValues[i] = points.stream().mapToDouble(p -> p.getPoint()[finalI]).min().orElse(0d);
     }
     points.forEach(p -> {
       double[] oldPoint = p.getPoint();
@@ -163,9 +172,9 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
 
   @Override
   public Collection<SpeciatedEvolver.Species<Individual<G, S, F>>> speciate(
-      PartiallyOrderedCollection<Individual<G, S, F>> population) {
-    Collection<ClusterableIndividual> points =
-        population.all().stream().map(ClusterableIndividual::new).toList();
+      PartiallyOrderedCollection<Individual<G, S, F>> population
+  ) {
+    Collection<ClusterableIndividual> points = population.all().stream().map(ClusterableIndividual::new).toList();
     if (points.stream().mapToInt(p -> p.getPoint().length).distinct().count() != 1) {
       throw new RuntimeException("all points to be clustered must have same length");
     }
@@ -173,12 +182,13 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
     List<CentroidCluster<ClusterableIndividual>> clusters = clusterPoints(points);
     List<ClusterableIndividual> representers = clusters.stream()
         .map(c -> {
-          ClusterableIndividual closest = c.getPoints().get(0);
-          double closestD =
-              distance.apply(closest.point, c.getCenter().getPoint());
+          ClusterableIndividual closest = c.getPoints().getFirst();
+          double closestD = distance.apply(closest.point, c.getCenter().getPoint());
           for (int i = 0; i < c.getPoints().size(); i++) {
             double d = distance.apply(
-                c.getPoints().get(i).point, c.getCenter().getPoint());
+                c.getPoints().get(i).point,
+                c.getCenter().getPoint()
+            );
             if (d < closestD) {
               closestD = d;
               closest = c.getPoints().get(i);
@@ -188,11 +198,16 @@ public class KMeansSpeciator<G, S, F> implements SpeciatedEvolver.Speciator<Indi
         })
         .toList();
     return IntStream.range(0, clusters.size())
-        .mapToObj(i -> new SpeciatedEvolver.Species<>(
-            clusters.get(i).getPoints().stream()
-                .map(ci -> ci.individual)
-                .toList(),
-            representers.get(i).individual))
+        .mapToObj(
+            i -> new SpeciatedEvolver.Species<>(
+                clusters.get(i)
+                    .getPoints()
+                    .stream()
+                    .map(ci -> ci.individual)
+                    .toList(),
+                representers.get(i).individual
+            )
+        )
         .toList();
   }
 }

@@ -56,8 +56,10 @@ public interface Graph<N, A> extends Sized {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
       Arc<?> arc = (Arc<?>) o;
       return source.equals(arc.source) && target.equals(arc.target);
     }

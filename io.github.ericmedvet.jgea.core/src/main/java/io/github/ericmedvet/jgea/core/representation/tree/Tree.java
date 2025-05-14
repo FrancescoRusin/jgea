@@ -70,7 +70,12 @@ public class Tree<C> implements Serializable, Sized, Iterable<Tree<C>> {
   private static <K> void prettyPrint(Tree<K> t, int d, PrintStream ps) {
     ps.printf(
         "%s (h=%2d d=%2d #c=%2d) %s",
-        String.join("", Collections.nCopies(d, "  ")), t.height(), t.depth(), t.nChildren(), t.content());
+        String.join("", Collections.nCopies(d, "  ")),
+        t.height(),
+        t.depth(),
+        t.nChildren(),
+        t.content()
+    );
     ps.println();
     t.forEach(c -> prettyPrint(c, d + 1, ps));
   }
@@ -110,18 +115,19 @@ public class Tree<C> implements Serializable, Sized, Iterable<Tree<C>> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     Tree<?> tree = (Tree<?>) o;
     return Objects.equals(content, tree.content) && children.equals(tree.children);
   }
 
   @Override
   public String toString() {
-    return content.toString()
-        + (children.isEmpty()
-            ? ""
-            : ("(" + children.stream().map(Tree::toString).collect(Collectors.joining(",")) + ")"));
+    return content.toString() + (children.isEmpty() ? "" : ("(" + children.stream()
+        .map(Tree::toString)
+        .collect(Collectors.joining(",")) + ")"));
   }
 
   public int height() {

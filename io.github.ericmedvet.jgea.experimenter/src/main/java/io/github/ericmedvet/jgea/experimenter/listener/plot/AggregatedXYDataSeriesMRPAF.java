@@ -25,8 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class AggregatedXYDataSeriesMRPAF<E, R, K>
-    extends AbstractMultipleRPAF<E, XYDataSeriesPlot, R, List<XYDataSeries>, K, Table<Number, K, List<Number>>> {
+public class AggregatedXYDataSeriesMRPAF<E, R, K> extends AbstractMultipleRPAF<E, XYDataSeriesPlot, R, List<XYDataSeries>, K, Table<Number, K, List<Number>>> {
 
   private final Function<? super R, ? extends K> lineFunction;
   private final Function<? super E, ? extends Number> xFunction;
@@ -47,7 +46,8 @@ public class AggregatedXYDataSeriesMRPAF<E, R, K>
       Function<List<Number>, Number> minAggregator,
       Function<List<Number>, Number> maxAggregator,
       DoubleRange xRange,
-      DoubleRange yRange) {
+      DoubleRange yRange
+  ) {
     super(xSubplotFunction, ySubplotFunction);
     this.lineFunction = lineFunction;
     this.xFunction = xFunction;
@@ -61,25 +61,35 @@ public class AggregatedXYDataSeriesMRPAF<E, R, K>
 
   @Override
   protected List<XYDataSeries> buildData(K xK, K yK, Table<Number, K, List<Number>> table) {
-    return table.colIndexes().stream()
-        .map(lineK -> XYDataSeries.of(
+    return table.colIndexes()
+        .stream()
+        .map(
+            lineK -> XYDataSeries.of(
                 FormattedFunction.format(lineFunction).formatted(lineK),
-                table.column(lineK).entrySet().stream()
+                table.column(lineK)
+                    .entrySet()
+                    .stream()
                     .filter(e -> e.getValue() != null)
-                    .map(e -> new XYDataSeries.Point(
-                        Value.of(e.getKey().doubleValue()),
-                        RangedValue.of(
-                            valueAggregator
-                                .apply(e.getValue())
-                                .doubleValue(),
-                            minAggregator
-                                .apply(e.getValue())
-                                .doubleValue(),
-                            maxAggregator
-                                .apply(e.getValue())
-                                .doubleValue())))
-                    .toList())
-            .sorted())
+                    .map(
+                        e -> new XYDataSeries.Point(
+                            Value.of(e.getKey().doubleValue()),
+                            RangedValue.of(
+                                valueAggregator
+                                    .apply(e.getValue())
+                                    .doubleValue(),
+                                minAggregator
+                                    .apply(e.getValue())
+                                    .doubleValue(),
+                                maxAggregator
+                                    .apply(e.getValue())
+                                    .doubleValue()
+                            )
+                        )
+                    )
+                    .toList()
+            )
+                .sorted()
+        )
         .toList();
   }
 
@@ -93,29 +103,32 @@ public class AggregatedXYDataSeriesMRPAF<E, R, K>
                 .formatted(data.colIndexes().get(x)),
             FormattedFunction.format(ySubplotFunction)
                 .formatted(data.rowIndexes().get(y)),
-            data.get(x, y)));
+            data.get(x, y)
+        )
+    );
     String subtitle = "";
     if (grid.w() > 1 && grid.h() == 1) {
       subtitle = "→ %s".formatted(NamedFunction.name(xSubplotFunction));
     } else if (grid.w() == 1 && grid.h() > 1) {
       subtitle = "↓ %s".formatted(NamedFunction.name(ySubplotFunction));
     } else if (grid.w() > 1 && grid.h() > 1) {
-      subtitle =
-          "→ %s, ↓ %s".formatted(NamedFunction.name(xSubplotFunction), NamedFunction.name(ySubplotFunction));
+      subtitle = "→ %s, ↓ %s".formatted(NamedFunction.name(xSubplotFunction), NamedFunction.name(ySubplotFunction));
     }
     return new XYDataSeriesPlot(
         "%s vs. %s%s"
             .formatted(
                 NamedFunction.name(yFunction),
                 NamedFunction.name(xFunction),
-                subtitle.isEmpty() ? subtitle : (" (%s)".formatted(subtitle))),
+                subtitle.isEmpty() ? subtitle : (" (%s)".formatted(subtitle))
+            ),
         NamedFunction.name(xSubplotFunction),
         NamedFunction.name(ySubplotFunction),
         NamedFunction.name(xFunction),
         NamedFunction.name(yFunction),
         xRange,
         yRange,
-        grid);
+        grid
+    );
   }
 
   @Override

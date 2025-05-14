@@ -42,14 +42,15 @@ public interface State<P extends Problem<S>, S> {
       long elapsedMillis,
       long nOfIterations,
       P problem,
-      Predicate<State<?, ?>> stopCondition) {
+      Predicate<State<?, ?>> stopCondition
+  ) {
     record HardState<P extends Problem<S>, S>(
         LocalDateTime startingDateTime,
         long elapsedMillis,
         long nOfIterations,
         P problem,
-        Predicate<State<?, ?>> stopCondition)
-        implements State<P, S> {}
+        Predicate<State<?, ?>> stopCondition
+    ) implements State<P, S> {}
     return new HardState<>(startingDateTime, elapsedMillis, nOfIterations, problem, stopCondition);
   }
 
@@ -76,7 +77,8 @@ public interface State<P extends Problem<S>, S> {
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
         nOfIterations() + 1,
         problem(),
-        stopCondition());
+        stopCondition()
+    );
   }
 
   default State<P, S> updatedWithProblem(P problem) {

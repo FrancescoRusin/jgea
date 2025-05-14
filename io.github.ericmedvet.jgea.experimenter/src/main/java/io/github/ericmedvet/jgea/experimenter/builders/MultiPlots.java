@@ -29,32 +29,27 @@ import java.util.function.Predicate;
 
 @Discoverable(prefixTemplate = "ea.plot.multi|m")
 public class MultiPlots {
-  private MultiPlots() {}
+  private MultiPlots() {
+  }
 
   @SuppressWarnings("unused")
   @Alias(
-      name = "xyExp",
-      value = // spotless:off
+      name = "xyExp", passThroughParams = {@PassThroughParam(name = "xQuantization", value = "1", type = ParamMap.Type.INT)}, value = // spotless:off
           """
               xy(
                 xSubplot = ea.f.runString(name = none; s = "_");
                 ySubplot = ea.f.runString(name = problem; s = "{run.problem.name}");
                 line = ea.f.runString(name = solver; s = "{run.solver.name}");
-                x = f.quantized(of = ea.f.nOfEvals(); q = 500)
+                x = f.quantized(of = ea.f.nOfEvals(); q = $xQuantization)
               )
               """) // spotless:on
   @Alias(
-      name = "quality",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+      name = "quality", passThroughParams = {@PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)}, value = // spotless:off
       """
           xyExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
   @Alias(
-      name = "uniqueness",
-      value = // spotless:off
+      name = "uniqueness", value = // spotless:off
           """
               xyExp(y = f.uniqueness(of = f.each(mapF = ea.f.genotype(); of = ea.f.all())))
               """) // spotless:on
@@ -68,7 +63,8 @@ public class MultiPlots {
       @Param(value = "minAggregator", dNPM = "f.percentile(p=25)") Function<List<Number>, Number> minAggregator,
       @Param(value = "maxAggregator", dNPM = "f.percentile(p=75)") Function<List<Number>, Number> maxAggregator,
       @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange
+  ) {
     return new AggregatedXYDataSeriesMRPAF<>(
         xSubplotFunction,
         ySubplotFunction,
@@ -79,13 +75,13 @@ public class MultiPlots {
         minAggregator,
         maxAggregator,
         xRange,
-        yRange);
+        yRange
+    );
   }
 
   @SuppressWarnings("unused")
   @Alias(
-      name = "yBoxplotExp",
-      value = // spotless:off
+      name = "yBoxplotExp", value = // spotless:off
           """
               yBoxplot(
                 xSubplot = ea.f.runString(name = none; s = "_");
@@ -96,17 +92,13 @@ public class MultiPlots {
               )
               """) // spotless:on
   @Alias(
-      name = "qualityBoxplot",
-      passThroughParams = {
-        @PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      },
-      value = // spotless:off
+      name = "qualityBoxplot", passThroughParams = {@PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
+      }, value = // spotless:off
       """
           yBoxplotExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
   @Alias(
-      name = "uniquenessBoxplot",
-      value = // spotless:off
+      name = "uniquenessBoxplot", value = // spotless:off
           """
               yBoxplotExp(y = f.uniqueness(of = f.each(mapF = ea.f.genotype(); of = ea.f.all())))
               """) // spotless:on
@@ -117,8 +109,16 @@ public class MultiPlots {
       @Param("y") Function<? super E, ? extends Number> yFunction,
       @Param("predicateValue") Function<E, X> predicateValueFunction,
       @Param(value = "condition", dNPM = "predicate.gtEq(t=1)") Predicate<X> condition,
-      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange) {
+      @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange
+  ) {
     return new DistributionMRPAF<>(
-        xSubplotFunction, ySubplotFunction, boxFunction, yFunction, predicateValueFunction, condition, yRange);
+        xSubplotFunction,
+        ySubplotFunction,
+        boxFunction,
+        yFunction,
+        predicateValueFunction,
+        condition,
+        yRange
+    );
   }
 }

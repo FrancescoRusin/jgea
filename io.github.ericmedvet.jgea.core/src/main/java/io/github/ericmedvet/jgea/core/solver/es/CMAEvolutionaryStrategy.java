@@ -43,9 +43,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 // source -> https://arxiv.org/pdf/1604.00772.pdf
 
-public class CMAEvolutionaryStrategy<S, Q>
-    extends AbstractPopulationBasedIterativeSolver<
-        CMAESState<S, Q>, TotalOrderQualityBasedProblem<S, Q>, CMAESIndividual<S, Q>, List<Double>, S, Q> {
+public class CMAEvolutionaryStrategy<S, Q> extends AbstractPopulationBasedIterativeSolver<CMAESState<S, Q>, TotalOrderQualityBasedProblem<S, Q>, CMAESIndividual<S, Q>, List<Double>, S, Q> {
 
   private static final Logger L = Logger.getLogger(CMAEvolutionaryStrategy.class.getName());
   private final int mu;
@@ -63,20 +61,23 @@ public class CMAEvolutionaryStrategy<S, Q>
   public CMAEvolutionaryStrategy(
       Function<? super List<Double>, ? extends S> solutionMapper,
       Factory<? extends List<Double>> genotypeFactory,
-      Predicate<? super CMAESState<S, Q>> stopCondition) {
+      Predicate<? super CMAESState<S, Q>> stopCondition
+  ) {
     this(
         solutionMapper,
         genotypeFactory,
         stopCondition,
-        genotypeFactory.build(1, new Random(0)).get(0).size());
+        genotypeFactory.build(1, new Random(0)).getFirst().size()
+    );
   }
 
   private CMAEvolutionaryStrategy(
       Function<? super List<Double>, ? extends S> solutionMapper,
       Factory<? extends List<Double>> genotypeFactory,
       Predicate<? super CMAESState<S, Q>> stopCondition,
-      int p) {
-    super(solutionMapper, genotypeFactory, stopCondition, false);
+      int p
+  ) {
+    super(solutionMapper, genotypeFactory, stopCondition, false, List.of());
     populationSize = 4 + (int) Math.floor(3 * Math.log(p));
     // see table 1 of the linked paper for parameters values
     this.p = p;
@@ -85,8 +86,7 @@ public class CMAEvolutionaryStrategy<S, Q>
     mu = (int) Math.floor(populationSize / 2d);
     double[] unnormalizedWeights = buildArray(mu, i -> Math.log((populationSize + 1) / 2d) - Math.log(i + 1));
     double sumOfWeights = Arrays.stream(unnormalizedWeights).sum();
-    double sumOfSquaredWeights =
-        Arrays.stream(mult(unnormalizedWeights, unnormalizedWeights)).sum();
+    double sumOfSquaredWeights = Arrays.stream(mult(unnormalizedWeights, unnormalizedWeights)).sum();
     weights = mult(unnormalizedWeights, 1d / sumOfWeights);
     muEff = Math.pow(sumOfWeights, 2) / sumOfSquaredWeights;
     // step size control
@@ -99,7 +99,10 @@ public class CMAEvolutionaryStrategy<S, Q>
   }
 
   private CMAESIndividual<S, Q> buildNewIndividual(
-      ChildGenotype<List<Double>> childGenotype, CMAESState<S, Q> state, RandomGenerator random) {
+      ChildGenotype<List<Double>> childGenotype,
+      CMAESState<S, Q> state,
+      RandomGenerator random
+  ) {
     double[] zK = buildArray(p, random::nextGaussian);
     double[] yK = state.B().preMultiply(state.D().preMultiply(zK));
     double[] xK = sum(state.means(), mult(yK, state.sigma()));
@@ -115,7 +118,8 @@ public class CMAEvolutionaryStrategy<S, Q>
         childGenotype.parentIds(),
         xK,
         yK,
-        zK);
+        zK
+    );
   }
 
   private CMAESState<S, Q> eigenDecomposition(CMAESState<S, Q> state) {
@@ -135,30 +139,40 @@ public class CMAEvolutionaryStrategy<S, Q>
 
   @Override
   public CMAESState<S, Q> init(
-      TotalOrderQualityBasedProblem<S, Q> problem, RandomGenerator random, ExecutorService executor)
-      throws SolverException {
+      TotalOrderQualityBasedProblem<S, Q> problem,
+      RandomGenerator random,
+      ExecutorService executor
+  ) throws SolverException {
     CMAESState<S, Q> newState = CMAESState.empty(
         problem,
         stopCondition(),
-        unboxed(genotypeFactory.build(1, random).get(0)));
+        unboxed(genotypeFactory.build(1, random).getFirst())
+    );
     AtomicLong counter = new AtomicLong(0);
     List<? extends List<Double>> genotypes = genotypeFactory.build(populationSize, random);
-    Collection<CMAESIndividual<S, Q>> newIndividuals = getAll(map(
-        genotypes.stream()
-            .map(g -> new ChildGenotype<List<Double>>(counter.getAndIncrement(), g, List.of()))
-            .toList(),
-        this::buildNewIndividual,
-        newState,
-        random,
-        executor));
+    Collection<CMAESIndividual<S, Q>> newIndividuals = getAll(
+        map(
+            genotypes.stream()
+                .map(g -> new ChildGenotype<List<Double>>(counter.getAndIncrement(), g, List.of()))
+                .toList(),
+            this::buildNewIndividual,
+            newState,
+            random,
+            executor
+        )
+    );
     return newState.updatedWithIteration(newIndividuals);
   }
 
   @Override
-  public CMAESState<S, Q> update(RandomGenerator random, ExecutorService executor, CMAESState<S, Q> state)
-      throws SolverException {
+  public CMAESState<S, Q> update(
+      RandomGenerator random,
+      ExecutorService executor,
+      CMAESState<S, Q> state
+  ) throws SolverException {
     // find best individuals
-    List<CMAESIndividual<S, Q>> bestMuIndividuals = state.listPopulation().stream()
+    List<CMAESIndividual<S, Q>> bestMuIndividuals = state.listPopulation()
+        .stream()
         .sorted(comparator(state.problem()))
         .limit(mu)
         .toList();
@@ -172,14 +186,17 @@ public class CMAEvolutionaryStrategy<S, Q>
     List<Long> parentIds = bestMuIndividuals.stream().map(Individual::id).toList();
     List<Double> emptyGenotype = List.of();
     AtomicLong counter = new AtomicLong(state.nOfBirths());
-    Collection<CMAESIndividual<S, Q>> newIndividuals = getAll(map(
-        IntStream.range(0, populationSize)
-            .mapToObj(i -> new ChildGenotype<>(counter.getAndIncrement(), emptyGenotype, parentIds))
-            .toList(),
-        this::buildNewIndividual,
-        state,
-        random,
-        executor));
+    Collection<CMAESIndividual<S, Q>> newIndividuals = getAll(
+        map(
+            IntStream.range(0, populationSize)
+                .mapToObj(i -> new ChildGenotype<>(counter.getAndIncrement(), emptyGenotype, parentIds))
+                .toList(),
+            this::buildNewIndividual,
+            state,
+            random,
+            executor
+        )
+    );
     return state.updatedWithIteration(newIndividuals);
   }
 
@@ -201,7 +218,8 @@ public class CMAEvolutionaryStrategy<S, Q>
     double[] bzM = state.B().preMultiply(zM);
     double[] sEvolutionPath = buildArray(
         p,
-        i -> (1d - cSigma) * state.sEvolutionPath()[i] + (Math.sqrt(cSigma * (2d - cSigma) * muEff)) * bzM[i]);
+        i -> (1d - cSigma) * state.sEvolutionPath()[i] + (Math.sqrt(cSigma * (2d - cSigma) * muEff)) * bzM[i]
+    );
     double psNorm = norm(sEvolutionPath, 2d);
     double sigma = state.sigma() * Math.exp((cSigma / dSigma) * ((psNorm / chiN) - 1));
     // check flat fitness
@@ -210,20 +228,19 @@ public class CMAEvolutionaryStrategy<S, Q>
       L.warning("Flat fitness, consider reformulating the objective");
     }
     // covariance matrix adaptation
-    int hSigma =
-        psNorm / Math.sqrt(1 - Math.pow((1d - cSigma), 2 * state.nOfIterations())) / chiN < (1.4 + 2d / (p + 1))
-            ? 1
-            : 0;
+    int hSigma = psNorm / Math.sqrt(
+        1 - Math.pow((1d - cSigma), 2 * state.nOfIterations())
+    ) / chiN < (1.4 + 2d / (p + 1)) ? 1 : 0;
     double[] cEvolutionPath = buildArray(
-        p, i -> (1 - cc) * state.cEvolutionPath()[i] + hSigma * Math.sqrt(cc * (2 - cc) * muEff) * yW[i]);
+        p,
+        i -> (1 - cc) * state.cEvolutionPath()[i] + hSigma * Math.sqrt(cc * (2 - cc) * muEff) * yW[i]
+    );
     double deltaH = (1 - hSigma) * cc * (2 - cc);
     IntStream.range(0, p).forEach(i -> IntStream.range(0, i + 1).forEach(j -> {
-      double cij = (1 + c1 * deltaH - c1 - cMu) * state.C().getEntry(i, j)
-          + c1 * cEvolutionPath[i] * cEvolutionPath[j]
-          + cMu
-              * IntStream.range(0, mu)
-                  .mapToDouble(k -> weights[k] * yMu[k][i] * yMu[k][j])
-                  .sum();
+      double cij = (1 + c1 * deltaH - c1 - cMu) * state.C()
+          .getEntry(i, j) + c1 * cEvolutionPath[i] * cEvolutionPath[j] + cMu * IntStream.range(0, mu)
+              .mapToDouble(k -> weights[k] * yMu[k][i] * yMu[k][j])
+              .sum();
       state.C().setEntry(i, j, cij);
       state.C().setEntry(j, i, cij);
     }));

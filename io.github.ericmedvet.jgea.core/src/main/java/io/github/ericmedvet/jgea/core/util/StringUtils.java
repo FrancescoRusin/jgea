@@ -32,7 +32,8 @@ public class StringUtils {
   public static final char VARIATION_SAME = '=';
   private static final String COLLAPSER_REGEX = "[.→\\[\\]]+";
 
-  private StringUtils() {}
+  private StringUtils() {
+  }
 
   public static String collapse(String name) {
     StringBuilder acronym = new StringBuilder();

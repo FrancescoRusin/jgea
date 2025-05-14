@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * @author "Eric Medvet" on 2024/05/31 for jgea
- */
 public class Archive<T> {
 
   private final List<Integer> binUpperBounds;
@@ -48,7 +45,8 @@ public class Archive<T> {
       Archive<T> archive,
       Collection<T> ts,
       Function<? super T, ? extends List<Integer>> binsF,
-      PartialComparator<? super T> partialComparator) {
+      PartialComparator<? super T> partialComparator
+  ) {
     this(archive);
     ts.forEach(t -> put(binsF.apply(t), t, partialComparator));
   }
@@ -56,7 +54,8 @@ public class Archive<T> {
   public Archive<T> updated(
       Collection<T> ts,
       Function<? super T, ? extends List<Integer>> binsF,
-      PartialComparator<? super T> partialComparator) {
+      PartialComparator<? super T> partialComparator
+  ) {
     return new Archive<>(this, ts, binsF, partialComparator);
   }
 

@@ -45,7 +45,8 @@ public class XYDataSeriesSRPAF<E, R> extends AbstractSingleRPAF<E, XYDataSeriesP
       DoubleRange xRange,
       DoubleRange yRange,
       boolean sorted,
-      boolean firstDifference) {
+      boolean firstDifference
+  ) {
     super(titleFunction);
     this.xFunction = xFunction;
     this.yFunctions = yFunctions;
@@ -58,13 +59,19 @@ public class XYDataSeriesSRPAF<E, R> extends AbstractSingleRPAF<E, XYDataSeriesP
   @Override
   protected List<XYDataSeries> buildData(List<E> es, R r) {
     return yFunctions.stream()
-        .map(yf -> XYDataSeries.of(
-            NamedFunction.name(yf),
-            es.stream()
-                .map(e -> new XYDataSeries.Point(
-                    Value.of(xFunction.apply(e).doubleValue()),
-                    Value.of(yf.apply(e).doubleValue())))
-                .toList()))
+        .map(
+            yf -> XYDataSeries.of(
+                NamedFunction.name(yf),
+                es.stream()
+                    .map(
+                        e -> new XYDataSeries.Point(
+                            Value.of(xFunction.apply(e).doubleValue()),
+                            Value.of(yf.apply(e).doubleValue())
+                        )
+                    )
+                    .toList()
+            )
+        )
         .toList();
   }
 
@@ -84,7 +91,8 @@ public class XYDataSeriesSRPAF<E, R> extends AbstractSingleRPAF<E, XYDataSeriesP
         "value",
         xRange,
         yRange,
-        Grid.create(1, 1, new XYPlot.TitledData<>("", "", data)));
+        Grid.create(1, 1, new XYPlot.TitledData<>("", "", data))
+    );
   }
 
   @Override

@@ -32,7 +32,8 @@ public class LNorm implements Distance<List<Double>> {
   public Double apply(List<Double> v1, List<Double> v2) {
     if (v1.size() != v2.size()) {
       throw new IllegalArgumentException(
-          String.format("Args lengths do not match: %d and %d", v1.size(), v2.size()));
+          String.format("Args lengths do not match: %d and %d", v1.size(), v2.size())
+      );
     }
     double s = 0d;
     for (int i = 0; i < v1.size(); i++) {

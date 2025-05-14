@@ -90,8 +90,7 @@ public class GrowGrammarTreeFactory<T> implements Factory<Tree<T>> {
       // choose one index to force as full
       List<Integer> availableFullIndexes = new ArrayList<>();
       for (int i = 0; i < availableOptions.get(optionIndex).size(); i++) {
-        Pair<Double, Double> minMax =
-            nonTerminalDepths.get(availableOptions.get(optionIndex).get(i));
+        Pair<Double, Double> minMax = nonTerminalDepths.get(availableOptions.get(optionIndex).get(i));
         if (((targetDepth - 1) >= minMax.first()) && ((targetDepth - 1) <= minMax.second())) {
           availableFullIndexes.add(i);
         }
@@ -102,12 +101,9 @@ public class GrowGrammarTreeFactory<T> implements Factory<Tree<T>> {
       }
       for (int i = 0; i < availableOptions.get(optionIndex).size(); i++) {
         int childTargetDepth = targetDepth - 1;
-        Pair<Double, Double> minMax =
-            nonTerminalDepths.get(availableOptions.get(optionIndex).get(i));
+        Pair<Double, Double> minMax = nonTerminalDepths.get(availableOptions.get(optionIndex).get(i));
         if ((i != fullIndex) && (childTargetDepth > minMax.first())) {
-          childTargetDepth =
-              random.nextInt(childTargetDepth - minMax.first().intValue())
-                  + minMax.first().intValue();
+          childTargetDepth = random.nextInt(childTargetDepth - minMax.first().intValue()) + minMax.first().intValue();
         }
         Tree<T> child = build(random, availableOptions.get(optionIndex).get(i), childTargetDepth);
         if (child == null) {

@@ -25,8 +25,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Predicate;
 
-public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>
-    extends State<P, S> {
+public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>> extends State<P, S> {
 
   long nOfBirths();
 
@@ -34,16 +33,16 @@ public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P ex
 
   PartiallyOrderedCollection<I> pocPopulation();
 
-  static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>
-      POCPopulationState<I, G, S, Q, P> of(
-          LocalDateTime startingDateTime,
-          long elapsedMillis,
-          long nOfIterations,
-          P problem,
-          Predicate<State<?, ?>> stopCondition,
-          long nOfBirths,
-          long nOfQualityEvaluations,
-          PartiallyOrderedCollection<I> pocPopulation) {
+  static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>> POCPopulationState<I, G, S, Q, P> of(
+      LocalDateTime startingDateTime,
+      long elapsedMillis,
+      long nOfIterations,
+      P problem,
+      Predicate<State<?, ?>> stopCondition,
+      long nOfBirths,
+      long nOfQualityEvaluations,
+      PartiallyOrderedCollection<I> pocPopulation
+  ) {
     record HardState<I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>(
         LocalDateTime startingDateTime,
         long elapsedMillis,
@@ -52,8 +51,8 @@ public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P ex
         Predicate<State<?, ?>> stopCondition,
         long nOfBirths,
         long nOfQualityEvaluations,
-        PartiallyOrderedCollection<I> pocPopulation)
-        implements POCPopulationState<I, G, S, Q, P> {}
+        PartiallyOrderedCollection<I> pocPopulation
+    ) implements POCPopulationState<I, G, S, Q, P> {}
     return new HardState<>(
         startingDateTime,
         elapsedMillis,
@@ -62,16 +61,22 @@ public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P ex
         stopCondition,
         nOfBirths,
         nOfQualityEvaluations,
-        pocPopulation);
+        pocPopulation
+    );
   }
 
-  static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>
-      POCPopulationState<I, G, S, Q, P> empty(P problem, Predicate<State<?, ?>> stopCondition) {
+  static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>> POCPopulationState<I, G, S, Q, P> empty(
+      P problem,
+      Predicate<State<?, ?>> stopCondition
+  ) {
     return of(LocalDateTime.now(), 0, 0, problem, stopCondition, 0, 0, PartiallyOrderedCollection.from());
   }
 
   default POCPopulationState<I, G, S, Q, P> updatedWithIteration(
-      long nOfNewBirths, long nOfNewQualityEvaluations, PartiallyOrderedCollection<I> pocPopulation) {
+      long nOfNewBirths,
+      long nOfNewQualityEvaluations,
+      PartiallyOrderedCollection<I> pocPopulation
+  ) {
     return of(
         startingDateTime(),
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
@@ -80,7 +85,8 @@ public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P ex
         stopCondition(),
         nOfBirths() + nOfNewBirths,
         nOfQualityEvaluations() + nOfNewQualityEvaluations,
-        pocPopulation);
+        pocPopulation
+    );
   }
 
   @Override
@@ -93,6 +99,7 @@ public interface POCPopulationState<I extends Individual<G, S, Q>, G, S, Q, P ex
         stopCondition(),
         nOfBirths(),
         nOfQualityEvaluations(),
-        pocPopulation());
+        pocPopulation()
+    );
   }
 }

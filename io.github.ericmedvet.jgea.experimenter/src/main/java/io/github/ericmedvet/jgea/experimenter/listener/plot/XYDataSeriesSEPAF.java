@@ -49,7 +49,8 @@ public class XYDataSeriesSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, XYDataS
       Function<? super P, ? extends Number> xFunction,
       Function<? super P, ? extends Number> yFunction,
       DoubleRange xRange,
-      DoubleRange yRange) {
+      DoubleRange yRange
+  ) {
     super(titleFunction, predicateValueFunction, predicate, unique);
     this.pointFunctions = pointFunctions;
     this.xFunction = xFunction;
@@ -60,22 +61,36 @@ public class XYDataSeriesSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, XYDataS
 
   @Override
   protected List<Map.Entry<String, List<XYDataSeries>>> buildData(E e, R r) {
-    return List.of(Map.entry(
-        "",
-        pointFunctions.stream()
-            .map(pf -> XYDataSeries.of(
-                    NamedFunction.name(pf),
-                    pf.apply(e).stream()
-                        .map(p -> new XYDataSeries.Point(
-                            Value.of(xFunction
-                                .apply(p)
-                                .doubleValue()),
-                            Value.of(yFunction
-                                .apply(p)
-                                .doubleValue())))
-                        .toList())
-                .sorted())
-            .toList()));
+    return List.of(
+        Map.entry(
+            "",
+            pointFunctions.stream()
+                .map(
+                    pf -> XYDataSeries.of(
+                        NamedFunction.name(pf),
+                        pf.apply(e)
+                            .stream()
+                            .map(
+                                p -> new XYDataSeries.Point(
+                                    Value.of(
+                                        xFunction
+                                            .apply(p)
+                                            .doubleValue()
+                                    ),
+                                    Value.of(
+                                        yFunction
+                                            .apply(p)
+                                            .doubleValue()
+                                    )
+                                )
+                            )
+                            .toList()
+                    )
+                        .sorted()
+                )
+                .toList()
+        )
+    );
   }
 
   @Override
@@ -92,7 +107,12 @@ public class XYDataSeriesSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, XYDataS
             data.nColumns(),
             data.nRows(),
             (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+                data.colIndexes().get(x),
+                data.rowIndexes().get(y),
+                data.get(x, y)
+            )
+        )
+    );
   }
 
   @Override

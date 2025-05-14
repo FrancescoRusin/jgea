@@ -107,12 +107,8 @@ public class NetMultiSink {
     try {
       int n = Integer.parseInt(NetUtils.decrypt(challenge, serverKey));
       response = NetUtils.encrypt(Integer.toString(n + 1), serverKey);
-    } catch (NoSuchAlgorithmException
-        | InvalidKeyException
-        | IllegalBlockSizeException
-        | NoSuchPaddingException
-        | InvalidAlgorithmParameterException
-        | InvalidKeySpecException e) {
+    } catch (NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | NoSuchPaddingException |
+             InvalidAlgorithmParameterException | InvalidKeySpecException e) {
       throw new IOException("Cannot perform handshake due to %s".formatted(e.toString()));
     } catch (BadPaddingException e) {
       throw new IOException("Handshake failed, likely due to wrong key");

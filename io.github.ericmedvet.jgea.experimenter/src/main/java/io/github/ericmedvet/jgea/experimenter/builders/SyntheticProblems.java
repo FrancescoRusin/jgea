@@ -24,16 +24,15 @@ import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.ca.MRCAMorphogenesis;
 import io.github.ericmedvet.jgea.problem.grid.CharShapeApproximation;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
-import io.github.ericmedvet.jgea.problem.synthetic.IntOneMax;
-import io.github.ericmedvet.jgea.problem.synthetic.MultiModalIntOneMax;
-import io.github.ericmedvet.jgea.problem.synthetic.MultiObjectiveIntOneMax;
-import io.github.ericmedvet.jgea.problem.synthetic.OneMax;
+import io.github.ericmedvet.jgea.problem.synthetic.*;
+import io.github.ericmedvet.jgea.problem.synthetic.LettersMax;
 import io.github.ericmedvet.jgea.problem.synthetic.numerical.*;
 import io.github.ericmedvet.jnb.core.*;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,19 +41,24 @@ import java.util.stream.IntStream;
 @Discoverable(prefixTemplate = "ea.problem|p.synthetic|s")
 public class SyntheticProblems {
 
-  private SyntheticProblems() {}
+  private SyntheticProblems() {
+  }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static Ackley ackley(
-      @Param(value = "name", iS = "ackley-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "ackley-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new Ackley(p);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static BentCigar bentCigar(
-      @Param(value = "name", iS = "bentCigar-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "bentCigar-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new BentCigar(p);
   }
 
@@ -65,7 +69,8 @@ public class SyntheticProblems {
       @Param("target") String syntheticTargetName,
       @Param(value = "translation", dB = true) boolean translation,
       @Param(value = "smoothed", dB = true) boolean smoothed,
-      @Param(value = "weighted", dB = true) boolean weighted) {
+      @Param(value = "weighted", dB = true) boolean weighted
+  ) {
     try {
       return new CharShapeApproximation(syntheticTargetName, translation, smoothed, weighted);
     } catch (IOException e) {
@@ -81,14 +86,17 @@ public class SyntheticProblems {
       @Param(value = "n", dI = 5) int n,
       @Param(value = "radius", dD = 0.5d) double radius,
       @Param(value = "center", dD = 1d) double center,
-      @Param(value = "seed", dI = 1) int seed) {
+      @Param(value = "seed", dI = 1) int seed
+  ) {
     return new CircularPointsAiming(p, n, radius, center, seed);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static Discus discus(
-      @Param(value = "name", iS = "discus-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "discus-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new Discus(p);
   }
 
@@ -97,26 +105,37 @@ public class SyntheticProblems {
   public static GaussianMixture2D gaussianMixture2D(
       @Param(value = "name", dS = "gm2D") String name,
       @Param(
-              value = "targets",
-              dDs = {-3, -2, 2, 2, 2, 1})
-          List<Double> targets,
-      @Param(value = "c", dD = 1d) double c) {
+          value = "targets", dDs = {-3, -2, 2, 2, 2, 1}) List<Double> targets,
+      @Param(value = "c", dD = 1d) double c
+  ) {
     if (targets.size() % 3 != 0) {
       throw new IllegalArgumentException(
-          "targets should be a list of triplets of numbers; wrong size is %d".formatted(targets.size()));
+          "targets should be a list of triplets of numbers; wrong size is %d".formatted(targets.size())
+      );
     }
     return new GaussianMixture2D(
         IntStream.range(0, targets.size() / 3)
             .mapToObj(i -> Map.entry(targets.subList(i * 3, i * 3 + 2), targets.get(i * 3 + 2)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-        c);
+        c
+    );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Text grammarText(
+      @Param(value = "name", iS = "s({target})") String name,
+      @Param(value = "target", dS = "The white dog!") String target
+  ) throws IOException {
+    return new Text(target);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static HighConditionedElliptic highConditionedElliptic(
       @Param(value = "name", iS = "highConditionedElliptic-{p}") String name,
-      @Param(value = "p", dI = 100) int p) {
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new HighConditionedElliptic(p);
   }
 
@@ -125,15 +144,70 @@ public class SyntheticProblems {
   public static IntOneMax intOneMax(
       @Param(value = "name", iS = "iOneMax-{p}") String name,
       @Param(value = "p", dI = 100) int p,
-      @Param(value = "upperBound", dI = 100) int upperBound) {
+      @Param(value = "upperBound", dI = 100) int upperBound
+  ) {
     return new IntOneMax(p, upperBound);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static LettersMax lettersMax(
+      @Param(value = "name", iS = "lettersMax-{l}-{letters}") String name,
+      @Param("letters") List<String> letters,
+      @Param(value = "l", dI = 32) int l
+  ) {
+    return new LettersMax(
+        new LinkedHashSet<>(letters),
+        l
+    );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static LinearPoints linearPoints(
-      @Param(value = "name", iS = "lPoints-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "lPoints-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new LinearPoints(p);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  @Alias(
+      name = "mrCaStringMorphogenesis", passThroughParams = {@PassThroughParam(name = "s", value = "x", type = ParamMap.Type.STRING), @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT), @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
+      }, value = // spotless:off
+      """
+          mrCaMorphogenesis(
+            target = ea.misc.imgFromString(s = $s; w = $w; h = $h);
+            name = "ca-string"
+          )
+          """) // spotless:on
+  @Alias(
+      name = "mrCaNamedImageMorphogenesis", passThroughParams = {@PassThroughParam(name = "iName", type = ParamMap.Type.STRING), @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT), @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
+      }, value = // spotless:off
+      """
+          mrCaMorphogenesis(
+            target = ea.misc.imgByName(name = $iName; w = $w; h = $h);
+            name = "ca-nImg";
+            gray = false
+          )
+          """) // spotless:on
+  public static MRCAMorphogenesis mrCaMorphogenesis(
+      @Param(value = "name", iS = "ca-target-[{minConvergenceStep}-{maxConvergenceStep}]") String name,
+      @Param("target") BufferedImage target,
+      @Param(value = "gray", dB = true) boolean gray,
+      @Param(value = "fromStep", dI = 40) int fromStep,
+      @Param(value = "toStep", dI = 60) int toStep,
+      @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
+      @Param(value = "targetRange", dNPM = "m.range(min=0;max=1)") DoubleRange targetRange
+  ) {
+    return new MRCAMorphogenesis(
+        gray ? ImageUtils.toGrayGrid(target) : ImageUtils.toRGBGrid(target),
+        new IntRange(fromStep, toStep),
+        gray ? MRCAMorphogenesis.StateDistance.L1_1 : MRCAMorphogenesis.StateDistance.L1_3,
+        caStateRange,
+        targetRange
+    );
   }
 
   @SuppressWarnings("unused")
@@ -142,7 +216,8 @@ public class SyntheticProblems {
       @Param(value = "name", iS = "mmIOneMax-{p}-{nOfTargets}") String name,
       @Param(value = "p", dI = 100) int p,
       @Param(value = "upperBound", dI = 10) int upperBound,
-      @Param(value = "nOfTargets", dI = 3) int nOfTargets) {
+      @Param(value = "nOfTargets", dI = 3) int nOfTargets
+  ) {
     return new MultiModalIntOneMax(p, upperBound, nOfTargets);
   }
 
@@ -151,14 +226,17 @@ public class SyntheticProblems {
   public static MultiObjectiveIntOneMax multiObjectiveIntOneMax(
       @Param(value = "name", iS = "moIOneMax-{p}") String name,
       @Param(value = "p", dI = 100) int p,
-      @Param(value = "upperBound", dI = 3) int upperBound) {
+      @Param(value = "upperBound", dI = 3) int upperBound
+  ) {
     return new MultiObjectiveIntOneMax(p, upperBound);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static OneMax oneMax(
-      @Param(value = "name", iS = "oneMax-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "oneMax-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new OneMax(p);
   }
 
@@ -167,75 +245,48 @@ public class SyntheticProblems {
   public static PointsAiming pointAiming(
       @Param(value = "name", iS = "pointAiming-{p}") String name,
       @Param(value = "p", dI = 100) int p,
-      @Param(value = "target", dD = 1d) double target) {
+      @Param(value = "target", dD = 1d) double target
+  ) {
     return new PointsAiming(List.of(Collections.nCopies(p, target)));
   }
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static PointsAiming pointsAiming2D(
+      @Param(value = "name", iS = "pointsAiming") String name,
+      @Param(value = "targetY", dD = 2d) double targetY,
+      @Param(
+          value = "targetXs", dDs = {-2d, 2d}) List<Double> targetXs
+  ) {
+    return new PointsAiming(
+        targetXs.stream().map(targetX -> List.of(targetX, targetY)).toList()
+    );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Rastrigin rastrigin(
-      @Param(value = "name", iS = "rastrigin-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "rastrigin-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new Rastrigin(p);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static Rosenbrock rosenbrock(
-      @Param(value = "name", iS = "rosenbrock-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "rosenbrock-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new Rosenbrock(p);
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static Sphere sphere(
-      @Param(value = "name", iS = "sphere-{p}") String name, @Param(value = "p", dI = 100) int p) {
+      @Param(value = "name", iS = "sphere-{p}") String name,
+      @Param(value = "p", dI = 100) int p
+  ) {
     return new Sphere(p);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  @Alias(
-      name = "mrCaStringMorphogenesis",
-      passThroughParams = {
-        @PassThroughParam(name = "s", value = "x", type = ParamMap.Type.STRING),
-        @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT),
-        @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
-      },
-      value = // spotless:off
-          """
-              mrCaMorphogenesis(
-                target = ea.misc.imgFromString(s = $s; w = $w; h = $h);
-                name = "ca-string"
-              )
-              """) // spotless:on
-  @Alias(
-      name = "mrCaNamedImageMorphogenesis",
-      passThroughParams = {
-        @PassThroughParam(name = "iName", type = ParamMap.Type.STRING),
-        @PassThroughParam(name = "w", value = "15", type = ParamMap.Type.INT),
-        @PassThroughParam(name = "h", value = "15", type = ParamMap.Type.INT)
-      },
-      value = // spotless:off
-          """
-              mrCaMorphogenesis(
-                target = ea.misc.imgByName(name = $iName; w = $w; h = $h);
-                name = "ca-nImg";
-                gray = false
-              )
-              """) // spotless:on
-  public static MRCAMorphogenesis mrCaMorphogenesis(
-      @Param(value = "name", iS = "ca-target-[{minConvergenceStep}-{maxConvergenceStep}]") String name,
-      @Param("target") BufferedImage target,
-      @Param(value = "gray", dB = true) boolean gray,
-      @Param(value = "fromStep", dI = 40) int fromStep,
-      @Param(value = "toStep", dI = 60) int toStep,
-      @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
-      @Param(value = "targetRange", dNPM = "m.range(min=0;max=1)") DoubleRange targetRange) {
-    return new MRCAMorphogenesis(
-        gray ? ImageUtils.toGrayGrid(target) : ImageUtils.toRGBGrid(target),
-        new IntRange(fromStep, toStep),
-        gray ? MRCAMorphogenesis.StateDistance.L1_1 : MRCAMorphogenesis.StateDistance.L1_3,
-        caStateRange,
-        targetRange);
   }
 }

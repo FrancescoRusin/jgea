@@ -21,5 +21,10 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
+import java.util.Optional;
 
-public interface Problem<S> extends PartialComparator<S> {}
+public interface Problem<S> extends PartialComparator<S> {
+  default Optional<S> example() {
+    return Optional.empty();
+  }
+}

@@ -28,7 +28,8 @@ public class BitStringHamming implements Distance<BitString> {
   public Double apply(BitString b1, BitString b2) {
     if (b1.size() != b2.size()) {
       throw new IllegalArgumentException(
-          String.format("Sequences size should be the same (%d vs. %d)", b1.size(), b2.size()));
+          String.format("Sequences size should be the same (%d vs. %d)", b1.size(), b2.size())
+      );
     }
     int s = 0;
     for (int i = 0; i < b1.size(); i++) {

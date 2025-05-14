@@ -29,8 +29,7 @@ import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.*;
 import java.util.function.Function;
 
-public class KLandscapes
-    implements GrammarBasedProblem<String, Tree<String>>, ComparableQualityBasedProblem<Tree<String>, Double> {
+public class KLandscapes implements GrammarBasedProblem<String, Tree<String>>, ComparableQualityBasedProblem<Tree<String>, Double> {
 
   private static final int ARITY = 2;
   private static final DoubleRange V_RANGE = DoubleRange.SYMMETRIC_UNIT;
@@ -145,7 +144,11 @@ public class KLandscapes
   }
 
   protected static double maxFK(
-      Tree<String> tree, int k, Map<String, Double> v, Map<Pair<String, String>, Double> w) {
+      Tree<String> tree,
+      int k,
+      Map<String, Double> v,
+      Map<Pair<String, String>, Double> w
+  ) {
     double max = fK(tree, k, v, w);
     for (Tree<String> child : tree) {
       max = Math.max(max, maxFK(child, k, v, w));
@@ -159,7 +162,8 @@ public class KLandscapes
       int nNonTerminals,
       int arity,
       Map<String, Double> v,
-      Map<Pair<String, String>, Double> w) {
+      Map<Pair<String, String>, Double> w
+  ) {
     Tree<String> optimum = null;
     double maxFitness = Double.NEGATIVE_INFINITY;
     for (int d = 1; d <= k + 1; d++) {
@@ -223,12 +227,12 @@ public class KLandscapes
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, Tree<String>> getSolutionMapper() {
+  public Function<Tree<String>, Tree<String>> solutionMapper() {
     return solutionMapper;
   }
 

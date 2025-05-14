@@ -28,10 +28,10 @@ import java.time.temporal.ChronoUnit;
 
 public record EtaCell(LocalDateTime startlocalDateTime, Progress progress) implements Cell {
 
-  private static final DateTimeFormatter SAME_DAY_DATETIME_FORMAT =
-      DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
-  private static final DateTimeFormatter COMPLETE_DATETIME_FORMAT =
-      DateTimeFormatter.ofPattern("MM-dd HH:mm").withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter SAME_DAY_DATETIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
+      .withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter COMPLETE_DATETIME_FORMAT = DateTimeFormatter.ofPattern("MM-dd HH:mm")
+      .withZone(ZoneId.systemDefault());
 
   @Override
   public void draw(TuiDrawer td, int width) {

@@ -50,7 +50,8 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
       int n,
       int maxMappingDepth,
       List<Property> properties,
-      long seed) {
+      long seed
+  ) {
     this.problems = problems;
     this.maxMappingDepth = maxMappingDepth;
     this.properties = properties;
@@ -71,9 +72,7 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
   }
 
   public enum Property {
-    DEGENERACY,
-    NON_UNIFORMITY,
-    NON_LOCALITY
+    DEGENERACY, NON_UNIFORMITY, NON_LOCALITY
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -93,10 +92,12 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
       }
     }
     return valuesLists.stream()
-        .map(valuesList -> valuesList.stream()
-            .mapToDouble(Double::doubleValue)
-            .average()
-            .orElse(Double.NaN))
+        .map(
+            valuesList -> valuesList.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(Double.NaN)
+        )
         .toList();
   }
 
@@ -107,11 +108,12 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
         pair.second(),
         maxMappingDepth,
         EXPRESSIVENESS_DEPTH,
-        problem.getProblem().getGrammar());
+        problem.problem().grammar()
+    );
     // map
     List<S> solutions = genotypes.stream()
         .map(recursiveMapper)
-        .map(t -> problem.getProblem().getSolutionMapper().apply(t))
+        .map(t -> problem.problem().solutionMapper().apply(t))
         .toList();
     Multiset<S> multiset = new LinkedHashMultiset<>(solutions);
     multiset.addAll(solutions);
@@ -121,14 +123,17 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
       if (property.equals(Property.DEGENERACY)) {
         values.add(1d - (double) multiset.elementSet().size() / (double) genotypes.size());
       } else if (property.equals(Property.NON_UNIFORMITY)) {
-        double[] sizes = multiset.elementSet().stream()
+        double[] sizes = multiset.elementSet()
+            .stream()
             .mapToDouble(multiset::count)
             .toArray();
         values.add(Math.sqrt(StatUtils.variance(sizes)) / StatUtils.mean(sizes));
       } else if (property.equals(Property.NON_LOCALITY)) {
-        double[] solutionDistances = computeDistances(solutions, problem.getDistance());
-        double locality =
-            1d - (1d + (new PearsonsCorrelation().correlation(genotypeDistances, solutionDistances))) / 2d;
+        double[] solutionDistances = computeDistances(solutions, problem.distance());
+        double locality = 1d - (1d + (new PearsonsCorrelation().correlation(
+            genotypeDistances,
+            solutionDistances
+        ))) / 2d;
         values.add(Double.isNaN(locality) ? 1d : locality);
       } else {
         values.add(0d);
@@ -150,11 +155,15 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
   }
 
   private List<BitString> consecutiveMutations(
-      BitString g, int n, GeneticOperator<BitString> mutation, Random random) {
+      BitString g,
+      int n,
+      GeneticOperator<BitString> mutation,
+      Random random
+  ) {
     Set<BitString> set = new LinkedHashSet<>();
     while (set.size() < n) {
       set.add(g);
-      g = mutation.apply(Collections.singletonList(g), random).get(0);
+      g = mutation.apply(Collections.singletonList(g), random).getFirst();
     }
     return new ArrayList<>(set);
   }

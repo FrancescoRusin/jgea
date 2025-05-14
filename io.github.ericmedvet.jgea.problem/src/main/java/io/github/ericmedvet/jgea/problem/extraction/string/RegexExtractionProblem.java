@@ -20,35 +20,81 @@
 
 package io.github.ericmedvet.jgea.problem.extraction.string;
 
-import io.github.ericmedvet.jgea.problem.extraction.ExtractionFitness;
+import io.github.ericmedvet.jgea.core.problem.TargetEBProblem;
+import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.extraction.ExtractionProblem;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class RegexExtractionProblem extends ExtractionProblem<Character> {
+public record RegexExtractionProblem(
+    List<Metric> metrics,
+    Function<? super List<Character>, ? extends Set<IntRange>> target,
+    IndexedProvider<List<Character>> inputProvider,
+    IndexedProvider<List<Character>> validationInputProvider
+) implements ExtractionProblem<Character>, TargetEBProblem<Extractor<Character>, List<Character>, Set<IntRange>, ExtractionProblem.Outcome, SequencedMap<String, Double>> {
 
-  private final Set<String> regexes;
-  private final String text;
+  private final static List<String> DEFAULT_REGEXES = List.of("000000", "111(00)?+(11)++", "(110110)++");
 
   public RegexExtractionProblem(
-      Set<String> regexes, String text, int folds, int i, ExtractionFitness.Metric... metrics) {
-    super(
-        regexes.stream().map(RegexBasedExtractor::new).collect(Collectors.toSet()),
-        text.chars().mapToObj(c -> (char) c).toList(),
-        folds,
-        i,
-        metrics);
-    this.regexes = regexes;
-    this.text = text;
+      List<Metric> metrics,
+      String regex,
+      IndexedProvider<String> inputProvider,
+      IndexedProvider<String> validationInputProvider
+  ) {
+    this(
+        metrics,
+        cs -> new RegexBasedExtractor(regex).extract(cs),
+        inputProvider.then(text -> text.chars().mapToObj(c -> (char) c).toList()),
+        validationInputProvider.then(text -> text.chars().mapToObj(c -> (char) c).toList())
+    );
+  }
+
+  public RegexExtractionProblem(
+      List<Metric> metrics,
+      int symbols,
+      int size,
+      long seed
+  ) {
+    this(
+        metrics,
+        DEFAULT_REGEXES.stream().map("(%s)"::formatted).collect(Collectors.joining("|")),
+        IndexedProvider.from(
+            List.of(
+                buildText(
+                    size,
+                    DEFAULT_REGEXES,
+                    "0123456789".substring(0, Math.min(symbols, 10)),
+                    100,
+                    new Random(seed)
+                )
+            )
+        ),
+        IndexedProvider.from(
+            List.of(
+                buildText(
+                    size,
+                    DEFAULT_REGEXES,
+                    "0123456789".substring(0, Math.min(symbols, 10)),
+                    100,
+                    new Random(seed + 1)
+                )
+            )
+        )
+    );
   }
 
   private static String buildText(
-      int minExtractionsPerRegex, List<String> regexes, String alphabet, int chunkSize, Random random) {
+      int minExtractionsPerRegex,
+      List<String> regexes,
+      String alphabet,
+      int chunkSize,
+      Random random
+  ) {
     StringBuilder sb = new StringBuilder();
     while (true) {
       int initialLength = sb.length();
@@ -72,20 +118,5 @@ public class RegexExtractionProblem extends ExtractionProblem<Character> {
         return sb.toString();
       }
     }
-  }
-
-  public static RegexExtractionProblem varAlphabet(
-      int symbols, int size, long seed, ExtractionFitness.Metric... metrics) {
-    List<String> regexes = List.of("000000", "111(00)?+(11)++", "(110110)++");
-    String text = buildText(size, regexes, "0123456789".substring(0, Math.min(symbols, 10)), 100, new Random(seed));
-    return new RegexExtractionProblem(new LinkedHashSet<>(regexes), text, 5, (int) seed % (size / 3), metrics);
-  }
-
-  public Set<String> getRegexes() {
-    return regexes;
-  }
-
-  public String getText() {
-    return text;
   }
 }

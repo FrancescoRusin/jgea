@@ -22,7 +22,8 @@ package io.github.ericmedvet.jgea.core.representation.tree;
 
 public class TreeUtils {
 
-  private TreeUtils() {}
+  private TreeUtils() {
+  }
 
   public static <N> Tree<N> replaceAll(Tree<N> t, Tree<N> oldT, Tree<N> newT) {
     if (t.equals(oldT)) {

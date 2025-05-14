@@ -40,15 +40,18 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
       NamedMultivariateRealFunction updateFunction,
       double additiveCoefficient,
       double alivenessThreshold,
-      boolean torodial) {
+      boolean torodial
+  ) {
     super(
         initialStates,
         radiusFromKernels(convolutionKernels),
         updateFunction(additiveCoefficient, alivenessThreshold, convolutionKernels, updateFunction, stateRange),
         torodial,
-        Collections.nCopies(initialStates.get(0, 0).length, stateRange.min()).stream()
+        Collections.nCopies(initialStates.get(0, 0).length, stateRange.min())
+            .stream()
             .mapToDouble(v -> v)
-            .toArray());
+            .toArray()
+    );
   }
 
   private static Function<Grid<double[]>, double[]> updateFunction(
@@ -56,7 +59,8 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
       double alivenessThreshold,
       List<Grid<Double>> kernels,
       MultivariateRealFunction updateFunction,
-      DoubleRange stateRange) {
+      DoubleRange stateRange
+  ) {
     Function<Grid<double[]>, double[]> preF = convolutions(kernels).andThen(concatenator());
     return g -> {
       // check for aliveness
@@ -85,8 +89,7 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
         a[0] = range.max();
       }
       return a;
-    }))),
-    CENTER_ALL(((w, h, nOfChannels, range) -> Grid.create(w, h, (x, y) -> {
+    }))), CENTER_ALL(((w, h, nOfChannels, range) -> Grid.create(w, h, (x, y) -> {
       double[] a = new double[nOfChannels];
       if ((x == w / 2) && (y == h / 2)) {
         Arrays.fill(a, range.max());
@@ -95,6 +98,7 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
       }
       return a;
     })));
+
     private final StateInitializer initializer;
 
     Initializer(StateInitializer initializer) {
@@ -108,12 +112,15 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
   }
 
   public enum Kernel implements Supplier<List<Grid<Double>>> {
-    SUM(List.of(Grid.create(3, 3, 1d / 9d))),
-    IDENTITY(List.of(Grid.create(3, 3, List.of(0d, 0d, 0d, 0d, 1d, 0d, 0d, 0d, 0d)))),
-    LAPLACIAN(List.of(Grid.create(3, 3, List.of(0d, 1d, 0d, 1d, -4d, 1d, 0d, 1d, 0d)))),
-    SOBEL_EDGES(List.of(
-        Grid.create(3, 3, List.of(-1d, 0d, +1d, -2d, 0d, +2d, -1d, 0d, +1d)),
-        Grid.create(3, 3, List.of(-1d, -2d, -1d, 0d, 0d, 0d, +1d, +2d, +1d))));
+    SUM(List.of(Grid.create(3, 3, 1d / 9d))), IDENTITY(
+        List.of(Grid.create(3, 3, List.of(0d, 0d, 0d, 0d, 1d, 0d, 0d, 0d, 0d)))
+    ), LAPLACIAN(List.of(Grid.create(3, 3, List.of(0d, 1d, 0d, 1d, -4d, 1d, 0d, 1d, 0d)))), SOBEL_EDGES(
+        List.of(
+            Grid.create(3, 3, List.of(-1d, 0d, +1d, -2d, 0d, +2d, -1d, 0d, +1d)),
+            Grid.create(3, 3, List.of(-1d, -2d, -1d, 0d, 0d, 0d, +1d, +2d, +1d))
+        )
+    );
+
     private final List<Grid<Double>> kernels;
 
     Kernel(List<Grid<Double>> kernels) {
@@ -145,8 +152,10 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
   private static Function<Grid<double[]>, double[]> convolution(Grid<Double> kernel) {
     return g -> {
       if (g.w() != kernel.w() || g.h() != kernel.h()) {
-        throw new IllegalArgumentException("Kernel and input sizes do not match: (%dx%d) vs. (%dx%d)"
-            .formatted(kernel.w(), kernel.h(), g.w(), g.h()));
+        throw new IllegalArgumentException(
+            "Kernel and input sizes do not match: (%dx%d) vs. (%dx%d)"
+                .formatted(kernel.w(), kernel.h(), g.w(), g.h())
+        );
       }
       double[] out = new double[g.get(0, 0).length];
       kernel.entries().forEach(e -> {
@@ -169,13 +178,17 @@ public class MultivariateRealGridCellularAutomaton extends GridCellularAutomaton
     List<Integer> ws = kernels.stream().map(Grid::w).distinct().toList();
     List<Integer> hs = kernels.stream().map(Grid::h).distinct().toList();
     if (ws.size() != 1 || hs.size() != 1) {
-      throw new IllegalArgumentException("Kernels are unconsistent in size: %s"
-          .formatted(kernels.stream()
-              .map(k -> "(%dx%d)".formatted(k.w(), k.h()))
-              .collect(Collectors.joining(" "))));
+      throw new IllegalArgumentException(
+          "Kernels are unconsistent in size: %s"
+              .formatted(
+                  kernels.stream()
+                      .map(k -> "(%dx%d)".formatted(k.w(), k.h()))
+                      .collect(Collectors.joining(" "))
+              )
+      );
     }
-    int w = ws.get(0);
-    int h = hs.get(0);
+    int w = ws.getFirst();
+    int h = hs.getFirst();
     if (w != h) {
       throw new IllegalArgumentException("Kernels are not squares: %dx%d".formatted(w, h));
     }

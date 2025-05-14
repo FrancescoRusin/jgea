@@ -30,14 +30,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q>>
-    extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
+public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q>> extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
   Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies();
 
   static <G, S, Q, P extends QualityBasedProblem<S, Q>> SpeciatedPOCPopulationState<G, S, Q, P> empty(
-      P problem, Predicate<State<?, ?>> stopCondition) {
+      P problem,
+      Predicate<State<?, ?>> stopCondition
+  ) {
     return of(
-        LocalDateTime.now(), 0, 0, problem, stopCondition, 0, 0, PartiallyOrderedCollection.from(), List.of());
+        LocalDateTime.now(),
+        0,
+        0,
+        problem,
+        stopCondition,
+        0,
+        0,
+        PartiallyOrderedCollection.from(),
+        List.of()
+    );
   }
 
   static <G, S, Q, P extends QualityBasedProblem<S, Q>> SpeciatedPOCPopulationState<G, S, Q, P> of(
@@ -49,7 +59,8 @@ public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProb
       long nOfBirths,
       long nOfQualityEvaluations,
       PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
-      Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies) {
+      Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies
+  ) {
     record HardState<G, S, Q, P extends QualityBasedProblem<S, Q>>(
         LocalDateTime startingDateTime,
         long elapsedMillis,
@@ -59,8 +70,8 @@ public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProb
         long nOfBirths,
         long nOfQualityEvaluations,
         PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
-        Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies)
-        implements SpeciatedPOCPopulationState<G, S, Q, P> {}
+        Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies
+    ) implements SpeciatedPOCPopulationState<G, S, Q, P> {}
     return new HardState<>(
         startingDateTime,
         elapsedMillis,
@@ -70,14 +81,16 @@ public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProb
         nOfBirths,
         nOfQualityEvaluations,
         pocPopulation,
-        parentSpecies);
+        parentSpecies
+    );
   }
 
   default SpeciatedPOCPopulationState<G, S, Q, P> updatedWithIteration(
       long nOfNewBirths,
       long nOfNewQualityEvaluations,
       PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
-      Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies) {
+      Collection<SpeciatedEvolver.Species<Individual<G, S, Q>>> parentSpecies
+  ) {
     return of(
         startingDateTime(),
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
@@ -87,7 +100,8 @@ public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProb
         nOfBirths() + nOfNewBirths,
         nOfQualityEvaluations() + nOfNewQualityEvaluations,
         pocPopulation,
-        parentSpecies);
+        parentSpecies
+    );
   }
 
   @Override
@@ -101,6 +115,7 @@ public interface SpeciatedPOCPopulationState<G, S, Q, P extends QualityBasedProb
         nOfBirths(),
         nOfQualityEvaluations(),
         pocPopulation(),
-        parentSpecies());
+        parentSpecies()
+    );
   }
 }

@@ -18,10 +18,9 @@
  * =========================LICENSE_END==================================
  */
 module io.github.ericmedvet.jgea.experimenter {
-  opens io.github.ericmedvet.jgea.experimenter.builders to
-      io.github.ericmedvet.jnb.core;
-  opens io.github.ericmedvet.jgea.experimenter.listener.net to
-      jcommander;
+  opens io.github.ericmedvet.jgea.experimenter.builders to io.github.ericmedvet.jnb.core;
+  opens io.github.ericmedvet.jgea.experimenter.listener.net to jcommander;
+  opens io.github.ericmedvet.jgea.experimenter.drawer to io.github.ericmedvet.jgea.core;
 
   exports io.github.ericmedvet.jgea.experimenter;
   exports io.github.ericmedvet.jgea.experimenter.listener;

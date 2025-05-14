@@ -33,7 +33,8 @@ public class GrowTreeBuilder<N> implements TreeBuilder<N> {
   public GrowTreeBuilder(
       ToIntFunction<N> arityFunction,
       IndependentFactory<N> nonTerminalFactory,
-      IndependentFactory<N> terminalFactory) {
+      IndependentFactory<N> terminalFactory
+  ) {
     this.arityFunction = arityFunction;
     this.nonTerminalFactory = nonTerminalFactory;
     this.terminalFactory = terminalFactory;

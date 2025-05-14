@@ -17,61 +17,80 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
-import io.github.ericmedvet.jgea.problem.DataUtils;
-import io.github.ericmedvet.jnb.datastructure.Pair;
-import java.util.ArrayList;
+import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import java.util.List;
+import java.util.SequencedMap;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class ClassificationProblem<O, L extends Enum<L>>
-    implements ProblemWithValidation<Classifier<O, L>, List<Double>> {
+public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOProblem<Classifier<X, Y>, X, Y, ClassificationProblem.Outcome<Y>, Double> {
+  record Outcome<Y>(Y actual, Y predicted) {}
 
-  // TODO fix this: currently, it enforces just one objective/metric
-  private static final PartialComparator<List<Double>> COMPARATOR = ParetoDominance.build(Double.class, 1);
+  enum Metric implements Function<List<? extends Outcome<?>>, Double> {
+    ERROR_RATE(
+        outcomes -> (double) outcomes.stream()
+            .filter(o -> !o.actual().equals(o.predicted()))
+            .count() / (double) outcomes.size()
+    ), WEIGHTED_ERROR_RATE(
+        outcomes -> {
+          Set<?> ys = outcomes.stream().map(Outcome::actual).collect(Collectors.toSet());
+          return ys.stream()
+              .mapToDouble(
+                  y -> ERROR_RATE.function.apply(
+                      outcomes.stream()
+                          .filter(o -> o.actual().equals(y))
+                          .toList()
+                  )
+              )
+              .average()
+              .orElseThrow();
+        }
+    );
 
-  private final ClassificationFitness<O, L> fitnessFunction;
-  private final ClassificationFitness<O, L> validationFunction;
-  private final List<Pair<O, L>> learningData;
-  private final List<Pair<O, L>> validationData;
+    private final Function<List<? extends Outcome<?>>, Double> function;
 
-  public ClassificationProblem(
-      List<Pair<O, L>> data,
-      int folds,
-      int i,
-      ClassificationFitness.Metric learningMetric,
-      ClassificationFitness.Metric validationMetric) {
-    validationData = DataUtils.fold(data, i, folds);
-    learningData = new ArrayList<>(data);
-    learningData.removeAll(validationData);
-    fitnessFunction = new ClassificationFitness<>(learningData, learningMetric);
-    validationFunction = new ClassificationFitness<>(validationData, validationMetric);
+
+    Metric(Function<List<? extends Outcome<?>>, Double> function) {
+      this.function = function;
+    }
+
+    @Override
+    public Double apply(List<? extends Outcome<?>> outcomes) {
+      return function.apply(outcomes);
+    }
+
+    @Override
+    public String toString() {
+      return name().toLowerCase();
+    }
   }
 
-  public List<Pair<O, L>> getLearningData() {
-    return learningData;
-  }
+  List<Metric> metrics();
 
-  public List<Pair<O, L>> getValidationData() {
-    return validationData;
+  @Override
+  default SequencedMap<String, Objective<List<Outcome<Y>>, Double>> aggregateObjectives() {
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Metric::toString,
+                m -> new Objective<>(m, Double::compareTo)
+            )
+        );
   }
 
   @Override
-  public PartialComparator<List<Double>> qualityComparator() {
-    return COMPARATOR;
+  default TriFunction<X, Y, Y, Outcome<Y>> errorFunction() {
+    return (x, actual, predicted) -> new Outcome<>(actual, predicted);
   }
 
   @Override
-  public ClassificationFitness<O, L> qualityFunction() {
-    return fitnessFunction;
-  }
-
-  @Override
-  public ClassificationFitness<O, L> validationQualityFunction() {
-    return validationFunction;
+  default BiFunction<Classifier<X, Y>, X, Y> predictFunction() {
+    return Classifier::classify;
   }
 }

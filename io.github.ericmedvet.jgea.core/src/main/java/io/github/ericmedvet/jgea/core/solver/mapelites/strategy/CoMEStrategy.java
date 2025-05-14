@@ -22,21 +22,22 @@ package io.github.ericmedvet.jgea.core.solver.mapelites.strategy;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public interface CoMEStrategy {
 
   enum Prepared implements Supplier<CoMEStrategy> {
-    IDENTITY(() -> tc -> tc),
-    CENTRAL(() -> tc -> Collections.nCopies(tc.size(), 0.5d)),
-    GLOBAL_BEST(GlobalBest::new),
-    LOCAL_BEST(LocalBest::new);
+    RANDOM(() -> {
+      RandomGenerator rg = new Random(0);
+      return tc -> IntStream.range(0, tc.size()).mapToObj(i -> rg.nextDouble()).toList();
+    }), CENTRAL(() -> tc -> Collections.nCopies(tc.size(), 0.5d)), IDENTITY(() -> tc -> tc), GLOBAL_BEST(
+        GlobalBest::new
+    ), LOCAL_BEST(LocalBest::new), SMOOTHED_LOCAL_BEST(() -> new SmoothedLocalBest(0.1));
+
     private final Supplier<CoMEStrategy> supplier;
 
     Prepared(Supplier<CoMEStrategy> supplier) {
@@ -54,9 +55,15 @@ public interface CoMEStrategy {
   List<Double> getOtherCoords(List<Double> theseCoords);
 
   default Map<List<Double>, List<Double>> asField(List<Integer> counts, boolean relative) {
-    return Misc.cartesian(counts.stream()
-            .map(c -> DoubleRange.UNIT.points(c).boxed().toList())
-            .toList())
+    return Misc.cartesian(
+        counts.stream()
+            .map(
+                c -> IntStream.range(0, c)
+                    .mapToObj(i -> new DoubleRange(0, c - 1).normalize(i))
+                    .toList()
+            )
+            .toList()
+    )
         .stream()
         .collect(Collectors.toMap(tc -> tc, tc -> {
           List<Double> oc = getOtherCoords(tc);
@@ -69,5 +76,6 @@ public interface CoMEStrategy {
         }));
   }
 
-  default <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {}
+  default <Q> void update(Collection<Observation<Q>> newObservations, PartialComparator<Q> qComparator) {
+  }
 }

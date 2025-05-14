@@ -21,13 +21,12 @@
 package io.github.ericmedvet.jgea.problem.synthetic;
 
 import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.function.Function;
 
-public class IntOneMax
-    implements ComparableQualityBasedProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
+public class IntOneMax implements ComparableQualityBasedProblem<IntString, Double> {
 
   private final int p;
   private final int upperBound;
@@ -45,8 +44,8 @@ public class IntOneMax
   }
 
   @Override
-  public IntString example() {
-    return new IntString(Collections.nCopies(p, 0), 0, upperBound);
+  public Optional<IntString> example() {
+    return Optional.of(new IntString(Collections.nCopies(p, 0), 0, upperBound));
   }
 
   @Override

@@ -58,9 +58,8 @@ public interface InvertibleMapper<T, R> {
             .mapperFor(q)
             .apply(thisMapper.mapperFor(otherMapper.exampleFor(q)).apply(t)),
         q -> thisMapper.exampleFor(otherMapper.exampleFor(q)),
-        toString() == null || toString().isEmpty()
-            ? otherMapper.toString()
-            : (this + "→" + otherMapper.toString()));
+        toString() == null || toString().isEmpty() ? otherMapper.toString() : (this + "→" + otherMapper.toString())
+    );
   }
 
   default <Q> InvertibleMapper<Q, R> compose(InvertibleMapper<Q, T> otherMapper) {

@@ -203,7 +203,10 @@ public class GrammarUtils {
       map.put(
           t,
           new Pair<>(
-              (double) minDepths.get(t).first(), maxDepths.get(t).first()));
+              (double) minDepths.get(t).first(),
+              maxDepths.get(t).first()
+          )
+      );
     }
     return map;
   }

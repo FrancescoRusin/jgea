@@ -37,7 +37,8 @@ public class TreeIndependentFactory<N> implements IndependentFactory<Tree<N>> {
       ToIntFunction<N> arityFunction,
       IndependentFactory<N> nonTerminalFactory,
       IndependentFactory<N> terminalFactory,
-      double pFull) {
+      double pFull
+  ) {
     this.minHeight = minHeight;
     this.maxHeight = maxHeight;
     fullTreeFactory = new FullTreeBuilder<>(arityFunction, nonTerminalFactory, terminalFactory);

@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver.es;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public interface CMAESIndividual<S, Q> extends Individual<List<Double>, S, Q> {
   double[] x();
@@ -40,7 +41,8 @@ public interface CMAESIndividual<S, Q> extends Individual<List<Double>, S, Q> {
       Collection<Long> parentIds,
       double[] x,
       double[] y,
-      double[] z) {
+      double[] z
+  ) {
     record HardIndividual<S, Q>(
         long id,
         List<Double> genotype,
@@ -51,9 +53,32 @@ public interface CMAESIndividual<S, Q> extends Individual<List<Double>, S, Q> {
         Collection<Long> parentIds,
         double[] x,
         double[] y,
-        double[] z)
-        implements CMAESIndividual<S, Q> {}
+        double[] z
+    ) implements CMAESIndividual<S, Q> {
+      @Override
+      public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+          return false;
+        HardIndividual<?, ?> that = (HardIndividual<?, ?>) o;
+        return id == that.id;
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hashCode(id);
+      }
+    }
     return new HardIndividual<>(
-        id, genotype, solution, quality, genotypeBirthIteration, qualityMappingIteration, parentIds, x, y, z);
+        id,
+        genotype,
+        solution,
+        quality,
+        genotypeBirthIteration,
+        qualityMappingIteration,
+        parentIds,
+        x,
+        y,
+        z
+    );
   }
 }

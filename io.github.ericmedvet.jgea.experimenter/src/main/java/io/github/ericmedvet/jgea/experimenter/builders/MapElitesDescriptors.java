@@ -28,7 +28,8 @@ import java.util.function.Function;
 
 @Discoverable(prefixTemplate = "ea.solver|s.mapelites|me.descriptor|d")
 public class MapElitesDescriptors {
-  private MapElitesDescriptors() {}
+  private MapElitesDescriptors() {
+  }
 
   @SuppressWarnings("unused")
   @Cacheable
@@ -36,7 +37,8 @@ public class MapElitesDescriptors {
       @Param("f") Function<Individual<G, S, Q>, Number> f,
       @Param(value = "min", dD = 0d) double min,
       @Param(value = "max", dD = 1d) double max,
-      @Param(value = "nOfBins", dI = 20) int nOfBins) {
+      @Param(value = "nOfBins", dI = 20) int nOfBins
+  ) {
     return new MapElites.Descriptor<>(f, min, max, nOfBins);
   }
 }

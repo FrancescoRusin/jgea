@@ -20,36 +20,47 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import java.util.Comparator;
-import java.util.List;
+import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class Cones
-    implements MultiHomogeneousObjectiveProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+public record Cones(
+    SequencedMap<String, Comparator<Double>> comparators,
+    Function<List<Double>, SequencedMap<String, Double>> qualityFunction,
+    Optional<List<Double>> example
+) implements SimpleMOProblem<List<Double>, Double> {
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    Comparator<Double> comparator = Double::compareTo;
-    return List.of(comparator, comparator, comparator.reversed());
-  }
+  private static final SequencedMap<String, Comparator<Double>> COMPARATORS = Stream.of(
+      Map.entry("lateralSurface", (Comparator<Double>) Double::compareTo),
+      Map.entry("totalSurface", (Comparator<Double>) Double::compareTo),
+      Map.entry("volume", ((Comparator<Double>) Double::compareTo).reversed())
+  )
+      .collect(
+          Misc.toSequencedMap(
+              Map.Entry::getKey,
+              Map.Entry::getValue
+          )
+      );
 
-  @Override
-  public List<Double> example() {
-    return List.of(0d, 0d);
-  }
-
-  @Override
-  public Function<List<Double>, List<Double>> qualityFunction() {
-    return list -> {
-      double r = list.get(0);
-      double h = list.get(1);
-      double s = Math.sqrt(r * r + h * h);
-      double lateralSurface = Math.PI * r * s;
-      double totalSurface = Math.PI * r * (r + s);
-      double volume = Math.PI * r * r * h / 3;
-      return List.of(lateralSurface, totalSurface, volume);
-    };
+  public Cones() {
+    this(
+        COMPARATORS,
+        vs -> {
+          double r = vs.get(0);
+          double h = vs.get(1);
+          double s = Math.sqrt(r * r + h * h);
+          double lateralSurface = Math.PI * r * s;
+          double totalSurface = Math.PI * r * (r + s);
+          double volume = Math.PI * r * r * h / 3;
+          return Stream.of(
+              Map.entry("lateralSurface", lateralSurface),
+              Map.entry("totalSurface", totalSurface),
+              Map.entry("volume", volume)
+          ).collect(Misc.toSequencedMap(Map.Entry::getKey, Map.Entry::getValue));
+        },
+        Optional.of(List.of(0d, 0d))
+    );
   }
 }

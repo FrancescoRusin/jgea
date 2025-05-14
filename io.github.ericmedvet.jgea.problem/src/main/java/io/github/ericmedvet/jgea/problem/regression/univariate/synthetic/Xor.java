@@ -20,24 +20,38 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 
-public class Xor extends SyntheticUnivariateRegressionProblem {
+public class Xor extends PrecomputedSyntheticURProblem {
 
-  public Xor(UnivariateRegressionFitness.Metric metric) {
+  public Xor(List<Metric> metrics) {
     super(
-        UnivariateRealFunction.from(
+        SyntheticURProblem.function(
             vs -> {
               double x1 = quantize(vs[0]);
               double x2 = quantize(vs[1]);
               return x1 == x2 ? 0 : 1;
             },
-            2),
-        List.of(new double[] {0d, 0d}, new double[] {0d, 1d}, new double[] {1d, 0d}, new double[] {1d, 1d}),
-        List.of(new double[] {0d, 0d}, new double[] {0d, 1d}, new double[] {1d, 0d}, new double[] {1d, 1d}),
-        metric);
+            2
+        ),
+        SyntheticURProblem.tupleProvider(
+            List.of(
+                new double[]{0d, 0d},
+                new double[]{0d, 1d},
+                new double[]{1d, 0d},
+                new double[]{1d, 1d}
+            )
+        ),
+        SyntheticURProblem.tupleProvider(
+            List.of(
+                new double[]{0d, 0d},
+                new double[]{0d, 1d},
+                new double[]{1d, 0d},
+                new double[]{1d, 1d}
+            )
+        ),
+        metrics
+    );
   }
 
   private static double quantize(double v) {

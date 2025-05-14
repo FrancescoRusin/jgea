@@ -26,7 +26,7 @@ import java.util.function.Function;
 
 public interface GrammarBasedProblem<N, S> extends Problem<S> {
 
-  StringGrammar<N> getGrammar();
+  StringGrammar<N> grammar();
 
-  Function<Tree<N>, S> getSolutionMapper();
+  Function<Tree<N>, S> solutionMapper();
 }

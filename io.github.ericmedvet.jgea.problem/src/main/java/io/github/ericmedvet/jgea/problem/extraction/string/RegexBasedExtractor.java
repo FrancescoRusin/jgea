@@ -75,8 +75,10 @@ public class RegexBasedExtractor implements Extractor<Character>, Sized {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     RegexBasedExtractor that = (RegexBasedExtractor) o;
     return regex.equals(that.regex);
   }

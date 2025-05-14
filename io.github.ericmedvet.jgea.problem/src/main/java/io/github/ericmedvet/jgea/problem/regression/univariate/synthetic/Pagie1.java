@@ -21,16 +21,20 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
+import java.util.List;
 
-public class Pagie1 extends SyntheticUnivariateRegressionProblem {
+public class Pagie1 extends PrecomputedSyntheticURProblem {
 
-  public Pagie1(UnivariateRegressionFitness.Metric metric) {
+  public Pagie1(List<Metric> metrics) {
     super(
-        UnivariateRealFunction.from(v -> 1d / (1d + Math.pow(v[0], -4d)) + 1d / (1d + Math.pow(v[1], -4d)), 2),
-        MathUtils.cartesian(MathUtils.equispacedValues(-5, 5, 0.4), MathUtils.equispacedValues(-5, 5, 0.4)),
-        MathUtils.cartesian(MathUtils.equispacedValues(-5, 5, 0.1), MathUtils.equispacedValues(-5, 5, 0.1)),
-        metric);
+        SyntheticURProblem.function(v -> 1d / (1d + Math.pow(v[0], -4d)) + 1d / (1d + Math.pow(v[1], -4d)), 2),
+        SyntheticURProblem.tupleProvider(
+            MathUtils.cartesian(MathUtils.equispacedValues(-5, 5, 0.4), MathUtils.equispacedValues(-5, 5, 0.4))
+        ),
+        SyntheticURProblem.tupleProvider(
+            MathUtils.cartesian(MathUtils.equispacedValues(-5, 5, 0.1), MathUtils.equispacedValues(-5, 5, 0.1))
+        ),
+        metrics
+    );
   }
 }

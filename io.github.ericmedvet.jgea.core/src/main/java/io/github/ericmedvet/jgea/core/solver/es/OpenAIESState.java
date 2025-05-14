@@ -31,9 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface OpenAIESState<S, Q>
-    extends ListPopulationState<
-        Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> {
+public interface OpenAIESState<S, Q> extends ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> {
 
   double[] center();
 
@@ -52,7 +50,8 @@ public interface OpenAIESState<S, Q>
       Collection<Individual<List<Double>, S, Q>> listPopulation,
       double[] center,
       double[] m,
-      double[] v) {
+      double[] v
+  ) {
     record HardState<S, Q>(
         LocalDateTime startingDateTime,
         long elapsedMillis,
@@ -65,12 +64,11 @@ public interface OpenAIESState<S, Q>
         List<Individual<List<Double>, S, Q>> listPopulation,
         double[] center,
         double[] m,
-        double[] v)
-        implements OpenAIESState<S, Q> {}
-    Comparator<Individual<List<Double>, S, Q>> comparator =
-        (i1, i2) -> problem.totalOrderComparator().compare(i1.quality(), i2.quality());
-    List<Individual<List<Double>, S, Q>> sortedListPopulation =
-        listPopulation.stream().sorted(comparator).toList();
+        double[] v
+    ) implements OpenAIESState<S, Q> {}
+    Comparator<Individual<List<Double>, S, Q>> comparator = (i1, i2) -> problem.totalOrderComparator()
+        .compare(i1.quality(), i2.quality());
+    List<Individual<List<Double>, S, Q>> sortedListPopulation = listPopulation.stream().sorted(comparator).toList();
     return new HardState<>(
         startingDateTime,
         elapsedMillis,
@@ -83,11 +81,15 @@ public interface OpenAIESState<S, Q>
         sortedListPopulation,
         center,
         m,
-        v);
+        v
+    );
   }
 
   static <S, Q> OpenAIESState<S, Q> empty(
-      TotalOrderQualityBasedProblem<S, Q> problem, Predicate<State<?, ?>> stopCondition, double[] center) {
+      TotalOrderQualityBasedProblem<S, Q> problem,
+      Predicate<State<?, ?>> stopCondition,
+      double[] center
+  ) {
     return of(
         LocalDateTime.now(),
         0,
@@ -99,11 +101,16 @@ public interface OpenAIESState<S, Q>
         List.of(),
         center,
         new double[center.length],
-        new double[center.length]);
+        new double[center.length]
+    );
   }
 
   default OpenAIESState<S, Q> updatedWithIteration(
-      Collection<Individual<List<Double>, S, Q>> listPopulation, double[] center, double[] m, double[] v) {
+      Collection<Individual<List<Double>, S, Q>> listPopulation,
+      double[] center,
+      double[] m,
+      double[] v
+  ) {
     return of(
         startingDateTime(),
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
@@ -115,7 +122,8 @@ public interface OpenAIESState<S, Q>
         listPopulation,
         center,
         m,
-        v);
+        v
+    );
   }
 
   @Override
@@ -131,6 +139,7 @@ public interface OpenAIESState<S, Q>
         listPopulation(),
         center(),
         m(),
-        v());
+        v()
+    );
   }
 }

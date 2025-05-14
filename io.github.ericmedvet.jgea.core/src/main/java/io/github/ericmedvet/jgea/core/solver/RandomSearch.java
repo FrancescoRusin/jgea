@@ -21,7 +21,9 @@
 package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -30,10 +32,17 @@ public class RandomSearch<G, S, Q> extends RandomWalk<G, S, Q> {
   public RandomSearch(
       Function<? super G, ? extends S> solutionMapper,
       Factory<? extends G> genotypeFactory,
-      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>>
-          stopCondition) {
-    super(solutionMapper, genotypeFactory, stopCondition, (g, random) -> genotypeFactory
-        .build(1, random)
-        .get(0));
+      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>> stopCondition,
+      List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
+  ) {
+    super(
+        solutionMapper,
+        genotypeFactory,
+        stopCondition,
+        (g, random) -> genotypeFactory
+            .build(1, random)
+            .getFirst(),
+        additionalIndividualComparators
+    );
   }
 }

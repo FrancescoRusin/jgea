@@ -20,43 +20,45 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic;
 
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
+import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public class MultiObjectiveIntOneMax
-    implements MultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
-  private final int p;
-  private final int upperBound;
+public record MultiObjectiveIntOneMax(
+    SequencedMap<String, Comparator<Double>> comparators,
+    Function<IntString, SequencedMap<String, Double>> qualityFunction,
+    Optional<IntString> example
+) implements SimpleMOProblem<IntString, Double> {
 
   public MultiObjectiveIntOneMax(int p, int upperBound) {
-    this.p = p;
-    this.upperBound = upperBound;
+    this(
+        IntStream.range(1, upperBound)
+            .boxed()
+            .collect(
+                Misc.toSequencedMap(
+                    MultiObjectiveIntOneMax::objectiveName,
+                    i -> Double::compareTo
+                )
+            ),
+        is -> IntStream.range(1, upperBound)
+            .boxed()
+            .collect(
+                Misc.toSequencedMap(
+                    MultiObjectiveIntOneMax::objectiveName,
+                    i -> 1d - (double) is.genes()
+                        .stream()
+                        .filter(gi -> gi.equals(i))
+                        .count() / (double) is.size()
+                )
+            ),
+        Optional.of(new IntString(Collections.nCopies(p, 0), 0, upperBound))
+    );
   }
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    return Collections.nCopies(upperBound - 1, Double::compareTo);
-  }
-
-  @Override
-  public IntString example() {
-    return new IntString(Collections.nCopies(p, 0), 0, upperBound);
-  }
-
-  @Override
-  public Function<IntString, List<Double>> qualityFunction() {
-    return is -> IntStream.range(1, upperBound)
-        .mapToObj(i -> 1d
-            - (double) is.genes().stream()
-                    .filter(gi -> gi.equals(i))
-                    .count()
-                / (double) is.size())
-        .toList();
+  private static String objectiveName(int i) {
+    return "obj%2d".formatted(i);
   }
 }

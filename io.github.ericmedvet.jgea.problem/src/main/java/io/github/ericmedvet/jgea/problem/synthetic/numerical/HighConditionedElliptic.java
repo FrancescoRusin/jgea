@@ -23,8 +23,11 @@ import java.util.stream.IntStream;
 
 public class HighConditionedElliptic extends AbstractNumericalProblem {
   public HighConditionedElliptic(int p) {
-    super(p, vs -> IntStream.range(0, p)
-        .mapToDouble(i -> vs.get(i) * vs.get(i) * Math.pow(1000000d, (double) i / (p - 1)))
-        .sum());
+    super(
+        p,
+        vs -> IntStream.range(0, p)
+            .mapToDouble(i -> vs.get(i) * vs.get(i) * Math.pow(1000000d, (double) i / (p - 1)))
+            .sum()
+    );
   }
 }

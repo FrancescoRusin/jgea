@@ -41,7 +41,8 @@ public class DeterministicFiniteAutomaton<S> implements Extractor<S>, Sized, Ser
   public DeterministicFiniteAutomaton(Graph<State, Set<S>> graph) {
     check(graph);
     this.graph = graph;
-    this.startingState = graph.nodes().stream()
+    this.startingState = graph.nodes()
+        .stream()
         .filter(s -> s.getIndex() == 0)
         .findFirst()
         .orElseThrow();
@@ -71,21 +72,29 @@ public class DeterministicFiniteAutomaton<S> implements Extractor<S>, Sized, Ser
 
   public static <K> void check(Graph<State, Set<K>> graph) {
     if (graph.nodes().stream().filter(s -> s.getIndex() == 0).count() != 1) {
-      throw new IllegalArgumentException(String.format(
-          "Invalid graph: wrong number of starting nodes: %d instead of 1",
-          graph.nodes().stream().filter(s -> s.getIndex() == 0).count()));
+      throw new IllegalArgumentException(
+          String.format(
+              "Invalid graph: wrong number of starting nodes: %d instead of 1",
+              graph.nodes().stream().filter(s -> s.getIndex() == 0).count()
+          )
+      );
     }
     for (State state : graph.nodes()) {
-      Set<Set<K>> outgoingArcValues = graph.arcs().stream()
+      Set<Set<K>> outgoingArcValues = graph.arcs()
+          .stream()
           .filter(a -> a.getSource().equals(state))
           .map(graph::getArcValue)
           .collect(Collectors.toSet());
       if (outgoingArcValues.size() > 1) {
-        Set<K> intersection =
-            outgoingArcValues.stream().reduce(Misc::intersection).orElse(new HashSet<>());
+        Set<K> intersection = outgoingArcValues.stream().reduce(Misc::intersection).orElse(new HashSet<>());
         if (!intersection.isEmpty()) {
-          throw new IllegalArgumentException(String.format(
-              "Invalid graph: state %s has one or more outgoing symbols " + "(%s)", state, intersection));
+          throw new IllegalArgumentException(
+              String.format(
+                  "Invalid graph: state %s has one or more outgoing symbols " + "(%s)",
+                  state,
+                  intersection
+              )
+          );
         }
       }
     }
@@ -164,15 +173,20 @@ public class DeterministicFiniteAutomaton<S> implements Extractor<S>, Sized, Ser
 
   @Override
   public String toString() {
-    return graph.arcs().stream()
-        .map(a -> String.format(
-            "%s-[%s]->%s",
-            a.getSource(),
-            graph.getArcValue(a).stream()
-                .sorted()
-                .map(Objects::toString)
-                .collect(Collectors.joining()),
-            a.getTarget()))
+    return graph.arcs()
+        .stream()
+        .map(
+            a -> String.format(
+                "%s-[%s]->%s",
+                a.getSource(),
+                graph.getArcValue(a)
+                    .stream()
+                    .sorted()
+                    .map(Objects::toString)
+                    .collect(Collectors.joining()),
+                a.getTarget()
+            )
+        )
         .collect(Collectors.joining(","));
   }
 }

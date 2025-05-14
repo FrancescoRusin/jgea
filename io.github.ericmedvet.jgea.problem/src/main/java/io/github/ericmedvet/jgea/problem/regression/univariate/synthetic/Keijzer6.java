@@ -21,14 +21,13 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
+import java.util.List;
 
-public class Keijzer6 extends SyntheticUnivariateRegressionProblem {
+public class Keijzer6 extends PrecomputedSyntheticURProblem {
 
-  public Keijzer6(UnivariateRegressionFitness.Metric metric) {
+  public Keijzer6(List<Metric> metrics) {
     super(
-        UnivariateRealFunction.from(
+        SyntheticURProblem.function(
             v -> {
               double s = 0d;
               for (double i = 1; i < v[0]; i++) {
@@ -36,9 +35,11 @@ public class Keijzer6 extends SyntheticUnivariateRegressionProblem {
               }
               return s;
             },
-            1),
-        MathUtils.pairwise(MathUtils.equispacedValues(1, 50, 1)),
-        MathUtils.pairwise(MathUtils.equispacedValues(1, 120, 1)),
-        metric);
+            1
+        ),
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.equispacedValues(1, 50, 1))),
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.equispacedValues(1, 120, 1))),
+        metrics
+    );
   }
 }

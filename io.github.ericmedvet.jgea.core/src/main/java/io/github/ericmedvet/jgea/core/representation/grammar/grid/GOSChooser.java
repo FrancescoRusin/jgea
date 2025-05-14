@@ -43,7 +43,10 @@ public class GOSChooser<S, O> implements Chooser<S, O> {
   }
 
   public static <T, D, O> Function<GrammarOptionString<T>, D> mapper(
-      Grammar<T, O> grammar, Developer<T, D, O> developer, D defaultDeveloped) {
+      Grammar<T, O> grammar,
+      Developer<T, D, O> developer,
+      D defaultDeveloped
+  ) {
     return gos -> {
       GOSChooser<T, O> chooser = new GOSChooser<>(gos, grammar);
       return developer.develop(chooser).orElse(defaultDeveloped);
@@ -53,7 +56,7 @@ public class GOSChooser<S, O> implements Chooser<S, O> {
   @Override
   public Optional<O> chooseFor(S s) {
     if (grammar.rules().get(s).size() == 1) {
-      return Optional.of(grammar.rules().get(s).get(0));
+      return Optional.of(grammar.rules().get(s).getFirst());
     }
     if (!gos.options().containsKey(s)) {
       throw new IllegalArgumentException("Invalid genotype, it does not contain symbol %s".formatted(s));

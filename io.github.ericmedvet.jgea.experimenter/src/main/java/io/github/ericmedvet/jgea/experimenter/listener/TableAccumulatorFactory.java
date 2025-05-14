@@ -35,15 +35,17 @@ public class TableAccumulatorFactory<E, V, R> implements AccumulatorFactory<E, T
   private final List<Function<? super R, ? extends V>> rFunctions;
 
   public TableAccumulatorFactory(
-      List<Function<? super E, ? extends V>> eFunctions, List<Function<? super R, ? extends V>> rFunctions) {
+      List<Function<? super E, ? extends V>> eFunctions,
+      List<Function<? super R, ? extends V>> rFunctions
+  ) {
     this.eFunctions = eFunctions;
     this.rFunctions = rFunctions;
   }
 
   @Override
   public Accumulator<E, Table<Integer, String, V>> build(R r) {
-    Map<String, ? extends V> kValues =
-        rFunctions.stream().collect(Collectors.toMap(NamedFunction::name, f -> f.apply(r)));
+    Map<String, ? extends V> kValues = rFunctions.stream()
+        .collect(Collectors.toMap(NamedFunction::name, f -> f.apply(r)));
     return new Accumulator<>() {
 
       private final Table<Integer, String, V> table = new HashMapTable<>();

@@ -27,10 +27,7 @@ import java.util.function.Function;
 public interface PartialComparator<K> {
 
   enum PartialComparatorOutcome {
-    BEFORE,
-    AFTER,
-    SAME,
-    NOT_COMPARABLE
+    BEFORE, AFTER, SAME, NOT_COMPARABLE
   }
 
   PartialComparatorOutcome compare(K k1, K k2);
@@ -67,7 +64,8 @@ public interface PartialComparator<K> {
       PartialComparatorOutcome outcome = thisPartialComparator.compare(o1, o2);
       if (outcome.equals(PartialComparatorOutcome.NOT_COMPARABLE)) {
         throw new IllegalArgumentException(
-            String.format("Cannot total order uncomparable items %s and %s", o1, o2));
+            String.format("Cannot total order uncomparable items %s and %s", o1, o2)
+        );
       }
       if (outcome.equals(PartialComparatorOutcome.BEFORE)) {
         return -1;
@@ -81,6 +79,10 @@ public interface PartialComparator<K> {
 
   default <C> PartialComparator<C> comparing(Function<? super C, ? extends K> function) {
     return (c1, c2) -> compare(function.apply(c1), function.apply(c2));
+  }
+
+  default <T> PartialComparator<T> on(Function<? super T, ? extends K> function) {
+    return (t1, t2) -> compare(function.apply(t1), function.apply(t2));
   }
 
   default PartialComparator<K> reversed() {

@@ -29,7 +29,8 @@ import java.util.stream.IntStream;
 
 public class VectorUtils {
 
-  private VectorUtils() {}
+  private VectorUtils() {
+  }
 
   public static List<Double> boxed(double[] v) {
     return Arrays.stream(v).boxed().toList();
@@ -65,46 +66,63 @@ public class VectorUtils {
 
   public static void checkLengths(double[]... vs) {
     if (Arrays.stream(vs).mapToInt(v -> v.length).distinct().count() != 1) {
-      throw new IllegalArgumentException("Wrong arg lengths: %s"
-          .formatted(Arrays.stream(vs)
-              .map(v -> Integer.toString(v.length))
-              .distinct()
-              .collect(Collectors.joining(", "))));
+      throw new IllegalArgumentException(
+          "Wrong arg lengths: %s"
+              .formatted(
+                  Arrays.stream(vs)
+                      .map(v -> Integer.toString(v.length))
+                      .distinct()
+                      .collect(Collectors.joining(", "))
+              )
+      );
     }
   }
 
   @SafeVarargs
   public static void checkLengths(List<Double>... vs) {
     if (Arrays.stream(vs).mapToInt(List::size).distinct().count() != 1) {
-      throw new IllegalArgumentException("Wrong arg lengths: %s"
-          .formatted(Arrays.stream(vs)
-              .map(v -> Integer.toString(v.size()))
-              .distinct()
-              .collect(Collectors.joining(", "))));
+      throw new IllegalArgumentException(
+          "Wrong arg lengths: %s"
+              .formatted(
+                  Arrays.stream(vs)
+                      .map(v -> Integer.toString(v.size()))
+                      .distinct()
+                      .collect(Collectors.joining(", "))
+              )
+      );
     }
   }
 
   public static void checkLengthsArray(Collection<double[]> vs) {
     if (vs.stream().map(v -> v.length).distinct().count() > 1) {
-      throw new IllegalStateException(String.format(
-          "Vector sizes not consistent: found different sizes %s",
-          vs.stream().map(v -> v.length).distinct().toList()));
+      throw new IllegalStateException(
+          String.format(
+              "Vector sizes not consistent: found different sizes %s",
+              vs.stream().map(v -> v.length).distinct().toList()
+          )
+      );
     }
   }
 
   public static void checkLengthsArray(double[][] vs) {
     if (Arrays.stream(vs).map(v -> v.length).distinct().count() > 1) {
-      throw new IllegalStateException(String.format(
-          "Vector sizes not consistent: found different sizes %s",
-          Arrays.stream(vs).map(v -> v.length).distinct().toList()));
+      throw new IllegalStateException(
+          String.format(
+              "Vector sizes not consistent: found different sizes %s",
+              Arrays.stream(vs).map(v -> v.length).distinct().toList()
+          )
+      );
     }
   }
 
   public static void checkLengthsList(Collection<List<Double>> vs) {
     if (vs.stream().map(List::size).distinct().count() > 1) {
-      throw new IllegalStateException(String.format(
-          "Vector sizes not consistent: found different sizes %s",
-          vs.stream().map(List::size).distinct().toList()));
+      throw new IllegalStateException(
+          String.format(
+              "Vector sizes not consistent: found different sizes %s",
+              vs.stream().map(List::size).distinct().toList()
+          )
+      );
     }
   }
 
@@ -289,10 +307,11 @@ public class VectorUtils {
   public static double[] weightedMeanArray(List<double[]> vs, double[] weights) {
     if (vs.size() != weights.length) {
       throw new IllegalArgumentException(
-          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.size(), weights.length));
+          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.size(), weights.length)
+      );
     }
     checkLengthsArray(vs);
-    int l = vs.iterator().next().length;
+    int l = vs.getFirst().length;
     final double[] sums = new double[l];
     IntStream.range(0, vs.size())
         .forEach(i -> IntStream.range(0, l).forEach(j -> sums[j] = sums[j] + vs.get(i)[j] * weights[i]));
@@ -302,7 +321,8 @@ public class VectorUtils {
   public static double[] weightedMeanArray(double[][] vs, double[] weights) {
     if (vs.length != weights.length) {
       throw new IllegalArgumentException(
-          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.length, weights.length));
+          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.length, weights.length)
+      );
     }
     checkLengthsArray(vs);
     int l = vs[0].length;
@@ -315,13 +335,17 @@ public class VectorUtils {
   public static List<Double> weightedMeanList(List<List<Double>> vs, List<Double> weights) {
     if (vs.size() != weights.size()) {
       throw new IllegalArgumentException(
-          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.size(), weights.size()));
+          "Unconsistent samples and weights sizes: %d vs %d".formatted(vs.size(), weights.size())
+      );
     }
     checkLengthsList(vs);
-    int l = vs.iterator().next().size();
+    int l = vs.getFirst().size();
     final double[] sums = new double[l];
-    IntStream.range(0, vs.size()).forEach(i -> IntStream.range(0, l)
-        .forEach(j -> sums[j] = sums[j] + vs.get(i).get(j) * weights.get(i)));
+    IntStream.range(0, vs.size())
+        .forEach(
+            i -> IntStream.range(0, l)
+                .forEach(j -> sums[j] = sums[j] + vs.get(i).get(j) * weights.get(i))
+        );
     return Arrays.stream(sums).boxed().toList();
   }
 }

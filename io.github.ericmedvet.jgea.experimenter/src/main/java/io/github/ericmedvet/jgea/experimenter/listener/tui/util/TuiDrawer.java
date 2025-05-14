@@ -44,7 +44,8 @@ public class TuiDrawer {
       TextColor.Factory.fromString("#303030"),
       TextColor.Factory.fromString("#22EE22"),
       TextColor.Factory.fromString("#EE2222"),
-      TextColor.ANSI.BLACK);
+      TextColor.ANSI.BLACK
+  );
   private final Configuration configuration;
   private final TextGraphics textGraphics;
   private final Rectangle viewport;
@@ -67,7 +68,10 @@ public class TuiDrawer {
             new Point(0, 0),
             new Point(
                 textGraphics.getSize().getColumns(),
-                textGraphics.getSize().getRows())));
+                textGraphics.getSize().getRows()
+            )
+        )
+    );
   }
 
   public record Configuration(
@@ -81,7 +85,8 @@ public class TuiDrawer {
       TextColor secondaryPlotColor,
       TextColor positivePlotColor,
       TextColor negativePlotColor,
-      TextColor bgColor) {}
+      TextColor bgColor
+  ) {}
 
   public TuiDrawer clear() {
     textGraphics.setBackgroundColor(configuration.bgColor);
@@ -93,13 +98,25 @@ public class TuiDrawer {
     textGraphics.setBackgroundColor(configuration.bgColor);
     textGraphics.setForegroundColor(configuration.frameColor);
     textGraphics.drawLine(
-        viewport.ne().delta(1, 0).tp(), viewport.nw().delta(-1, 0).tp(), Symbols.SINGLE_LINE_HORIZONTAL);
+        viewport.ne().delta(1, 0).tp(),
+        viewport.nw().delta(-1, 0).tp(),
+        Symbols.SINGLE_LINE_HORIZONTAL
+    );
     textGraphics.drawLine(
-        viewport.se().delta(1, 0).tp(), viewport.sw().delta(-1, 0).tp(), Symbols.SINGLE_LINE_HORIZONTAL);
+        viewport.se().delta(1, 0).tp(),
+        viewport.sw().delta(-1, 0).tp(),
+        Symbols.SINGLE_LINE_HORIZONTAL
+    );
     textGraphics.drawLine(
-        viewport.ne().delta(0, 1).tp(), viewport.se().delta(0, -1).tp(), Symbols.SINGLE_LINE_VERTICAL);
+        viewport.ne().delta(0, 1).tp(),
+        viewport.se().delta(0, -1).tp(),
+        Symbols.SINGLE_LINE_VERTICAL
+    );
     textGraphics.drawLine(
-        viewport.nw().delta(0, 1).tp(), viewport.sw().delta(0, -1).tp(), Symbols.SINGLE_LINE_VERTICAL);
+        viewport.nw().delta(0, 1).tp(),
+        viewport.sw().delta(0, -1).tp(),
+        Symbols.SINGLE_LINE_VERTICAL
+    );
     textGraphics.setCharacter(viewport.ne().tp(), Symbols.SINGLE_LINE_TOP_LEFT_CORNER);
     textGraphics.setCharacter(viewport.se().tp(), Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER);
     textGraphics.setCharacter(viewport.nw().tp(), Symbols.SINGLE_LINE_TOP_RIGHT_CORNER);
@@ -138,13 +155,22 @@ public class TuiDrawer {
     textGraphics.setBackgroundColor(bgColor);
     if (sgrs.length == 0) {
       textGraphics.putString(
-          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(), s);
+          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(),
+          s
+      );
     } else if (sgrs.length == 1) {
       textGraphics.putString(
-          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(), s, sgrs[0]);
+          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(),
+          s,
+          sgrs[0]
+      );
     } else {
       textGraphics.putString(
-          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(), s, sgrs[0], sgrs);
+          p.delta(headD + viewport.min().x(), viewport.min().y()).tp(),
+          s,
+          sgrs[0],
+          sgrs
+      );
     }
     return this;
   }
@@ -170,16 +196,24 @@ public class TuiDrawer {
   }
 
   public <K> TuiDrawer drawTable(
-      Table<K, String, ? extends Cell> table, List<String> columns, UnaryOperator<String> colProcessor) {
+      Table<K, String, ? extends Cell> table,
+      List<String> columns,
+      UnaryOperator<String> colProcessor
+  ) {
     Map<String, Integer> widths = columns.stream()
-        .collect(Collectors.toMap(
-            ci -> ci,
-            ci -> Math.max(
-                colProcessor.apply(ci).length(),
-                table.columnValues(ci).stream()
-                    .mapToInt(c -> c != null ? c.preferredWidth() : 0)
-                    .max()
-                    .orElse(0))));
+        .collect(
+            Collectors.toMap(
+                ci -> ci,
+                ci -> Math.max(
+                    colProcessor.apply(ci).length(),
+                    table.columnValues(ci)
+                        .stream()
+                        .mapToInt(c -> c != null ? c.preferredWidth() : 0)
+                        .max()
+                        .orElse(0)
+                )
+            )
+        );
     int x = 0;
     int y = 0;
     // header
@@ -217,24 +251,38 @@ public class TuiDrawer {
                 .min()
                 .delta(
                     Math.max(0, offset.min().x()),
-                    Math.max(0, offset.min().y())),
+                    Math.max(0, offset.min().y())
+                ),
             new Point(
                 Math.min(
                     viewport.min().x() + offset.min().x() + offset.w(),
-                    viewport.max().x()),
+                    viewport.max().x()
+                ),
                 Math.min(
                     viewport.min().y() + offset.min().y() + offset.h(),
-                    viewport.max().y()))));
+                    viewport.max().y()
+                )
+            )
+        )
+    );
   }
 
   public TuiDrawer inX(float x, float w) {
-    return in(new Rectangle(
-        new Point((int) (viewport.w() * x), 0), new Point((int) (viewport.w() * (x + w)), viewport.h())));
+    return in(
+        new Rectangle(
+            new Point((int) (viewport.w() * x), 0),
+            new Point((int) (viewport.w() * (x + w)), viewport.h())
+        )
+    );
   }
 
   public TuiDrawer inY(float y, float h) {
-    return in(new Rectangle(
-        new Point(0, (int) (viewport.h() * y)), new Point(viewport.w(), (int) (viewport.h() * (y + h)))));
+    return in(
+        new Rectangle(
+            new Point(0, (int) (viewport.h() * y)),
+            new Point(viewport.w(), (int) (viewport.h() * (y + h)))
+        )
+    );
   }
 
   public TuiDrawer inner(int delta) {

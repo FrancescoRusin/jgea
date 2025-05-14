@@ -55,7 +55,8 @@ public class LandscapeSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, LandscapeP
       Function<E, DoubleBinaryOperator> valueFunction,
       DoubleRange xRange,
       DoubleRange yRange,
-      DoubleRange valueRange) {
+      DoubleRange valueRange
+  ) {
     super(titleFunction, predicateValueFunction, predicate, unique);
     this.pointFunctions = pointFunctions;
     this.xFunction = xFunction;
@@ -68,26 +69,39 @@ public class LandscapeSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, LandscapeP
 
   @Override
   protected List<Map.Entry<String, LandscapePlot.Data>> buildData(E e, R r) {
-    return List.of(Map.entry(
-        "",
-        new LandscapePlot.Data(
-            valueFunction.apply(e),
-            pointFunctions.stream()
-                .map(pf -> XYDataSeries.of(
-                        NamedFunction.name(pf),
-                        pf.apply(e).stream()
-                            .map(p -> new XYDataSeries.Point(
-                                Value.of(
-                                    xFunction
-                                        .apply(p)
-                                        .doubleValue()),
-                                Value.of(
-                                    yFunction
-                                        .apply(p)
-                                        .doubleValue())))
-                            .toList())
-                    .sorted())
-                .toList())));
+    return List.of(
+        Map.entry(
+            "",
+            new LandscapePlot.Data(
+                valueFunction.apply(e),
+                pointFunctions.stream()
+                    .map(
+                        pf -> XYDataSeries.of(
+                            NamedFunction.name(pf),
+                            pf.apply(e)
+                                .stream()
+                                .map(
+                                    p -> new XYDataSeries.Point(
+                                        Value.of(
+                                            xFunction
+                                                .apply(p)
+                                                .doubleValue()
+                                        ),
+                                        Value.of(
+                                            yFunction
+                                                .apply(p)
+                                                .doubleValue()
+                                        )
+                                    )
+                                )
+                                .toList()
+                        )
+                            .sorted()
+                    )
+                    .toList()
+            )
+        )
+    );
   }
 
   @Override
@@ -105,7 +119,12 @@ public class LandscapeSEPAF<E, R, X, P> extends AbstractSingleEPAF<E, LandscapeP
             data.nColumns(),
             data.nRows(),
             (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+                data.colIndexes().get(x),
+                data.rowIndexes().get(y),
+                data.get(x, y)
+            )
+        )
+    );
   }
 
   @Override

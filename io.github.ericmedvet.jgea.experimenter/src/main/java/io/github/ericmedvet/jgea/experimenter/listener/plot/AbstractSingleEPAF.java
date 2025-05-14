@@ -32,8 +32,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public abstract class AbstractSingleEPAF<E, P extends XYPlot<D>, R, D, X>
-    implements PlotAccumulatorFactory<E, P, R, D> {
+public abstract class AbstractSingleEPAF<E, P extends XYPlot<D>, R, D, X> implements PlotAccumulatorFactory<E, P, R, D> {
 
   protected final Function<? super R, String> titleFunction;
   protected final Function<? super E, X> predicateValueFunction;
@@ -44,7 +43,8 @@ public abstract class AbstractSingleEPAF<E, P extends XYPlot<D>, R, D, X>
       Function<? super R, String> titleFunction,
       Function<? super E, X> predicateValueFunction,
       Predicate<? super X> predicate,
-      boolean unique) {
+      boolean unique
+  ) {
     this.titleFunction = titleFunction;
     this.predicateValueFunction = predicateValueFunction;
     this.predicate = predicate;
@@ -76,14 +76,18 @@ public abstract class AbstractSingleEPAF<E, P extends XYPlot<D>, R, D, X>
           }
           List<Map.Entry<String, D>> newEntries = buildData(e, r);
           synchronized (table) {
-            newEntries.forEach(me -> table.set(
-                me.getKey(),
-                "%s = %s"
-                    .formatted(
-                        NamedFunction.name(predicateValueFunction),
-                        FormattedFunction.format(predicateValueFunction)
-                            .formatted(predicateValue)),
-                me.getValue()));
+            newEntries.forEach(
+                me -> table.set(
+                    me.getKey(),
+                    "%s = %s"
+                        .formatted(
+                            NamedFunction.name(predicateValueFunction),
+                            FormattedFunction.format(predicateValueFunction)
+                                .formatted(predicateValue)
+                        ),
+                    me.getValue()
+                )
+            );
           }
         }
       }

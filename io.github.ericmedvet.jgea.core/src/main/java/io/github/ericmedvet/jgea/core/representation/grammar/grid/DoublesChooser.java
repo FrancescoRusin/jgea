@@ -39,7 +39,10 @@ public class DoublesChooser<S, O> implements Chooser<S, O> {
   }
 
   public static <T, D, O> Function<List<Double>, D> mapper(
-      Grammar<T, O> grammar, Developer<T, D, O> developer, D defaultDeveloped) {
+      Grammar<T, O> grammar,
+      Developer<T, D, O> developer,
+      D defaultDeveloped
+  ) {
     return values -> {
       DoublesChooser<T, O> chooser = new DoublesChooser<>(values, grammar);
       return developer.develop(chooser).orElse(defaultDeveloped);

@@ -1,0 +1,28 @@
+$nEvals = [100000]
+
+ea.experiment(
+  runs = (randomGenerator = (seed = [1:1:10]) * [m.defaultRG()]) *
+    (solver = (nEval = $nEvals) * [
+      ea.s.ga(
+        name = "gp";
+        representation = ea.r.cfgTree(grammar = ea.grammar.fromProblem(problem = ea.p.s.grammarText()));
+        mapper = ea.m.grammarTreeBP(problem = ea.p.s.grammarText())
+      )
+    ]) * [
+    ea.run(problem = ea.p.s.grammarText())
+  ];
+  listeners = [
+    ea.l.console(
+      functions = [
+        ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.quality(of = ea.f.best(); format = "%8.5f");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.quality()));
+        ea.f.solution(of = ea.f.best(); format = "%30.30s")
+      ]
+    );
+    ea.l.savePlotForExp(
+      path = "../RESULTS/{name}/{startTime}/fitness";
+      plot = ea.plot.multi.quality()
+    )
+  ]
+)

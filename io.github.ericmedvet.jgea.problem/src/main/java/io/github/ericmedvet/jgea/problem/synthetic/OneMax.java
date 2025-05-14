@@ -21,11 +21,11 @@
 package io.github.ericmedvet.jgea.problem.synthetic;
 
 import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
+import java.util.Optional;
 import java.util.function.Function;
 
-public class OneMax implements ComparableQualityBasedProblem<BitString, Double>, ProblemWithExampleSolution<BitString> {
+public class OneMax implements ComparableQualityBasedProblem<BitString, Double> {
 
   private final int p;
   private final Function<BitString, Double> fitnessFunction;
@@ -41,8 +41,8 @@ public class OneMax implements ComparableQualityBasedProblem<BitString, Double>,
   }
 
   @Override
-  public BitString example() {
-    return new BitString(p);
+  public Optional<BitString> example() {
+    return Optional.of(new BitString(p));
   }
 
   @Override

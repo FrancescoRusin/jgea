@@ -21,7 +21,7 @@ package io.github.ericmedvet.jgea.problem.mapper;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
+import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
-public class MapperGeneration
-    implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>,
-        ProblemWithValidation<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
+public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>, QualityBasedProblem<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
 
   private final StringGrammar<String> grammar;
   private final FitnessFunction learningFitnessFunction;
@@ -51,28 +49,35 @@ public class MapperGeneration
       int validationGenotypeSize,
       int validationMaxMappingDepth,
       List<FitnessFunction.Property> validationProperties,
-      long seed)
-      throws IOException {
+      long seed
+  ) throws IOException {
     this.grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/mapper.bnf"));
     learningFitnessFunction = new FitnessFunction(
-        learningProblems, learningGenotypeSize, learningN, learningMaxMappingDepth, learningProperties, seed);
+        learningProblems,
+        learningGenotypeSize,
+        learningN,
+        learningMaxMappingDepth,
+        learningProperties,
+        seed
+    );
     validationFitnessFunction = new FitnessFunction(
         validationProblems,
         validationGenotypeSize,
         validationN,
         validationMaxMappingDepth,
         validationProperties,
-        seed);
+        seed
+    );
     dimensionality = learningProperties.size();
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, Pair<Tree<Element>, Tree<Element>>> getSolutionMapper() {
+  public Function<Tree<String>, Pair<Tree<Element>, Tree<Element>>> solutionMapper() {
     return (Tree<String> rawMappingTree) -> {
       Tree<Element> optionChooser = MapperUtils.transform(rawMappingTree.child(0));
       Tree<Element> genoAssigner = MapperUtils.transform(rawMappingTree.child(1));
@@ -82,7 +87,7 @@ public class MapperGeneration
 
   @Override
   public PartialComparator<List<Double>> qualityComparator() {
-    return ParetoDominance.build(Double.class, dimensionality);
+    return ParetoDominance.from(Double.class, dimensionality);
   }
 
   @Override

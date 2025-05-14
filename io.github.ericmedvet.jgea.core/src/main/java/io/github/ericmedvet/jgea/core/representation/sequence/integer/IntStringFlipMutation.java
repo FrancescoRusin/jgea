@@ -37,7 +37,8 @@ public class IntStringFlipMutation implements Mutation<IntString> {
       return parent;
     }
     return new IntString(
-        parent.genes().stream()
+        parent.genes()
+            .stream()
             .map(n -> {
               if (random.nextDouble() < p) {
                 int newN = random.nextInt(parent.lowerBound(), parent.upperBound() - 1);
@@ -50,6 +51,7 @@ public class IntStringFlipMutation implements Mutation<IntString> {
             })
             .toList(),
         parent.lowerBound(),
-        parent.upperBound());
+        parent.upperBound()
+    );
   }
 }

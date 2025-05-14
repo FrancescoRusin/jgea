@@ -40,7 +40,8 @@ public class SegmentGeometricCrossover implements Crossover<List<Double>> {
   public List<Double> recombine(List<Double> g1, List<Double> g2, RandomGenerator random) {
     if (g1.size() != g2.size()) {
       throw new IllegalArgumentException(
-          "Parent genotype sizes are different: %d vs. %d".formatted(g1.size(), g2.size()));
+          "Parent genotype sizes are different: %d vs. %d".formatted(g1.size(), g2.size())
+      );
     }
     double alpha = range.denormalize(random.nextDouble());
     return IntStream.range(0, g1.size())

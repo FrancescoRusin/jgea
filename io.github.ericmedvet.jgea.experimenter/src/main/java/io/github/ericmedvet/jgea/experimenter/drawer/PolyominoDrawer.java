@@ -37,7 +37,8 @@ public class PolyominoDrawer implements Drawer<Grid<Character>> {
   }
 
   public record Configuration(
-      Integer maxW, Integer maxH, Map<Character, Color> colors, Color borderColor, double marginRate) {
+      Integer maxW, Integer maxH, Map<Character, Color> colors, Color borderColor, double marginRate
+  ) {
 
     private static final char[] ALPHABET = "abcdefghilmnopqrstuvz".toCharArray();
     public static final Configuration DEFAULT = new Configuration(
@@ -45,16 +46,21 @@ public class PolyominoDrawer implements Drawer<Grid<Character>> {
         null,
         IntStream.range(0, ALPHABET.length)
             .boxed()
-            .collect(Collectors.toMap(
-                i -> ALPHABET[i],
-                i -> io.github.ericmedvet.jviz.core.plot.image.Configuration.Colors.DEFAULT
-                    .dataColors()
-                    .get(i
-                        % io.github.ericmedvet.jviz.core.plot.image.Configuration.Colors.DEFAULT
-                            .dataColors()
-                            .size()))),
+            .collect(
+                Collectors.toMap(
+                    i -> ALPHABET[i],
+                    i -> io.github.ericmedvet.jviz.core.plot.image.Configuration.Colors.DEFAULT
+                        .dataColors()
+                        .get(
+                            i % io.github.ericmedvet.jviz.core.plot.image.Configuration.Colors.DEFAULT
+                                .dataColors()
+                                .size()
+                        )
+                )
+            ),
         Color.BLACK,
-        0.05);
+        0.05
+    );
   }
 
   @Override
@@ -70,8 +76,14 @@ public class PolyominoDrawer implements Drawer<Grid<Character>> {
       Color fillColor = configuration.colors.get(e.value());
       if (fillColor != null) {
         g.setColor(fillColor);
-        g.fill(new Rectangle2D.Double(
-            x0 + e.key().x() * cS, y0 + e.key().y() * cS, cS, cS));
+        g.fill(
+            new Rectangle2D.Double(
+                x0 + e.key().x() * cS,
+                y0 + e.key().y() * cS,
+                cS,
+                cS
+            )
+        );
       }
       g.setColor(configuration.borderColor);
       g.draw(new Rectangle2D.Double(x0 + e.key().x() * cS, y0 + e.key().y() * cS, cS, cS));

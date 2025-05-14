@@ -18,6 +18,11 @@
  * =========================LICENSE_END==================================
  */
 module io.github.ericmedvet.jgea.core {
+  requires java.logging;
+  requires io.github.ericmedvet.jsdynsym.core;
+  requires io.github.ericmedvet.jnb.datastructure;
+  requires commons.math3;
+
   exports io.github.ericmedvet.jgea.core;
   exports io.github.ericmedvet.jgea.core.distance;
   exports io.github.ericmedvet.jgea.core.fitness;
@@ -38,6 +43,9 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.representation.tree;
   exports io.github.ericmedvet.jgea.core.representation.tree.numeric;
   exports io.github.ericmedvet.jgea.core.representation.tree.booleanfunction;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
   exports io.github.ericmedvet.jgea.core.representation.grammar.grid;
   exports io.github.ericmedvet.jgea.core.representation;
   exports io.github.ericmedvet.jgea.core.selector;
@@ -53,10 +61,7 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.solver.es;
   exports io.github.ericmedvet.jgea.core.solver.cooperative;
   exports io.github.ericmedvet.jgea.core.solver.mapelites.strategy;
+  exports io.github.ericmedvet.jgea.core.solver.bi;
+  exports io.github.ericmedvet.jgea.core.solver.bi.mapelites;
 
-  requires io.github.ericmedvet.jsdynsym.core;
-  requires io.github.ericmedvet.jnb.datastructure;
-  requires java.desktop;
-  requires java.logging;
-  requires commons.math3;
 }

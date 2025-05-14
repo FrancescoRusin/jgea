@@ -30,8 +30,7 @@ import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 
-public class TreeBasedUnivariateRealFunction
-    implements NamedUnivariateRealFunction, Sized, Parametrized<TreeBasedUnivariateRealFunction, Tree<Element>> {
+public class TreeBasedUnivariateRealFunction implements NamedUnivariateRealFunction, Sized, Parametrized<TreeBasedUnivariateRealFunction, Tree<Element>> {
 
   private final List<String> xVarNames;
   private final String yVarName;
@@ -39,7 +38,11 @@ public class TreeBasedUnivariateRealFunction
   private Tree<Element> tree;
 
   public TreeBasedUnivariateRealFunction(
-      Tree<Element> tree, List<String> xVarNames, String yVarName, DoubleUnaryOperator postOperator) {
+      Tree<Element> tree,
+      List<String> xVarNames,
+      String yVarName,
+      DoubleUnaryOperator postOperator
+  ) {
     this.tree = tree;
     this.xVarNames = xVarNames;
     this.yVarName = yVarName;
@@ -55,7 +58,8 @@ public class TreeBasedUnivariateRealFunction
         Element.Operator.ADDITION,
         xVarNames.stream()
             .map(s -> Tree.of((Element) new Element.Variable(s)))
-            .toList());
+            .toList()
+    );
   }
 
   protected static double compute(Tree<Element> tree, Map<String, Double> input) {
@@ -113,12 +117,15 @@ public class TreeBasedUnivariateRealFunction
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     TreeBasedUnivariateRealFunction that = (TreeBasedUnivariateRealFunction) o;
-    return Objects.equals(xVarNames, that.xVarNames)
-        && Objects.equals(yVarName, that.yVarName)
-        && Objects.equals(tree, that.tree);
+    return Objects.equals(xVarNames, that.xVarNames) && Objects.equals(yVarName, that.yVarName) && Objects.equals(
+        tree,
+        that.tree
+    );
   }
 
   @Override

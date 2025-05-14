@@ -23,5 +23,6 @@ import io.github.ericmedvet.jgea.core.util.Progress;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public record RunInfo(int index, LocalDateTime startLocalDateTime, Progress progress, boolean ended)
-    implements Serializable {}
+public record RunInfo(
+    int index, LocalDateTime startLocalDateTime, Progress progress, boolean ended
+) implements Serializable {}

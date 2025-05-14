@@ -38,15 +38,7 @@ import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
-public class SimpleEvolutionaryStrategy<S, Q>
-    extends AbstractPopulationBasedIterativeSolver<
-        ListPopulationState<
-            Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>,
-        TotalOrderQualityBasedProblem<S, Q>,
-        Individual<List<Double>, S, Q>,
-        List<Double>,
-        S,
-        Q> {
+public class SimpleEvolutionaryStrategy<S, Q> extends AbstractPopulationBasedIterativeSolver<ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>, TotalOrderQualityBasedProblem<S, Q>, Individual<List<Double>, S, Q>, List<Double>, S, Q> {
 
   private static final Logger L = Logger.getLogger(SimpleEvolutionaryStrategy.class.getName());
   protected final int populationSize;
@@ -58,20 +50,13 @@ public class SimpleEvolutionaryStrategy<S, Q>
       Function<? super List<Double>, ? extends S> solutionMapper,
       Factory<? extends List<Double>> genotypeFactory,
       int populationSize,
-      Predicate<
-              ? super
-                  ListPopulationState<
-                      Individual<List<Double>, S, Q>,
-                      List<Double>,
-                      S,
-                      Q,
-                      TotalOrderQualityBasedProblem<S, Q>>>
-          stopCondition,
+      Predicate<? super ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>> stopCondition,
       int nOfParents,
       int nOfElites,
       double sigma,
-      boolean remap) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+      boolean remap
+  ) {
+    super(solutionMapper, genotypeFactory, stopCondition, remap, List.of());
     this.populationSize = populationSize;
     this.nOfParents = nOfParents;
     this.nOfElites = nOfElites;
@@ -79,67 +64,67 @@ public class SimpleEvolutionaryStrategy<S, Q>
   }
 
   @Override
-  public ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>
-      init(TotalOrderQualityBasedProblem<S, Q> problem, RandomGenerator random, ExecutorService executor)
-          throws SolverException {
-    ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>
-        newState = ListPopulationState.empty(problem, stopCondition());
+  public ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> init(
+      TotalOrderQualityBasedProblem<S, Q> problem,
+      RandomGenerator random,
+      ExecutorService executor
+  ) throws SolverException {
+    ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> newState = ListPopulationState
+        .empty(problem, stopCondition());
     AtomicLong counter = new AtomicLong(0);
     List<? extends List<Double>> genotypes = genotypeFactory.build(populationSize, random);
-    Collection<Individual<List<Double>, S, Q>> newIndividuals = getAll(map(
-        genotypes.stream()
-            .map(g -> new ChildGenotype<List<Double>>(counter.getAndIncrement(), g, List.of()))
-            .toList(),
-        (cg, s, r) -> Individual.from(cg, solutionMapper, problem.qualityFunction(), s.nOfIterations()),
-        newState,
-        random,
-        executor));
+    Collection<Individual<List<Double>, S, Q>> newIndividuals = getAll(
+        map(
+            genotypes.stream()
+                .map(g -> new ChildGenotype<List<Double>>(counter.getAndIncrement(), g, List.of()))
+                .toList(),
+            (cg, s, r) -> Individual.from(cg, solutionMapper, problem.qualityFunction(), s.nOfIterations()),
+            newState,
+            random,
+            executor
+        )
+    );
     return newState.updatedWithIteration(
         newIndividuals.size(),
         newIndividuals.size(),
-        newIndividuals.stream().toList());
+        newIndividuals.stream().toList()
+    );
   }
 
   @Override
-  public ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>
-      update(
-          RandomGenerator random,
-          ExecutorService executor,
-          ListPopulationState<
-                  Individual<List<Double>, S, Q>,
-                  List<Double>,
-                  S,
-                  Q,
-                  TotalOrderQualityBasedProblem<S, Q>>
-              state)
-          throws SolverException {
+  public ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> update(
+      RandomGenerator random,
+      ExecutorService executor,
+      ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>> state
+  ) throws SolverException {
     // select elites
-    List<Individual<List<Double>, S, Q>> elites =
-        state.listPopulation().stream().limit(nOfElites).toList();
+    List<Individual<List<Double>, S, Q>> elites = state.listPopulation().stream().limit(nOfElites).toList();
     List<Long> parentIds = elites.stream().map(Individual::id).toList();
     // select parents
-    List<Individual<List<Double>, S, Q>> parents =
-        state.listPopulation().stream().limit(nOfParents).toList();
+    List<Individual<List<Double>, S, Q>> parents = state.listPopulation().stream().limit(nOfParents).toList();
     // compute mean
     List<Double> means = meanList(parents.stream().map(Individual::genotype).toList());
     // generate offspring
     List<ChildGenotype<List<Double>>> offspringChildGenotypes = IntStream.range(0, populationSize - elites.size())
-        .mapToObj(i -> new ChildGenotype<>(
-            state.nOfBirths() + i,
-            sum(means, buildList(means.size(), () -> random.nextGaussian() * sigma)),
-            parentIds))
+        .mapToObj(
+            i -> new ChildGenotype<>(
+                state.nOfBirths() + i,
+                sum(means, buildList(means.size(), () -> random.nextGaussian() * sigma)),
+                parentIds
+            )
+        )
         .toList();
     int nOfNewBirths = offspringChildGenotypes.size();
     L.fine(String.format("%d offspring genotypes built", nOfNewBirths));
     Collection<Individual<List<Double>, S, Q>> newPopulation = mapAll(
         offspringChildGenotypes,
-        (cg, s, r) ->
-            Individual.from(cg, solutionMapper, state.problem().qualityFunction(), state.nOfIterations()),
+        (cg, s, r) -> Individual.from(cg, solutionMapper, state.problem().qualityFunction(), state.nOfIterations()),
         elites,
         (i, s, r) -> i.updatedWithQuality(state),
         state,
         random,
-        executor);
+        executor
+    );
     L.fine(String.format("Offspring and elite merged: %d individuals", newPopulation.size()));
     return state.updatedWithIteration(nOfNewBirths, nOfNewBirths + (remap ? elites.size() : 0), newPopulation);
   }

@@ -62,7 +62,8 @@ public record BitString(boolean[] bits) implements Sized, Serializable, Cloneabl
   }
 
   public BitString compress(int newLength) {
-    List<BitString> slices = Misc.slices(new IntRange(0, bits.length), newLength).stream()
+    List<BitString> slices = Misc.slices(new IntRange(0, bits.length), newLength)
+        .stream()
         .map(r -> slice(r.min(), r.max()))
         .toList();
     boolean[] compressed = new boolean[slices.size()];
@@ -74,8 +75,10 @@ public record BitString(boolean[] bits) implements Sized, Serializable, Cloneabl
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     BitString bitString = (BitString) o;
     return Arrays.equals(bits, bitString.bits);
   }

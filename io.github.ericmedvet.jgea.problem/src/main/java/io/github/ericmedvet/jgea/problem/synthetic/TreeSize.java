@@ -28,8 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class TreeSize
-    implements GrammarBasedProblem<Boolean, Tree<Boolean>>, ComparableQualityBasedProblem<Tree<Boolean>, Double> {
+public class TreeSize implements GrammarBasedProblem<Boolean, Tree<Boolean>>, ComparableQualityBasedProblem<Tree<Boolean>, Double> {
 
   private static final Function<Tree<Boolean>, Double> FITNESS_FUNCTION = t -> 1d / (double) t.size();
   private final StringGrammar<Boolean> grammar;
@@ -50,12 +49,12 @@ public class TreeSize
   }
 
   @Override
-  public StringGrammar<Boolean> getGrammar() {
+  public StringGrammar<Boolean> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<Boolean>, Tree<Boolean>> getSolutionMapper() {
+  public Function<Tree<Boolean>, Tree<Boolean>> solutionMapper() {
     return Function.identity();
   }
 

@@ -1,0 +1,115 @@
+$SIMULATION = ds.bat.fromEnvironment(
+  tRange = misc.range(min = 0; max = 40);
+  dT = 0.05;
+  environment = ds.e.pong(racketsInitialYRange = m.range(min=25.0;max=25.0));
+  stopCondition = predicate.not(condition = predicate.always())
+)
+
+$VS_SELF = ds.f.selfBiSimulator(
+  of = ea.f.solution();
+  simulation = $SIMULATION
+)
+
+  $VS_OPPONENT = ds.f.opponentBiSimulator(
+  of = ea.f.solution();
+  opponent = ds.opponent.pong.simple();
+  simulation = $SIMULATION
+)
+
+ea.experiment(
+  runs =
+    (randomGenerator = (seed = [1:1:10]) * [m.defaultRG()]) *
+    (solver = (nEval = [50000]) * [
+      ea.s.biGa(
+        name = "bi-ga-ann-mf0.00";
+        fitnessReducer = ea.misc.lossyAverage(memoryFactor=0);
+        representation = ea.r.doubleString();
+        mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 4; nOfInnerLayers = 1))
+      );
+      ea.s.biGa(
+        name = "bi-ga-ann-mf0.25";
+        fitnessReducer = ea.misc.lossyAverage(memoryFactor=0.25);
+        representation = ea.r.doubleString();
+        mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 4; nOfInnerLayers = 1))
+      );
+      ea.s.biGa(
+        name = "bi-ga-ann-mf0.50";
+        fitnessReducer = ea.misc.lossyAverage(memoryFactor=0.5);
+        representation = ea.r.doubleString();
+        mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 4; nOfInnerLayers = 1))
+      );
+      ea.s.biGa(
+        name = "bi-ga-ann-mf0.75";
+        fitnessReducer = ea.misc.lossyAverage(memoryFactor=0.75);
+        representation = ea.r.doubleString();
+        mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 4; nOfInnerLayers = 1))
+      );
+      ea.s.biGa(
+        name = "bi-ga-ann-mf1.00";
+        fitnessReducer = ea.misc.lossyAverage(memoryFactor=1);
+        representation = ea.r.doubleString();
+        mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayerRatio = 4; nOfInnerLayers = 1))
+      )
+    ]) *
+    (problem = [ea.p.biSimToBqb(
+      simulation = $SIMULATION;
+      qFunction1 = ds.e.pong.scoreDiff1();
+      qFunction2 = ds.e.pong.scoreDiff2();
+      type = maximize
+    )]) *
+    [ea.run()];
+  listeners = [
+    ea.l.console(
+      functions = [
+        ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.quality(of = ea.f.best(); format = "%4.1f");
+        ds.e.pong.scoreDiff1(of = f.composition(of = ea.f.best(); then = $VS_SELF); format = "%4.1f");
+        ds.e.pong.scoreDiff1(of = f.composition(of = ea.f.best(); then = $VS_OPPONENT); format = "%4.1f")
+      ];
+      onlyLast = false
+    );
+    ea.l.saveLastPopulationForRun(
+      path = "../results/{name}/{startTime}/last-pop-{run.solver.name}-{run.randomGenerator.seed:%04d}"
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/best-q";
+      plot = ea.plot.multi.quality(x = ea.f.nOfEvals())
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/best-vs-self";
+      plot = ea.plot.multi.quality(x = ea.f.nOfEvals(); y = ds.e.pong.scoreDiff1(of = f.composition(of = ea.f.best(); then = $VS_SELF)))
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/best-vs-opponent";
+      plot = ea.plot.multi.quality(x = ea.f.nOfEvals(); y = ds.e.pong.scoreDiff1(of = f.composition(of = ea.f.best(); then = $VS_OPPONENT)))
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/avg-q";
+      plot = ea.plot.multi.xyExp(x = ea.f.nOfEvals(); y = f.avg(of = f.each(mapF = ea.f.quality(); of = ea.f.all())))
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/avg-vs-self";
+      plot = ea.plot.multi.xyExp(x = ea.f.nOfEvals(); y = f.avg(of = f.each(mapF = ds.e.pong.scoreDiff1(of = f.composition(then = $VS_SELF)); of = ea.f.all())))
+    );
+    ea.l.savePlotForExp(
+      path = "../results/{name}/{startTime}/avg-vs-opponent";
+      plot = ea.plot.multi.xyExp(x = ea.f.nOfEvals(); y = f.avg(of = f.each(mapF = ds.e.pong.scoreDiff1(of = f.composition(then = $VS_OPPONENT)); of = ea.f.all())))
+    );
+    ea.l.savePlotForRun(
+      path = "../results/{name}/{startTime}/archive-{run.problem.name}-{run.solver.name}-{run.randomGenerator.seed:%03d}";
+      plot = ea.plot.single.me();
+      condition = predicate.matches(f = ea.f.runKey(key = "run.solver.name"); regex = "biMe")
+    );
+    ea.l.bestCsv(
+        path = "../results/{name}/{startTime}/allBest.csv";
+        runFunctions = [
+          ea.f.runKey(key = "run.problem.simulation.environment");
+          ea.f.runKey(key = "run.solver.mapper")
+        ];
+        functions = [
+          f.toBase64(of = ea.f.genotype(of = ea.f.best()))
+        ];
+        onlyLast = true
+    )
+  ]
+)

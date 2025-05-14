@@ -42,7 +42,7 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
 
   private final List<? extends NamedFunction<? super E, ?>> eFunctions;
   private final List<? extends NamedFunction<? super K, ?>> kFunctions;
-  private final File file;
+  private final String filePath;
   private final String errorString;
   private final String intFormat;
   private final String doubleFormat;
@@ -53,13 +53,14 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
   public CSVPrinter(
       List<? extends Function<? super E, ?>> eFunctions,
       List<? extends Function<? super K, ?>> kFunctions,
-      File file,
+      String filePath,
       String errorString,
       String intFormat,
-      String doubleFormat) {
+      String doubleFormat
+  ) {
     this.eFunctions = eFunctions.stream().map(NamedFunction::from).toList();
     this.kFunctions = kFunctions.stream().map(NamedFunction::from).toList();
-    this.file = file;
+    this.filePath = filePath;
     this.errorString = errorString;
     this.intFormat = intFormat;
     this.doubleFormat = doubleFormat;
@@ -69,15 +70,19 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
   @Override
   public Listener<E> build(K k) {
     List<?> kValues = kFunctions.stream().map(f -> f.apply(k)).toList();
-    List<String> headers = Misc.concat(List.of(kFunctions, eFunctions)).stream()
+    List<String> headers = Misc.concat(List.of(kFunctions, eFunctions))
+        .stream()
         .map(f -> f.name())
         .toList();
     return Naming.named(
         "csv(%s)"
-            .formatted(Stream.concat(
+            .formatted(
+                Stream.concat(
                     eFunctions.stream().map(f -> f.name()),
-                    kFunctions.stream().map(f -> f.name()))
-                .collect(Collectors.joining(";"))),
+                    kFunctions.stream().map(f -> f.name())
+                )
+                    .collect(Collectors.joining(";"))
+            ),
         (Listener<E>) (e -> {
           List<?> eValues = eFunctions.stream()
               .map(f -> {
@@ -101,15 +106,23 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
                 }
               })
               .toList();
-          synchronized (file) {
+          synchronized (this) {
             if (printer == null) {
-              File actualFile = Misc.checkExistenceAndChangeName(file);
               try {
+                File file = Misc.robustGetFile(filePath, false);
                 printer = new org.apache.commons.csv.CSVPrinter(
-                    new PrintStream(actualFile),
+                    new PrintStream(file),
                     CSVFormat.Builder.create()
                         .setDelimiter(";")
-                        .build());
+                        .build()
+                );
+                L.info(
+                    String.format(
+                        "File '%s' created and header for %d columns written",
+                        file.getPath(),
+                        eFunctions.size() + kFunctions.size()
+                    )
+                );
               } catch (IOException ex) {
                 L.severe(String.format("Cannot create CSVPrinter: %s", ex));
                 return;
@@ -120,9 +133,6 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
                 L.warning(String.format("Cannot print header: %s", ex));
                 return;
               }
-              L.info(String.format(
-                  "File %s created and header for %d columns written",
-                  actualFile.getPath(), eFunctions.size() + kFunctions.size()));
             }
             try {
               printer.printRecord(Misc.concat(List.of(kValues, eValues)));
@@ -140,7 +150,8 @@ public class CSVPrinter<E, K> implements ListenerFactory<E, K> {
             }
             lineCounter = lineCounter + 1;
           }
-        }));
+        })
+    );
   }
 
   @Override

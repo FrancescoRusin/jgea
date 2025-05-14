@@ -1,0 +1,39 @@
+ea.experiment(
+  runs =
+    (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
+    (solver = (nEval = [1000]) * [
+      ea.s.biGa(fitnessReducer = ea.misc.lossyAverage(); representation = ea.r.doubleString());
+      ea.s.biMapElites(
+        fitnessReducer = ea.misc.lossyAverage();
+        representation = ea.r.doubleString();
+        emptyArchive = false;
+        descriptors = [
+          ea.s.me.d.descriptor(f = f.avg(of = f.nkTh(of = ea.f.genotype(); n = 3; k = 0)); min = -1; max = 1);
+          ea.s.me.d.descriptor(f = f.avg(of = f.nkTh(of = ea.f.genotype(); n = 3; k = 1)); min = -1; max = 1)
+        ]
+      )
+    ]) *
+    (problem = (p = [10]) * [ea.bp.s.pointAimingBiProblem()]) *
+    [ea.run()];
+  listeners = [
+    ea.l.console(
+      functions = [
+        ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.quality(of = ea.f.best(); format = "%6.4f");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.quality()));
+        f.percentile(of = f.each(of = ea.f.all(); mapF = ea.f.quality()); p = 75; format = "%6.4f");
+        ea.f.solution(of = ea.f.best(); format = "%60.60s")
+      ];
+      runFunctions = [ea.f.runKey(key = "run.problem.p")];
+      onlyLast = false
+    );
+    ea.l.savePlotForExp(
+      path = "../{name}-fitness";
+      plot = ea.plot.multi.quality()
+    );
+    ea.l.savePlotForExp(
+      path = "{name}-final-fitness";
+      plot = ea.plot.multi.qualityBoxplot()
+    )
+  ]
+)

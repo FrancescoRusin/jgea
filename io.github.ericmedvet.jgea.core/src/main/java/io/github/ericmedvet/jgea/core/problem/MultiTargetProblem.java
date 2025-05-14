@@ -21,11 +21,10 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, Double> {
   Distance<S> distance();
@@ -45,19 +44,27 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
     return Double::compareTo;
   }
 
-  default MultiHomogeneousObjectiveProblem<S, Double> toMHOProblem() {
-    List<Comparator<Double>> comparators = Collections.nCopies(targets().size(), Double::compareTo);
-    Function<S, List<Double>> f =
-        s -> targets().stream().map(t -> distance().apply(s, t)).toList();
-    record MHOProblem<S>(List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction)
-        implements MultiHomogeneousObjectiveProblem<S, Double> {}
-    record MHOProblemWithExample<S>(
-        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction, S example)
-        implements MultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
-    if (this instanceof ProblemWithExampleSolution<?> pwes) {
-      //noinspection unchecked
-      return new MHOProblemWithExample<>(comparators, f, (S) pwes.example());
-    }
-    return new MHOProblem<>(comparators, f);
+  default SimpleMOProblem<S, Double> toMHOProblem() {
+    List<S> targets = targets().stream().toList();
+    SequencedMap<String, Comparator<Double>> comparators = IntStream.range(
+        0,
+        targets.size()
+    )
+        .boxed()
+        .collect(
+            Misc.toSequencedMap(
+                "target%d"::formatted,
+                i -> Double::compareTo
+            )
+        );
+    Function<S, SequencedMap<String, Double>> outcomeF = s -> IntStream.range(0, targets().size())
+        .boxed()
+        .collect(
+            Misc.toSequencedMap(
+                "target%d"::formatted,
+                i -> distance().apply(s, targets.get(i))
+            )
+        );
+    return SimpleMOProblem.from(comparators, outcomeF, null, example());
   }
 }

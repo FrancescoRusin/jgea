@@ -23,9 +23,13 @@ import java.util.stream.IntStream;
 
 public class Rosenbrock extends AbstractNumericalProblem {
   public Rosenbrock(int p) {
-    super(p, vs -> IntStream.range(0, p - 1)
-        .mapToDouble(i ->
-            100 * Math.pow(vs.get(i) * vs.get(i) - vs.get(i + 1), 2) + (vs.get(i) - 1) * (vs.get(i) - 1))
-        .sum());
+    super(
+        p,
+        vs -> IntStream.range(0, p - 1)
+            .mapToDouble(
+                i -> 100 * Math.pow(vs.get(i) * vs.get(i) - vs.get(i + 1), 2) + (vs.get(i) - 1) * (vs.get(i) - 1)
+            )
+            .sum()
+    );
   }
 }

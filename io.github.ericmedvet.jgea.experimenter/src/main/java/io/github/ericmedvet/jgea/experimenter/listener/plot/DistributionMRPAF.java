@@ -29,8 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class DistributionMRPAF<E, R, K, X>
-    extends AbstractMultipleRPAF<E, DistributionPlot, R, List<DistributionPlot.Data>, K, Map<K, List<Number>>> {
+public class DistributionMRPAF<E, R, K, X> extends AbstractMultipleRPAF<E, DistributionPlot, R, List<DistributionPlot.Data>, K, Map<K, List<Number>>> {
   protected final Function<? super E, X> predicateValueFunction;
   private final Function<? super R, ? extends K> lineFunction;
   private final Function<? super E, ? extends Number> yFunction;
@@ -44,7 +43,8 @@ public class DistributionMRPAF<E, R, K, X>
       Function<? super E, ? extends Number> yFunction,
       Function<? super E, X> predicateValueFunction,
       Predicate<? super X> predicate,
-      DoubleRange yRange) {
+      DoubleRange yRange
+  ) {
     super(xSubplotFunction, ySubplotFunction);
     this.lineFunction = lineFunction;
     this.yFunction = yFunction;
@@ -55,10 +55,14 @@ public class DistributionMRPAF<E, R, K, X>
 
   @Override
   protected List<DistributionPlot.Data> buildData(K xK, K yK, Map<K, List<Number>> map) {
-    return map.entrySet().stream()
-        .map(e -> new DistributionPlot.Data(
-            FormattedFunction.format(lineFunction).formatted(e.getKey()),
-            e.getValue().stream().map(Number::doubleValue).toList()))
+    return map.entrySet()
+        .stream()
+        .map(
+            e -> new DistributionPlot.Data(
+                FormattedFunction.format(lineFunction).formatted(e.getKey()),
+                e.getValue().stream().map(Number::doubleValue).toList()
+            )
+        )
         .toList();
   }
 
@@ -72,27 +76,30 @@ public class DistributionMRPAF<E, R, K, X>
                 .formatted(data.colIndexes().get(x)),
             FormattedFunction.format(ySubplotFunction)
                 .formatted(data.rowIndexes().get(y)),
-            data.get(x, y)));
+            data.get(x, y)
+        )
+    );
     String subtitle = "";
     if (grid.w() > 1 && grid.h() == 1) {
       subtitle = "→ %s".formatted(NamedFunction.name(xSubplotFunction));
     } else if (grid.w() == 1 && grid.h() > 1) {
       subtitle = "↓ %s".formatted(NamedFunction.name(ySubplotFunction));
     } else if (grid.w() > 1 && grid.h() > 1) {
-      subtitle =
-          "→ %s, ↓ %s".formatted(NamedFunction.name(xSubplotFunction), NamedFunction.name(ySubplotFunction));
+      subtitle = "→ %s, ↓ %s".formatted(NamedFunction.name(xSubplotFunction), NamedFunction.name(ySubplotFunction));
     }
     return new DistributionPlot(
         "%s distribution%s"
             .formatted(
                 NamedFunction.name(yFunction),
-                subtitle.isEmpty() ? subtitle : (" (%s)".formatted(subtitle))),
+                subtitle.isEmpty() ? subtitle : (" (%s)".formatted(subtitle))
+            ),
         NamedFunction.name(xSubplotFunction),
         NamedFunction.name(ySubplotFunction),
         NamedFunction.name(lineFunction),
         NamedFunction.name(yFunction),
         yRange,
-        grid);
+        grid
+    );
   }
 
   @Override

@@ -53,8 +53,7 @@ public class SameRootSubtreeCrossover<N> implements Crossover<Tree<N>> {
     subtrees2 = Misc.shuffle(subtrees2, random);
     for (Tree<N> subtree1 : subtrees1) {
       for (Tree<N> subtree2 : subtrees2) {
-        if ((subtree1.content().equals(subtree2.content()))
-            && (subtree1.depth() + subtree2.height() <= maxHeight)) {
+        if ((subtree1.content().equals(subtree2.content())) && (subtree1.depth() + subtree2.height() <= maxHeight)) {
           return TreeUtils.replaceFirst(parent1, subtree1, subtree2);
         }
       }

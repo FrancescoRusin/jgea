@@ -21,17 +21,17 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
+import java.util.List;
 import java.util.Random;
 
-public class Nguyen7 extends SyntheticUnivariateRegressionProblem {
+public class Nguyen7 extends PrecomputedSyntheticURProblem {
 
-  public Nguyen7(UnivariateRegressionFitness.Metric metric, long seed) {
+  public Nguyen7(List<Metric> metrics, long seed) {
     super(
-        UnivariateRealFunction.from(v -> Math.log(v[0] + 1d) + Math.log(v[0] * v[0] + 1d), 1),
-        MathUtils.pairwise(MathUtils.uniformSample(0, 2, 20, new Random(seed))),
-        MathUtils.pairwise(MathUtils.uniformSample(0, 2, 100, new Random(seed))),
-        metric);
+        SyntheticURProblem.function(v -> Math.log(v[0] + 1d) + Math.log(v[0] * v[0] + 1d), 1),
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.uniformSample(0, 2, 20, new Random(seed)))),
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.uniformSample(0, 2, 100, new Random(seed)))),
+        metrics
+    );
   }
 }

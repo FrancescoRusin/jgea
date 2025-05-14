@@ -68,8 +68,7 @@ public class StandardGEMapper<T> extends GrammarBasedMapper<BitString, T> {
       int optionIndex = 0;
       if (options.size() > 1) {
         optionIndex = genotype.slice(currentCodonIndex * codonLength, (currentCodonIndex + 1) * codonLength)
-                .toInt()
-            % options.size();
+            .toInt() % options.size();
         currentCodonIndex = currentCodonIndex + 1;
       }
       // add children

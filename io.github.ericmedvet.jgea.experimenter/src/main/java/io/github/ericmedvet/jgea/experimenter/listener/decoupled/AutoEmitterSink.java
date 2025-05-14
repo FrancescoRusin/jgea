@@ -38,7 +38,8 @@ public class AutoEmitterSink<K, V> {
         },
         0,
         millisInterval,
-        TimeUnit.MILLISECONDS);
+        TimeUnit.MILLISECONDS
+    );
   }
 
   public void shutdown() {

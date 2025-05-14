@@ -24,12 +24,12 @@ import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.problem.MultiTargetProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-public class PointsAiming implements ProblemWithExampleSolution<List<Double>>, MultiTargetProblem<List<Double>> {
+public class PointsAiming implements MultiTargetProblem<List<Double>> {
 
   private final List<List<Double>> targets;
   private final int p;
@@ -43,7 +43,7 @@ public class PointsAiming implements ProblemWithExampleSolution<List<Double>>, M
     checkLengthsList(targets);
     this.targets = Collections.unmodifiableList(targets);
     distance = (vs1, vs2) -> norm(diff(vs1, vs2), 2);
-    p = targets.get(0).size();
+    p = targets.getFirst().size();
   }
 
   @Override
@@ -57,7 +57,7 @@ public class PointsAiming implements ProblemWithExampleSolution<List<Double>>, M
   }
 
   @Override
-  public List<Double> example() {
-    return Collections.nCopies(p, 0d);
+  public Optional<List<Double>> example() {
+    return Optional.of(Collections.nCopies(p, 0d));
   }
 }

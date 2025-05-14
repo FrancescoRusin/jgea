@@ -30,7 +30,8 @@ import java.util.function.DoubleUnaryOperator;
 
 public class Naming {
 
-  private Naming() {}
+  private Naming() {
+  }
 
   public static <I1, I2> BiConsumer<I1, I2> named(String name, BiConsumer<I1, I2> consumer) {
     return new BiConsumer<>() {
@@ -123,7 +124,9 @@ public class Naming {
   }
 
   public static <E, O, K> AccumulatorFactory<E, O, K> named(
-      String name, AccumulatorFactory<E, O, K> accumulatorFactory) {
+      String name,
+      AccumulatorFactory<E, O, K> accumulatorFactory
+  ) {
     return new AccumulatorFactory<>() {
       @Override
       public Accumulator<E, O> build(K k) {

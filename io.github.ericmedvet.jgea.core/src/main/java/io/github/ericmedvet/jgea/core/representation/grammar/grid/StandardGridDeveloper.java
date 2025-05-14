@@ -46,12 +46,12 @@ public class StandardGridDeveloper<T> implements Developer<T, Grid<T>, GridGramm
   }
 
   public enum SortingCriterion {
-    LEAST_RECENT(Comparator.comparingInt(e -> e.value().iteration)),
-    MOST_RECENT(LEAST_RECENT.comparator.reversed()),
-    LEAST_FREE_SIDES(Comparator.comparingInt(e -> e.value().nOfFreeSides)),
-    MOST_FREE_SIDE(LEAST_FREE_SIDES.comparator.reversed()),
-    LOWEST_X(Comparator.comparingInt(e -> e.key().x())),
-    LOWEST_Y(Comparator.comparingInt(e -> e.key().y()));
+    LEAST_RECENT(Comparator.comparingInt(e -> e.value().iteration)), MOST_RECENT(
+        LEAST_RECENT.comparator.reversed()
+    ), LEAST_FREE_SIDES(Comparator.comparingInt(e -> e.value().nOfFreeSides)), MOST_FREE_SIDE(
+        LEAST_FREE_SIDES.comparator.reversed()
+    ), LOWEST_X(Comparator.comparingInt(e -> e.key().x())), LOWEST_Y(Comparator.comparingInt(e -> e.key().y()));
+
     private final Comparator<Grid.Entry<Decorated>> comparator;
 
     SortingCriterion(Comparator<Grid.Entry<Decorated>> comparator) {
@@ -77,14 +77,17 @@ public class StandardGridDeveloper<T> implements Developer<T, Grid<T>, GridGramm
   }
 
   private static boolean isWriteable(Grid<?> original, GridGrammar.ReferencedGrid<?> replacement, Grid.Key k) {
-    return replacement.grid().entries().stream()
+    return replacement.grid()
+        .entries()
+        .stream()
         .filter(e -> e.value() != null && !e.key().equals(replacement.referenceKey()))
         .noneMatch(e -> {
           Grid.Key tK = e.key()
               .translated(k.x(), k.y())
               .translated(
                   -replacement.referenceKey().x(),
-                  -replacement.referenceKey().y());
+                  -replacement.referenceKey().y()
+              );
           if (!original.isValid(tK)) {
             return false;
           }
@@ -93,15 +96,25 @@ public class StandardGridDeveloper<T> implements Developer<T, Grid<T>, GridGramm
   }
 
   private static <T> Grid<Aged<T>> modify(
-      Grid<Aged<T>> original, GridGrammar.ReferencedGrid<T> replacement, Grid.Key k, int iteration) {
-    List<Grid.Entry<T>> repEntries = replacement.grid().entries().stream()
-        .map(e -> new Grid.Entry<>(
-            e.key()
-                .translated(k.x(), k.y())
-                .translated(
-                    -replacement.referenceKey().x(),
-                    -replacement.referenceKey().y()),
-            e.value()))
+      Grid<Aged<T>> original,
+      GridGrammar.ReferencedGrid<T> replacement,
+      Grid.Key k,
+      int iteration
+  ) {
+    List<Grid.Entry<T>> repEntries = replacement.grid()
+        .entries()
+        .stream()
+        .map(
+            e -> new Grid.Entry<>(
+                e.key()
+                    .translated(k.x(), k.y())
+                    .translated(
+                        -replacement.referenceKey().x(),
+                        -replacement.referenceKey().y()
+                    ),
+                e.value()
+            )
+        )
         .toList();
     int minX = Math.min(repEntries.stream().mapToInt(e -> e.key().x()).min().orElse(0), 0);
     int maxX = Math.max(repEntries.stream().mapToInt(e -> e.key().x()).max().orElse(0), original.w() - 1);
@@ -131,11 +144,15 @@ public class StandardGridDeveloper<T> implements Developer<T, Grid<T>, GridGramm
     while (true) {
       // find the candidates
       final Grid<Aged<T>> finalPolyomino = polyomino;
-      List<Grid.Entry<Decorated>> candidates = polyomino.entries().stream()
-          .filter(e -> e.value() != null
-              && nonTerminalSymbols.contains(e.value().t()))
-          .map(e -> new Grid.Entry<>(
-              e.key(), new Decorated(e.value().iteration, freeSides(finalPolyomino, e.key()))))
+      List<Grid.Entry<Decorated>> candidates = polyomino.entries()
+          .stream()
+          .filter(e -> e.value() != null && nonTerminalSymbols.contains(e.value().t()))
+          .map(
+              e -> new Grid.Entry<>(
+                  e.key(),
+                  new Decorated(e.value().iteration, freeSides(finalPolyomino, e.key()))
+              )
+          )
           .toList();
       // check if no non-terminal symbols
       if (candidates.isEmpty()) {

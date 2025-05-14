@@ -38,7 +38,8 @@ public interface Listener<E> {
     return from(
         "all[%s]".formatted(listeners.stream().map(Object::toString).collect(Collectors.joining(";"))),
         e -> listeners.forEach(l -> l.listen(e)),
-        () -> listeners.forEach(Listener::done));
+        () -> listeners.forEach(Listener::done)
+    );
   }
 
   static <E> Listener<E> deaf() {
@@ -46,7 +47,7 @@ public interface Listener<E> {
   }
 
   static <E> Listener<E> from(String name, Consumer<E> consumer, Runnable doneRunnable) {
-    return new Listener<E>() {
+    return new Listener<>() {
       @Override
       public void listen(E e) {
         consumer.accept(e);
@@ -72,25 +73,34 @@ public interface Listener<E> {
     final Logger L = Logger.getLogger(Listener.class.getName());
     return from(
         "%s[deferered]".formatted(this),
-        e -> executorService.submit(() -> Misc.doOrLog(
-            () -> listen(e),
-            Logger.getLogger(Listener.class.getName()),
-            Level.WARNING,
-            t -> String.format("Listener %s cannot listen() event: %s", this, t))),
-        () -> executorService.submit(() -> Misc.doOrLog(
-            this::done,
-            Logger.getLogger(Listener.class.getName()),
-            Level.WARNING,
-            t -> String.format("Listener %s cannot done(): %s", this, t))));
+        e -> executorService.submit(
+            () -> Misc.doOrLog(
+                () -> listen(e),
+                Logger.getLogger(Listener.class.getName()),
+                Level.WARNING,
+                t -> String.format("Listener %s cannot listen() event: %s", this, t)
+            )
+        ),
+        () -> executorService.submit(
+            () -> Misc.doOrLog(
+                this::done,
+                Logger.getLogger(Listener.class.getName()),
+                Level.WARNING,
+                t -> String.format("Listener %s cannot done(): %s", this, t)
+            )
+        )
+    );
   }
 
-  default void done() {}
+  default void done() {
+  }
 
   default <F> Listener<F> forEach(Function<F, Collection<E>> splitter) {
     return from(
         "%s[forEach:%s]".formatted(this, splitter),
         f -> splitter.apply(f).forEach(this::listen),
-        this::done);
+        this::done
+    );
   }
 
   default <F> Listener<F> on(Function<F, E> function) {

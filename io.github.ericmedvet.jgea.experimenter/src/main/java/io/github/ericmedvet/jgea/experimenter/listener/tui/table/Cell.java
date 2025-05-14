@@ -41,7 +41,8 @@ public interface Cell {
       public void draw(TuiDrawer td, int width) {
         thisCell.draw(
             td.in(new Rectangle(new Point(width - thisCell.preferredWidth(), 0), new Point(width, 1))),
-            width);
+            width
+        );
       }
     };
   }

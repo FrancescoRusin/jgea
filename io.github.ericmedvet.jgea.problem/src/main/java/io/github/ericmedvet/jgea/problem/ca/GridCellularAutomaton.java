@@ -41,7 +41,8 @@ public class GridCellularAutomaton<S> implements TimeInvariantDynamicalSystem<Vo
       int neighboroodRadius,
       Function<Grid<S>, S> updateRule,
       boolean torodial,
-      S emptyState) {
+      S emptyState
+  ) {
     this.initialStates = initialStates;
     this.neighboroodRadius = neighboroodRadius;
     this.updateRule = updateRule;
@@ -68,10 +69,14 @@ public class GridCellularAutomaton<S> implements TimeInvariantDynamicalSystem<Vo
   }
 
   public Grid<S> step() {
-    Grid<S> newStates = states.entries().stream()
-        .map(e -> new Grid.Entry<>(
-            e.key(),
-            updateRule.apply(neighborhood(e.key(), states, neighboroodRadius, torodial, emptyState))))
+    Grid<S> newStates = states.entries()
+        .stream()
+        .map(
+            e -> new Grid.Entry<>(
+                e.key(),
+                updateRule.apply(neighborhood(e.key(), states, neighboroodRadius, torodial, emptyState))
+            )
+        )
         .collect(Grid.collector());
     states.keys().forEach(k -> states.set(k, newStates.get(k)));
     return states;

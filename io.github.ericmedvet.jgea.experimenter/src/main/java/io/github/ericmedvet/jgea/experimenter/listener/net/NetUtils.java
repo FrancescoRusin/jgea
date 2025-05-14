@@ -41,7 +41,8 @@ public class NetUtils {
   private static final String SALT = NetUtils.class.getName();
   private static final byte[] IV_BYTES = SALT.getBytes(StandardCharsets.UTF_8);
 
-  private NetUtils() {}
+  private NetUtils() {
+  }
 
   public static double getCPULoad() {
     return ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getSystemLoadAverage();
@@ -75,33 +76,41 @@ public class NetUtils {
     return System.getProperty("user.name");
   }
 
-  public static String decrypt(String ciphredString, String secret)
-      throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException,
-          NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+  public static String decrypt(
+      String ciphredString,
+      String secret
+  ) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
     return decrypt(CIPHER_ALG, ciphredString, getKeyFromPassword(secret, SALT), generateIv());
   }
 
-  private static String decrypt(String algorithm, String cipherText, SecretKey key, IvParameterSpec iv)
-      throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException,
-          InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+  private static String decrypt(
+      String algorithm,
+      String cipherText,
+      SecretKey key,
+      IvParameterSpec iv
+  ) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
     Cipher cipher = Cipher.getInstance(algorithm);
     cipher.init(Cipher.DECRYPT_MODE, key, iv);
     byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(cipherText));
     return new String(plainText);
   }
 
-  private static String encrypt(String algorithm, String input, SecretKey key, IvParameterSpec iv)
-      throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException,
-          InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+  private static String encrypt(
+      String algorithm,
+      String input,
+      SecretKey key,
+      IvParameterSpec iv
+  ) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
     Cipher cipher = Cipher.getInstance(algorithm);
     cipher.init(Cipher.ENCRYPT_MODE, key, iv);
     byte[] cipherText = cipher.doFinal(input.getBytes());
     return Base64.getEncoder().encodeToString(cipherText);
   }
 
-  public static String encrypt(String clearString, String secret)
-      throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException,
-          NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+  public static String encrypt(
+      String clearString,
+      String secret
+  ) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
     return encrypt(CIPHER_ALG, clearString, getKeyFromPassword(secret, SALT), generateIv());
   }
 
@@ -111,8 +120,10 @@ public class NetUtils {
     return new IvParameterSpec(iv);
   }
 
-  private static SecretKey getKeyFromPassword(String password, String salt)
-      throws NoSuchAlgorithmException, InvalidKeySpecException {
+  private static SecretKey getKeyFromPassword(
+      String password,
+      String salt
+  ) throws NoSuchAlgorithmException, InvalidKeySpecException {
     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
     KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
     return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");

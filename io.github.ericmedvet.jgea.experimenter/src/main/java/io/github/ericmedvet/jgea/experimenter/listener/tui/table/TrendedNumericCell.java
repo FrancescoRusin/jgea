@@ -30,7 +30,7 @@ public record TrendedNumericCell<C extends Comparable<C>>(List<C> values, String
 
   @Override
   public void draw(TuiDrawer td, int width) {
-    String s = format.formatted(values.get(values.size() - 1));
+    String s = format.formatted(values.getLast());
     td.drawString(0, 0, s);
     if (values.size() > 2) {
       int lastTrend = values.get(values().size() - 1).compareTo(values.get(values().size() - 2));
@@ -41,31 +41,28 @@ public record TrendedNumericCell<C extends Comparable<C>>(List<C> values, String
             s.length(),
             0,
             "" + INCREASING_CHAR,
-            changed
-                ? td.getConfiguration().positivePlotColor()
-                : td.getConfiguration().secondaryStringColor());
+            changed ? td.getConfiguration().positivePlotColor() : td.getConfiguration().secondaryStringColor()
+        );
       } else if (lastTrend < 0) {
         td.drawString(
             s.length(),
             0,
             "" + DECREASING_CHAR,
-            changed
-                ? td.getConfiguration().negativePlotColor()
-                : td.getConfiguration().secondaryStringColor());
+            changed ? td.getConfiguration().negativePlotColor() : td.getConfiguration().secondaryStringColor()
+        );
       } else {
         td.drawString(
             s.length(),
             0,
             "" + SAME_CHAR,
-            changed
-                ? td.getConfiguration().primaryStringColor()
-                : td.getConfiguration().secondaryStringColor());
+            changed ? td.getConfiguration().primaryStringColor() : td.getConfiguration().secondaryStringColor()
+        );
       }
     }
   }
 
   @Override
   public int preferredWidth() {
-    return format.formatted(values.get(values.size() - 1)).length() + 1;
+    return format.formatted(values.getLast()).length() + 1;
   }
 }

@@ -35,7 +35,8 @@ public class NodeAddition<N, A> implements Mutation<Graph<N, A>> {
       IndependentFactory<? extends N> nodeFactory,
       Mutation<A> toNewNodeArcMutation,
       Mutation<A> fromNewNodeArcMutation,
-      Mutation<A> existingArcMutation) {
+      Mutation<A> existingArcMutation
+  ) {
     this.nodeFactory = nodeFactory;
     this.toNewNodeArcMutation = toNewNodeArcMutation;
     this.fromNewNodeArcMutation = fromNewNodeArcMutation;
@@ -45,7 +46,8 @@ public class NodeAddition<N, A> implements Mutation<Graph<N, A>> {
   public NodeAddition(
       IndependentFactory<? extends N> nodeFactory,
       Mutation<A> toNewNodeArcMutation,
-      Mutation<A> fromNewNodeArcMutation) {
+      Mutation<A> fromNewNodeArcMutation
+  ) {
     this(nodeFactory, toNewNodeArcMutation, fromNewNodeArcMutation, null);
   }
 

@@ -29,8 +29,6 @@ public class Jaccard<T> implements Distance<Set<T>> {
     if (s1.isEmpty() && s2.isEmpty()) {
       return 0d;
     }
-    return 1d
-        - (double) Misc.intersection(s1, s2).size()
-            / (double) Misc.union(s1, s2).size();
+    return 1d - (double) Misc.intersection(s1, s2).size() / (double) Misc.union(s1, s2).size();
   }
 }

@@ -38,7 +38,8 @@ public abstract class AbstractAutoPurgingSource<K, V> implements Source<K, V> {
   public Map<Pair<LocalDateTime, K>, V> pull(LocalDateTime t) {
     Map<Pair<LocalDateTime, K>, V> outMap;
     synchronized (map) {
-      List<Pair<LocalDateTime, K>> toRemovePs = map.keySet().stream()
+      List<Pair<LocalDateTime, K>> toRemovePs = map.keySet()
+          .stream()
           .filter(p -> p.first().isBefore(lastPullLocalDateTime))
           .toList();
       toRemovePs.forEach(map::remove);

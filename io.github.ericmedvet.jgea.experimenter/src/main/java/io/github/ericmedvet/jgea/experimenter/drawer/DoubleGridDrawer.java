@@ -29,8 +29,7 @@ public class DoubleGridDrawer implements Drawer<Grid<double[]>> {
 
   public record Configuration(ColorType colorType, DoubleRange range, int sizeRate, double marginRate) {
     public enum ColorType {
-      GRAY,
-      RGB
+      GRAY, RGB
     }
 
     public static Configuration DEFAULT = new Configuration(ColorType.RGB, DoubleRange.UNIT, 4, 0);
@@ -57,20 +56,22 @@ public class DoubleGridDrawer implements Drawer<Grid<double[]>> {
     int size = grid.get(0, 0).length;
     if (size < 3 && c.colorType.equals(Configuration.ColorType.RGB)) {
       throw new IllegalArgumentException(
-          "Not enough channels: %d found, >=3 needed for %s image type".formatted(size, c.colorType));
+          "Not enough channels: %d found, >=3 needed for %s image type".formatted(size, c.colorType)
+      );
     }
     grid.entries().forEach(e -> {
-      Color color =
-          switch (c.colorType()) {
-            case RGB -> new Color(
-                (float) c.range().normalize(e.value()[0]),
-                (float) c.range().normalize(e.value()[1]),
-                (float) c.range().normalize(e.value()[2]));
-            case GRAY -> new Color(
-                (float) c.range().normalize(e.value()[0]),
-                (float) c.range().normalize(e.value()[0]),
-                (float) c.range().normalize(e.value()[0]));
-          };
+      Color color = switch (c.colorType()) {
+        case RGB -> new Color(
+            (float) c.range().normalize(e.value()[0]),
+            (float) c.range().normalize(e.value()[1]),
+            (float) c.range().normalize(e.value()[2])
+        );
+        case GRAY -> new Color(
+            (float) c.range().normalize(e.value()[0]),
+            (float) c.range().normalize(e.value()[0]),
+            (float) c.range().normalize(e.value()[0])
+        );
+      };
       g.setColor(color);
       g.fill(new Rectangle2D.Double(x0 + e.key().x() * cW, y0 + e.key().y() * cH, cW, cH));
     });
@@ -78,7 +79,9 @@ public class DoubleGridDrawer implements Drawer<Grid<double[]>> {
 
   @Override
   public ImageInfo imageInfo(Grid<double[]> grid) {
-    return new ImageInfo((int) ((1 + c.marginRate()) * grid.w() * c.sizeRate), (int)
-        ((1 + c.marginRate()) * grid.h() * c.sizeRate));
+    return new ImageInfo(
+        (int) ((1 + c.marginRate()) * grid.w() * c.sizeRate),
+        (int) ((1 + c.marginRate()) * grid.h() * c.sizeRate)
+    );
   }
 }

@@ -67,9 +67,12 @@ public class OperatorNode extends Node implements ToDoubleFunction<double[]> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+    if (!super.equals(o))
+      return false;
     OperatorNode that = (OperatorNode) o;
     return operator == that.operator;
   }

@@ -32,20 +32,15 @@ public class NetTui {
 
   private static class CommandLineConfiguration {
     @Parameter(
-        names = {"--port", "-p"},
-        description = "Server port.")
+        names = {"--port", "-p"}, description = "Server port.")
     public int port = DEFAULT_PORT;
 
     @Parameter(
-        names = {"--key", "-k"},
-        description = "Handshake key.",
-        required = true)
+        names = {"--key", "-k"}, description = "Handshake key.", required = true)
     public String key;
 
     @Parameter(
-        names = {"--help", "-h"},
-        description = "Show this help.",
-        help = true)
+        names = {"--help", "-h"}, description = "Show this help.", help = true)
     public boolean help;
   }
 
@@ -77,7 +72,8 @@ public class NetTui {
         netMultiSource.getLogSource(),
         netMultiSource.getExperimentSource(),
         netMultiSource.getRunSource(),
-        netMultiSource.getDataItemSource());
+        netMultiSource.getDataItemSource()
+    );
     tuiMonitor.run();
   }
 }

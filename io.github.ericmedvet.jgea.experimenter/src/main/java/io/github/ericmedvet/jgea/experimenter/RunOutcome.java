@@ -28,4 +28,5 @@ import java.util.List;
 public record RunOutcome(
     @Param("index") String index,
     @Param("run") Run<?, ?, ?, ?> run,
-    @Param("serializedGenotypes") List<String> serializedGenotypes) {}
+    @Param("serializedGenotypes") List<String> serializedGenotypes
+) {}

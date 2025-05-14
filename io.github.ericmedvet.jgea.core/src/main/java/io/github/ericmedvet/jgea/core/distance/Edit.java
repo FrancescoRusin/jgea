@@ -25,8 +25,7 @@ import java.util.List;
 public class Edit<T> implements Distance<List<T>> {
 
   // from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
-  @Override
-  public Double apply(List<T> ts1, List<T> ts2) {
+  public static <T> double compute(List<T> ts1, List<T> ts2) {
     int len0 = ts1.size() + 1;
     int len1 = ts2.size() + 1;
     int[] cost = new int[len0];
@@ -47,6 +46,11 @@ public class Edit<T> implements Distance<List<T>> {
       cost = newCost;
       newCost = swap;
     }
-    return (double) cost[len0 - 1];
+    return cost[len0 - 1];
+  }
+
+  @Override
+  public Double apply(List<T> ts1, List<T> ts2) {
+    return compute(ts1, ts2);
   }
 }

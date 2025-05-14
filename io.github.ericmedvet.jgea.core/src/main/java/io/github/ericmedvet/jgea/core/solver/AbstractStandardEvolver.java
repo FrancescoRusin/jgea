@@ -20,8 +20,10 @@
 package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
+import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.order.DAGPartiallyOrderedCollection;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Selector;
@@ -33,15 +35,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
-public abstract class AbstractStandardEvolver<
-        T extends POCPopulationState<I, G, S, Q, P>,
-        P extends QualityBasedProblem<S, Q>,
-        I extends Individual<G, S, Q>,
-        G,
-        S,
-        Q>
-    extends AbstractPopulationBasedIterativeSolver<T, P, I, G, S, Q> {
+public abstract class AbstractStandardEvolver<T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> extends AbstractPopulationBasedIterativeSolver<T, P, I, G, S, Q> {
 
   private static final Logger L = Logger.getLogger(AbstractStandardEvolver.class.getName());
   protected final Map<GeneticOperator<G>, Double> operators;
@@ -63,8 +59,10 @@ public abstract class AbstractStandardEvolver<
       int offspringSize,
       boolean overlapping,
       int maxUniquenessAttempts,
-      boolean remap) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+      boolean remap,
+      List<PartialComparator<? super I>> additionalIndividualComparators
+  ) {
+    super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.operators = operators;
     this.parentSelector = parentSelector;
     this.unsurvivalSelector = unsurvivalSelector;
@@ -87,9 +85,13 @@ public abstract class AbstractStandardEvolver<
     Collection<ChildGenotype<G>> offspringChildGenotypes = new ArrayList<>();
     Set<G> uniqueOffspringGenotypes = new HashSet<>();
     if (maxUniquenessAttempts > 0) {
-      uniqueOffspringGenotypes.addAll(state.pocPopulation().all().stream()
-          .map(Individual::genotype)
-          .toList());
+      uniqueOffspringGenotypes.addAll(
+          state.pocPopulation()
+              .all()
+              .stream()
+              .map(Individual::genotype)
+              .toList()
+      );
     }
     int attempts = 0;
     while (offspringChildGenotypes.size() < offspringSize) {
@@ -99,10 +101,8 @@ public abstract class AbstractStandardEvolver<
         I parent = parentSelector.select(state.pocPopulation(), random);
         parents.add(parent);
       }
-      List<? extends G> childGenotypes =
-          operator.apply(parents.stream().map(Individual::genotype).toList(), random);
-      if (attempts >= maxUniquenessAttempts
-          || childGenotypes.stream().noneMatch(uniqueOffspringGenotypes::contains)) {
+      List<? extends G> childGenotypes = operator.apply(parents.stream().map(Individual::genotype).toList(), random);
+      if (attempts >= maxUniquenessAttempts || childGenotypes.stream().noneMatch(uniqueOffspringGenotypes::contains)) {
         attempts = 0;
         List<Long> parentIds = parents.stream().map(Individual::id).toList();
         childGenotypes.stream()
@@ -120,19 +120,32 @@ public abstract class AbstractStandardEvolver<
   public T init(P problem, RandomGenerator random, ExecutorService executor) throws SolverException {
     T newState = init(problem);
     AtomicLong counter = new AtomicLong(0);
-    List<? extends G> genotypes = genotypeFactory.build(populationSize, random);
+    List<? extends G> genotypes;
+    if (genotypeFactory instanceof IndependentFactory<? extends G> independentGenotypeFactory) {
+      genotypes = getAll(
+          IntStream.range(0, populationSize)
+              .mapToObj(i -> executor.submit(() -> independentGenotypeFactory.build(random)))
+              .toList()
+      ).stream().toList();
+    } else {
+      genotypes = genotypeFactory.build(populationSize, random);
+    }
     return update(
         newState,
-        getAll(map(
-            genotypes.stream()
-                .map(g -> new ChildGenotype<G>(counter.getAndIncrement(), g, List.of()))
-                .toList(),
-            this::mapChildGenotype,
-            newState,
-            random,
-            executor)),
+        getAll(
+            map(
+                genotypes.stream()
+                    .map(g -> new ChildGenotype<G>(counter.getAndIncrement(), g, List.of()))
+                    .toList(),
+                this::mapChildGenotype,
+                newState,
+                random,
+                executor
+            )
+        ),
         genotypes.size(),
-        genotypes.size());
+        genotypes.size()
+    );
   }
 
   @Override
@@ -147,7 +160,8 @@ public abstract class AbstractStandardEvolver<
         this::remapIndividual,
         state,
         random,
-        executor);
+        executor
+    );
     L.fine(String.format("Offspring merged with parents: %d individuals", newPopulation.size()));
     newPopulation = trimPopulation(newPopulation, state, random);
     L.fine(String.format("Offspring trimmed: %d individuals", newPopulation.size()));
@@ -155,12 +169,15 @@ public abstract class AbstractStandardEvolver<
         state,
         newPopulation,
         nOfNewBirths,
-        nOfNewBirths + (remap ? state.pocPopulation().size() : 0));
+        nOfNewBirths + (remap ? state.pocPopulation().size() : 0)
+    );
   }
 
   protected Collection<I> trimPopulation(Collection<I> population, T state, RandomGenerator random) {
-    PartiallyOrderedCollection<I> orderedPopulation =
-        new DAGPartiallyOrderedCollection<>(population, partialComparator(state.problem()));
+    PartiallyOrderedCollection<I> orderedPopulation = new DAGPartiallyOrderedCollection<>(
+        population,
+        partialComparator(state.problem())
+    );
     while (orderedPopulation.size() > populationSize) {
       I toRemoveIndividual = unsurvivalSelector.select(orderedPopulation, random);
       orderedPopulation.remove(toRemoveIndividual);

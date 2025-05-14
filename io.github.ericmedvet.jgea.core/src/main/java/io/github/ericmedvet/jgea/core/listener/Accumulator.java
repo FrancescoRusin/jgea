@@ -38,7 +38,8 @@ public interface Accumulator<E, O> extends Listener<E> {
           os.add(function.apply(e));
           return os;
         },
-        os -> {});
+        os -> {}
+    );
   }
 
   static <OE, OO, IE, IO> Accumulator<OE, OO> from(
@@ -46,8 +47,9 @@ public interface Accumulator<E, O> extends Listener<E> {
       Accumulator<IE, IO> accumulator,
       Function<OE, IE> eFunction,
       Function<IO, OO> oGetterFunction,
-      Consumer<IO> ioConsumer) {
-    return new Accumulator<OE, OO>() {
+      Consumer<IO> ioConsumer
+  ) {
+    return new Accumulator<>() {
       @Override
       public OO get() {
         return oGetterFunction.apply(accumulator.get());
@@ -71,7 +73,11 @@ public interface Accumulator<E, O> extends Listener<E> {
   }
 
   static <E, O> Accumulator<E, O> from(
-      String name, Supplier<O> oInitializer, BiFunction<E, O, O> oUpdater, Consumer<O> doneOConsumer) {
+      String name,
+      Supplier<O> oInitializer,
+      BiFunction<E, O, O> oUpdater,
+      Consumer<O> doneOConsumer
+  ) {
     return new Accumulator<>() {
       private O o = oInitializer.get();
 
@@ -120,6 +126,7 @@ public interface Accumulator<E, O> extends Listener<E> {
         this,
         Function.identity(),
         Function.identity(),
-        consumer);
+        consumer
+    );
   }
 }

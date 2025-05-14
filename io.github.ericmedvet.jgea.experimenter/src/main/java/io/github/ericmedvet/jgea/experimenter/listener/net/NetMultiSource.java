@@ -116,9 +116,9 @@ public class NetMultiSource {
   }
 
   private void handleClient(Socket socket) {
-    try (socket;
-        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
+    try (socket; ObjectInputStream ois = new ObjectInputStream(
+        socket.getInputStream()
+    ); ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
       try {
         if (!doHandshake(ois, oos)) {
           L.info("Bad attempt from %s: wrong handshake".formatted(socket.getInetAddress()));

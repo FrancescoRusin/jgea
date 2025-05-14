@@ -33,7 +33,8 @@ public class Utils {
 
   protected static final Logger L = Logger.getLogger(Utils.class.getName());
 
-  private Utils() {}
+  private Utils() {
+  }
 
   public static String getCredentialFromFile(File credentialFile) {
     if (credentialFile == null) {
@@ -45,8 +46,10 @@ public class Utils {
         throw new IllegalArgumentException("Invalid credential file: empty");
       }
       if (content.lines().count() != 1) {
-        throw new IllegalArgumentException("Invalid credential file: %d lines"
-            .formatted(content.lines().count()));
+        throw new IllegalArgumentException(
+            "Invalid credential file: %d lines"
+                .formatted(content.lines().count())
+        );
       }
       String[] pieces = content.split("\\s");
       String credential = pieces[0];
@@ -64,7 +67,10 @@ public class Utils {
     }
     if (run != null) {
       map = map.with(
-          "run", ParamMap.Type.NAMED_PARAM_MAP, run.map().with("index", ParamMap.Type.INT, run.index()));
+          "run",
+          ParamMap.Type.NAMED_PARAM_MAP,
+          run.map().with("index", ParamMap.Type.INT, run.index())
+      );
     }
     return Interpolator.interpolate(format, map, "_");
   }

@@ -20,19 +20,22 @@
 
 package io.github.ericmedvet.jgea.core.order;
 
-import java.io.Serializable;
+import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class DAGPartiallyOrderedCollection<T> implements PartiallyOrderedCollection<T> {
+public class DAGPartiallyOrderedCollection<T> extends AbstractPartiallyOrderedCollection<T> {
 
-  private final Collection<Node<Collection<T>>> nodes;
-  private final PartialComparator<? super T> partialComparator;
+  private final Map<Integer, Node<T>> nodes;
+  private final Map<T, Integer> contentMap;
+  private List<Collection<T>> fronts;
 
   public DAGPartiallyOrderedCollection(PartialComparator<? super T> partialComparator) {
-    this.nodes = new ArrayList<>();
-    this.partialComparator = partialComparator;
+    super(partialComparator);
+    nodes = new LinkedHashMap<>();
+    contentMap = new HashMap<>();
+    fronts = null;
   }
 
   public DAGPartiallyOrderedCollection(Collection<? extends T> ts, PartialComparator<? super T> partialComparator) {
@@ -40,134 +43,100 @@ public class DAGPartiallyOrderedCollection<T> implements PartiallyOrderedCollect
     ts.forEach(this::add);
   }
 
-  private record Node<T1>(T1 content, Collection<Node<T1>> beforeNodes, Collection<Node<T1>> afterNodes)
-      implements Serializable {
-    private Node(T1 content) {
-      this(content, new ArrayList<>(), new ArrayList<>());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Node<?> node = (Node<?>) o;
-      return Objects.equals(content, node.content)
-          && Objects.equals(beforeNodes, node.beforeNodes)
-          && Objects.equals(afterNodes, node.afterNodes);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(content, beforeNodes, afterNodes);
-    }
-  }
-
-  private static <T1> Node<Collection<T1>> newNode(T1 t) {
-    Collection<T1> ts = new ArrayList<>();
-    ts.add(t);
-    return new Node<>(ts);
+  private record Node<T>(
+      List<T> contents, SequencedSet<Integer> beforeNodes, SequencedSet<Integer> afterNodes
+  ) {
   }
 
   @Override
   public void add(T t) {
-    for (Node<Collection<T>> node : nodes) {
-      PartialComparator.PartialComparatorOutcome outcome =
-          partialComparator.compare(t, node.content().iterator().next());
+    fronts = null;
+    for (Map.Entry<Integer, Node<T>> nodeEntry : nodes.entrySet()) {
+      PartialComparator.PartialComparatorOutcome outcome = comparator().compare(
+          t,
+          nodeEntry.getValue().contents().getFirst()
+      );
       if (outcome.equals(PartialComparator.PartialComparatorOutcome.SAME)) {
-        node.content().add(t);
+        nodeEntry.getValue().contents().add(t);
+        contentMap.put(t, nodeEntry.getKey());
         return;
       }
     }
-    Node<Collection<T>> newNode = newNode(t);
-    for (Node<Collection<T>> node : nodes) {
-      PartialComparator.PartialComparatorOutcome outcome =
-          partialComparator.compare(t, node.content().iterator().next());
+    Node<T> newNode = new Node<>(new ArrayList<>(List.of(t)), new LinkedHashSet<>(), new LinkedHashSet<>());
+    int newNodeIndex = nodes.keySet().stream().max(Integer::compareTo).orElse(0) + 1;
+    nodes.forEach((nodeIndex, node) -> {
+      PartialComparator.PartialComparatorOutcome outcome = comparator().compare(
+          t,
+          node.contents().getFirst()
+      );
       if (outcome.equals(PartialComparator.PartialComparatorOutcome.BEFORE)) {
-        node.beforeNodes().add(newNode);
-        newNode.afterNodes().add(node);
+        node.beforeNodes().add(newNodeIndex);
+        newNode.afterNodes().add(nodeIndex);
       } else if (outcome.equals(PartialComparator.PartialComparatorOutcome.AFTER)) {
-        node.afterNodes().add(newNode);
-        newNode.beforeNodes().add(node);
+        node.afterNodes().add(newNodeIndex);
+        newNode.beforeNodes().add(nodeIndex);
       }
+    });
+    nodes.put(newNodeIndex, newNode);
+    contentMap.put(t, newNodeIndex);
+  }
+
+  @Override
+  public List<Collection<T>> fronts() {
+    if (fronts == null) {
+      List<Set<Integer>> indexFronts = new ArrayList<>();
+      Set<Integer> remaining = new HashSet<>(nodes.keySet());
+      while (!remaining.isEmpty()) {
+        indexFronts.add(
+            remaining.stream()
+                .filter(index -> Misc.intersection(nodes.get(index).beforeNodes, remaining).isEmpty())
+                .collect(Collectors.toSet())
+        );
+        remaining.removeAll(indexFronts.getLast());
+      }
+      fronts = indexFronts.stream()
+          .map(
+              indexes -> (Collection<T>) indexes.stream()
+                  .map(i -> nodes.get(i).contents())
+                  .flatMap(Collection::stream)
+                  .collect(Collectors.toList())
+          )
+          .toList();
     }
-    nodes.add(newNode);
-  }
-
-  @Override
-  public Collection<T> all() {
-    return Collections.unmodifiableCollection(filterNodes(n -> true));
-  }
-
-  @Override
-  public Collection<T> firsts() {
-    return Collections.unmodifiableCollection(
-        filterNodes(n -> n.beforeNodes().isEmpty()));
-  }
-
-  @Override
-  public Collection<T> lasts() {
-    return Collections.unmodifiableCollection(
-        filterNodes(n -> n.afterNodes().isEmpty()));
+    return fronts;
   }
 
   @Override
   public boolean remove(T t) {
     boolean removed = false;
-    for (Node<Collection<T>> node : nodes) {
-      if (node.content().contains(t)) {
+    Integer nodeIndex = contentMap.get(t);
+    if (nodeIndex != null) {
+      contentMap.remove(t);
+      Node<T> node = nodes.get(nodeIndex);
+      if (node.contents.contains(t)) {
+        fronts = null;
         removed = true;
-        node.content().remove(t);
-        if (node.content().isEmpty()) {
-          nodes.remove(node);
-          for (Node<Collection<T>> beforeNode : node.beforeNodes()) {
-            beforeNode.afterNodes().remove(node);
-          }
-          for (Node<Collection<T>> afterNode : node.afterNodes()) {
-            afterNode.beforeNodes().remove(node);
-          }
+        node.contents.remove(t);
+        if (node.contents.isEmpty()) {
+          nodes.remove(nodeIndex);
+          node.beforeNodes.forEach(ni -> nodes.get(ni).afterNodes.remove(nodeIndex));
+          node.afterNodes.forEach(ni -> nodes.get(ni).beforeNodes.remove(nodeIndex));
         }
-        break;
       }
     }
     return removed;
   }
 
   @Override
-  public PartialComparator<? super T> comparator() {
-    return partialComparator;
-  }
-
-  private Collection<T> filterNodes(Predicate<Node<Collection<T>>> predicate) {
-    return nodes.stream()
-        .filter(predicate)
-        .map(Node::content)
-        .flatMap(Collection::stream)
-        .toList();
-  }
-
-  public PartialComparator<? super T> getPartialComparator() {
-    return partialComparator;
-  }
-
-  @Override
   public String toString() {
-    Set<Node<Collection<T>>> visited = new HashSet<>();
-    return nodes.stream()
-        .filter(n -> n.beforeNodes.isEmpty())
-        .map(n -> toString(n, visited))
-        .collect(Collectors.joining("; "));
-  }
-
-  private String toString(Node<Collection<T>> node, Set<Node<Collection<T>>> visited) {
-    visited.add(node);
-    String s = node.content().toString();
-    s = s + " < [";
-    s = s
-        + node.afterNodes.stream()
-            .filter(n -> n.beforeNodes.stream().noneMatch(node.afterNodes::contains))
-            .map(n -> visited.contains(n) ? "..." : toString(n, visited))
-            .collect(Collectors.joining(", "));
-    s = s + "]";
-    return s;
+    List<Collection<T>> fronts = fronts();
+    return IntStream.range(0, fronts.size())
+        .mapToObj(
+            i -> "F%d:[%s]".formatted(
+                i,
+                fronts.get(i).stream().map(Object::toString).collect(Collectors.joining(";"))
+            )
+        )
+        .collect(Collectors.joining(";"));
   }
 }

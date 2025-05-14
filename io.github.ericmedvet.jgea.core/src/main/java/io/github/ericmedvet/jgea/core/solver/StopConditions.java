@@ -27,7 +27,8 @@ import java.util.function.Predicate;
 
 public class StopConditions {
 
-  private StopConditions() {}
+  private StopConditions() {
+  }
 
   @SuppressWarnings("unused")
   public static <P extends Problem<S>, S> ProgressBasedStopCondition<State<P, S>> elapsedMillis(final long n) {
@@ -35,14 +36,16 @@ public class StopConditions {
   }
 
   @SuppressWarnings("unused")
-  public static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>
-      ProgressBasedStopCondition<POCPopulationState<I, G, S, Q, P>> nOfBirths(final long n) {
+  public static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>> ProgressBasedStopCondition<POCPopulationState<I, G, S, Q, P>> nOfBirths(
+      final long n
+  ) {
     return s -> new Progress(0, n, s.nOfBirths());
   }
 
   @SuppressWarnings("unused")
-  public static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>>
-      ProgressBasedStopCondition<POCPopulationState<I, G, S, Q, P>> nOfFitnessEvaluations(final long n) {
+  public static <I extends Individual<G, S, Q>, G, S, Q, P extends QualityBasedProblem<S, Q>> ProgressBasedStopCondition<POCPopulationState<I, G, S, Q, P>> nOfFitnessEvaluations(
+      final long n
+  ) {
     return s -> new Progress(0, n, s.nOfQualityEvaluations());
   }
 
@@ -52,9 +55,9 @@ public class StopConditions {
   }
 
   @SuppressWarnings("unused")
-  public static <I extends Individual<G, S, Q>, G, S, Q extends Comparable<Q>, P extends QualityBasedProblem<S, Q>>
-      Predicate<POCPopulationState<I, G, S, Q, P>> targetFitness(final Q targetQ) {
-    return s ->
-        s.pocPopulation().firsts().stream().map(Individual::quality).anyMatch(f -> f.compareTo(targetQ) <= 0);
+  public static <I extends Individual<G, S, Q>, G, S, Q extends Comparable<Q>, P extends QualityBasedProblem<S, Q>> Predicate<POCPopulationState<I, G, S, Q, P>> targetFitness(
+      final Q targetQ
+  ) {
+    return s -> s.pocPopulation().firsts().stream().map(Individual::quality).anyMatch(f -> f.compareTo(targetQ) <= 0);
   }
 }

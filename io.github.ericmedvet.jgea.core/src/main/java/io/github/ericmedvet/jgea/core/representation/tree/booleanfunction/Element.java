@@ -25,12 +25,7 @@ import java.io.Serializable;
 public interface Element {
 
   enum Operator implements Element, Serializable {
-    AND(".and"),
-    AND1NOT(".and1not"),
-    OR(".or"),
-    XOR(".xor"),
-    NOT(".not"),
-    IF(".if");
+    AND(".and"), AND1NOT(".and1not"), OR(".or"), XOR(".xor"), NOT(".not"), IF(".if");
 
     private final String string;
 

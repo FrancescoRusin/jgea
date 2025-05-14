@@ -30,7 +30,8 @@ public record HorizontalBarCell(int l, double min, double max, double value) imp
         0,
         TextPlotter.horizontalBar(value, min, max, l, false).content(),
         td.getConfiguration().primaryPlotColor(),
-        td.getConfiguration().secondaryPlotColor());
+        td.getConfiguration().secondaryPlotColor()
+    );
   }
 
   @Override

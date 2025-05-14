@@ -44,7 +44,8 @@ public class UnivariateGridSEPAF<E, R, X, G> extends AbstractSingleEPAF<E, Univa
       boolean unique,
       List<Function<? super E, Grid<G>>> gridFunctions,
       List<Function<? super G, ? extends Number>> gridValueFunctions,
-      DoubleRange valueRange) {
+      DoubleRange valueRange
+  ) {
     super(titleFunction, predicateValueFunction, predicate, unique);
     this.gridFunctions = gridFunctions;
     this.gridValueFunctions = gridValueFunctions;
@@ -57,13 +58,15 @@ public class UnivariateGridSEPAF<E, R, X, G> extends AbstractSingleEPAF<E, Univa
         .map(gf -> {
           Grid<G> grid = gf.apply(e);
           return gridValueFunctions.stream()
-              .map(gvf -> Map.entry(
-                  gridFunctions.size() == 1
-                      ? NamedFunction.name(gvf)
-                      : "%s on %s".formatted(NamedFunction.name(gvf), NamedFunction.name(gf)),
-                  grid.map(g -> Objects.isNull(g)
-                      ? null
-                      : gvf.apply(g).doubleValue())))
+              .map(
+                  gvf -> Map.entry(
+                      gridFunctions.size() == 1 ? NamedFunction.name(gvf) : "%s on %s".formatted(
+                          NamedFunction.name(gvf),
+                          NamedFunction.name(gf)
+                      ),
+                      grid.map(g -> Objects.isNull(g) ? null : gvf.apply(g).doubleValue())
+                  )
+              )
               .toList();
         })
         .flatMap(List::stream)
@@ -85,7 +88,12 @@ public class UnivariateGridSEPAF<E, R, X, G> extends AbstractSingleEPAF<E, Univa
             data.nColumns(),
             data.nRows(),
             (x, y) -> new XYPlot.TitledData<>(
-                data.colIndexes().get(x), data.rowIndexes().get(y), data.get(x, y))));
+                data.colIndexes().get(x),
+                data.rowIndexes().get(y),
+                data.get(x, y)
+            )
+        )
+    );
   }
 
   @Override

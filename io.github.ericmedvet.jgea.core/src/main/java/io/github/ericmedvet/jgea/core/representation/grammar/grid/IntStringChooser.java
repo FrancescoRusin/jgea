@@ -39,7 +39,10 @@ public class IntStringChooser<S, O> implements Chooser<S, O> {
   }
 
   public static <S, D, O> Function<IntString, D> mapper(
-      Grammar<S, O> grammar, Developer<S, D, O> developer, D defaultDeveloped) {
+      Grammar<S, O> grammar,
+      Developer<S, D, O> developer,
+      D defaultDeveloped
+  ) {
     return is -> {
       IntStringChooser<S, O> chooser = new IntStringChooser<>(is, grammar);
       return developer.develop(chooser).orElse(defaultDeveloped);

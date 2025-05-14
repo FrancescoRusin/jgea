@@ -82,7 +82,8 @@ public class BooleanUtils {
       Boolean result = values.get(((Element.Variable) tree.content()).name());
       if (result == null) {
         throw new RuntimeException(
-            String.format("Undefined variable: %s", ((Element.Variable) tree.content()).name()));
+            String.format("Undefined variable: %s", ((Element.Variable) tree.content()).name())
+        );
       }
       return result;
     }

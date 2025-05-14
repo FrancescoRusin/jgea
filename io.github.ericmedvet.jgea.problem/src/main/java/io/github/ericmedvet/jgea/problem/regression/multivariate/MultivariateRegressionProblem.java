@@ -20,40 +20,107 @@
 
 package io.github.ericmedvet.jgea.problem.regression.multivariate;
 
-import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
+import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
+import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SequencedMap;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
-public class MultivariateRegressionProblem<F extends MultivariateRegressionFitness>
-    implements ComparableQualityBasedProblem<NamedMultivariateRealFunction, Double>,
-        ProblemWithValidation<NamedMultivariateRealFunction, Double>,
-        ProblemWithExampleSolution<NamedMultivariateRealFunction> {
-  private final F fitness;
-  private final F validationFitness;
+public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionProblem.Outcome, Double> {
+  record Outcome(Map<String, Double> actual, Map<String, Double> predicted) {
+    public Map<String, UnivariateRegressionProblem.Outcome> toUROutcomes() {
+      return actual.keySet()
+          .stream()
+          .collect(
+              Misc.toSequencedMap(
+                  yVarName -> new UnivariateRegressionProblem.Outcome(
+                      actual.get(yVarName),
+                      predicted.get(yVarName)
+                  )
+              )
+          );
+    }
+  }
 
-  public MultivariateRegressionProblem(F fitness, F validationFitness) {
-    this.fitness = fitness;
-    this.validationFitness = validationFitness;
+  List<UnivariateRegressionProblem.Metric> metrics();
+
+  @Override
+  default TriFunction<Map<String, Double>, Map<String, Double>, Map<String, Double>, Outcome> errorFunction() {
+    return (input, actual, predicted) -> new Outcome(actual, predicted);
   }
 
   @Override
-  public NamedMultivariateRealFunction example() {
-    return NamedMultivariateRealFunction.from(
-        UnivariateRealFunction.from(
-            xs -> 0d, fitness.getDataset().xVarNames().size()),
-        fitness.getDataset().xVarNames(),
-        fitness.getDataset().yVarNames());
+  default BiFunction<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>> predictFunction() {
+    return NamedMultivariateRealFunction::compute;
   }
 
   @Override
-  public F qualityFunction() {
-    return fitness;
+  default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> new Objective<>(
+                    outcomes -> {
+                      Map<String, List<UnivariateRegressionProblem.Outcome>> urOutcomes = outcomes.getFirst().actual
+                          .keySet()
+                          .stream()
+                          .collect(
+                              Collectors.toMap(
+                                  k -> k,
+                                  k -> outcomes.stream()
+                                      .map(
+                                          outcome -> new UnivariateRegressionProblem.Outcome(
+                                              outcome.actual.get(k),
+                                              outcome.predicted.get(k)
+                                          )
+                                      )
+                                      .toList()
+                              )
+                          );
+                      return urOutcomes.values().stream().mapToDouble(m::apply).average().orElseThrow();
+                    },
+                    Double::compareTo
+                )
+            )
+        );
   }
 
   @Override
-  public F validationQualityFunction() {
-    return validationFitness;
+  default Optional<NamedMultivariateRealFunction> example() {
+    Example<Map<String, Double>, Map<String, Double>> example = caseProvider().first();
+    return Optional.of(
+        NamedMultivariateRealFunction.from(
+            MultivariateRealFunction.from(
+                vs -> new double[example.output().size()],
+                example.input().size(),
+                example.output().size()
+            ),
+            example.input().keySet().stream().sorted().toList(),
+            example.output().keySet().stream().sorted().toList()
+        )
+    );
+  }
+
+  static MultivariateRegressionProblem from(
+      List<UnivariateRegressionProblem.Metric> metrics,
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider
+  ) {
+    record HardMultivariateRegressionProblem(
+        List<UnivariateRegressionProblem.Metric> metrics,
+        IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+        IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider
+    ) implements MultivariateRegressionProblem {
+    }
+    return new HardMultivariateRegressionProblem(metrics, caseProvider, validationCaseProvider);
   }
 }

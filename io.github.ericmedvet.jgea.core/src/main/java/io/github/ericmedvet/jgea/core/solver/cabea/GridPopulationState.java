@@ -31,12 +31,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q>>
-    extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
+public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q>> extends POCPopulationState<Individual<G, S, Q>, G, S, Q, P> {
   Grid<Individual<G, S, Q>> gridPopulation();
 
   static <G, S, Q, P extends QualityBasedProblem<S, Q>> GridPopulationState<G, S, Q, P> empty(
-      P problem, Predicate<State<?, ?>> stopCondition) {
+      P problem,
+      Predicate<State<?, ?>> stopCondition
+  ) {
     return of(LocalDateTime.now(), 0, 0, problem, stopCondition, 0, 0, Grid.create(0, 0));
   }
 
@@ -48,9 +49,10 @@ public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q
       Predicate<State<?, ?>> stopCondition,
       long nOfBirths,
       long nOfQualityEvaluations,
-      Grid<Individual<G, S, Q>> gridPopulation) {
-    PartialComparator<? super Individual<G, S, Q>> comparator =
-        (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
+      Grid<Individual<G, S, Q>> gridPopulation
+  ) {
+    PartialComparator<? super Individual<G, S, Q>> comparator = (i1, i2) -> problem.qualityComparator()
+        .compare(i1.quality(), i2.quality());
     record HardState<G, S, Q, P extends QualityBasedProblem<S, Q>>(
         LocalDateTime startingDateTime,
         long elapsedMillis,
@@ -60,8 +62,8 @@ public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q
         long nOfBirths,
         long nOfQualityEvaluations,
         PartiallyOrderedCollection<Individual<G, S, Q>> pocPopulation,
-        Grid<Individual<G, S, Q>> gridPopulation)
-        implements GridPopulationState<G, S, Q, P> {}
+        Grid<Individual<G, S, Q>> gridPopulation
+    ) implements GridPopulationState<G, S, Q, P> {}
     return new HardState<>(
         startingDateTime,
         elapsedMillis,
@@ -71,15 +73,21 @@ public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q
         nOfBirths,
         nOfQualityEvaluations,
         PartiallyOrderedCollection.from(
-            gridPopulation.values().stream()
+            gridPopulation.values()
+                .stream()
                 .filter(Objects::nonNull)
                 .toList(),
-            comparator),
-        gridPopulation);
+            comparator
+        ),
+        gridPopulation
+    );
   }
 
   default GridPopulationState<G, S, Q, P> updatedWithIteration(
-      long nOfNewBirths, long nOfNewQualityEvaluations, Grid<Individual<G, S, Q>> gridPopulation) {
+      long nOfNewBirths,
+      long nOfNewQualityEvaluations,
+      Grid<Individual<G, S, Q>> gridPopulation
+  ) {
     return of(
         startingDateTime(),
         ChronoUnit.MILLIS.between(startingDateTime(), LocalDateTime.now()),
@@ -88,7 +96,8 @@ public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q
         stopCondition(),
         nOfBirths() + nOfNewBirths,
         nOfQualityEvaluations() + nOfNewQualityEvaluations,
-        gridPopulation);
+        gridPopulation
+    );
   }
 
   @Override
@@ -101,6 +110,7 @@ public interface GridPopulationState<G, S, Q, P extends QualityBasedProblem<S, Q
         stopCondition(),
         nOfBirths(),
         nOfQualityEvaluations(),
-        gridPopulation());
+        gridPopulation()
+    );
   }
 }

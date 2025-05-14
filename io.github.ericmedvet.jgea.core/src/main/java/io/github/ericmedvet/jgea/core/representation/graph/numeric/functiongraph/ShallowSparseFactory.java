@@ -39,7 +39,12 @@ public class ShallowSparseFactory implements IndependentFactory<Graph<Node, Doub
   private final List<String> yVarNames;
 
   public ShallowSparseFactory(
-      double sparsity, double mu, double sigma, List<String> xVarNames, List<String> yVarNames) {
+      double sparsity,
+      double mu,
+      double sigma,
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) {
     this.sparsity = sparsity;
     this.mu = mu;
     this.sigma = sigma;

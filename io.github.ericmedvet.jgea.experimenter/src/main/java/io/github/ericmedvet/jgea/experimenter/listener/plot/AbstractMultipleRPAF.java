@@ -25,8 +25,7 @@ import io.github.ericmedvet.jnb.datastructure.Table;
 import io.github.ericmedvet.jviz.core.plot.XYPlot;
 import java.util.function.Function;
 
-public abstract class AbstractMultipleRPAF<E, P extends XYPlot<D>, R, D, K, V>
-    implements PlotAccumulatorFactory<E, P, R, D> {
+public abstract class AbstractMultipleRPAF<E, P extends XYPlot<D>, R, D, K, V> implements PlotAccumulatorFactory<E, P, R, D> {
 
   protected final Function<? super R, ? extends K> xSubplotFunction;
   protected final Function<? super R, ? extends K> ySubplotFunction;
@@ -34,7 +33,9 @@ public abstract class AbstractMultipleRPAF<E, P extends XYPlot<D>, R, D, K, V>
   private final Table<K, K, V> table;
 
   public AbstractMultipleRPAF(
-      Function<? super R, ? extends K> xSubplotFunction, Function<? super R, ? extends K> ySubplotFunction) {
+      Function<? super R, ? extends K> xSubplotFunction,
+      Function<? super R, ? extends K> ySubplotFunction
+  ) {
     this.xSubplotFunction = xSubplotFunction;
     this.ySubplotFunction = ySubplotFunction;
     table = new HashMapTable<>();

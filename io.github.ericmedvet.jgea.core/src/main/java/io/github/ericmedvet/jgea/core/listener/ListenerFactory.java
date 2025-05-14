@@ -39,11 +39,15 @@ public interface ListenerFactory<E, K> {
     return from(
         "all[%s]".formatted(factories.stream().map(Object::toString).collect(Collectors.joining(";"))),
         k -> Listener.all(factories.stream().map(f -> f.build(k)).collect(Collectors.toList())),
-        () -> factories.forEach(listenerFactory -> Misc.doOrLog(
-            listenerFactory::shutdown,
-            Logger.getLogger(ListenerFactory.class.getName()),
-            Level.WARNING,
-            t -> "Cannot shutdown() listener factory %s: %s".formatted(listenerFactory, t))));
+        () -> factories.forEach(
+            listenerFactory -> Misc.doOrLog(
+                listenerFactory::shutdown,
+                Logger.getLogger(ListenerFactory.class.getName()),
+                Level.WARNING,
+                t -> "Cannot shutdown() listener factory %s: %s".formatted(listenerFactory, t)
+            )
+        )
+    );
   }
 
   static <E, K> ListenerFactory<E, K> deaf() {
@@ -51,7 +55,10 @@ public interface ListenerFactory<E, K> {
   }
 
   static <E, K> ListenerFactory<E, K> from(
-      String name, Function<K, Listener<E>> lFunction, Runnable shutdownRunnable) {
+      String name,
+      Function<K, Listener<E>> lFunction,
+      Runnable shutdownRunnable
+  ) {
     return new ListenerFactory<>() {
       @Override
       public Listener<E> build(K k) {
@@ -78,7 +85,8 @@ public interface ListenerFactory<E, K> {
     return from(
         "%s[if:%s]".formatted(this, predicate),
         k -> predicate.test(k) ? build(k) : Listener.deaf(),
-        this::shutdown);
+        this::shutdown
+    );
   }
 
   default ListenerFactory<E, K> deferred(ExecutorService executorService) {
@@ -89,7 +97,8 @@ public interface ListenerFactory<E, K> {
     return from(
         "%s[forEach:%s]".formatted(this, NamedFunction.name(splitter)),
         k -> build(k).forEach(splitter),
-        this::shutdown);
+        this::shutdown
+    );
   }
 
   default <F> ListenerFactory<F, K> on(Function<F, E> function) {
@@ -102,7 +111,7 @@ public interface ListenerFactory<E, K> {
 
   default ListenerFactory<E, K> robust() {
     final ListenerFactory<E, K> thisFactory = this;
-    final Logger L = Logger.getLogger(Listener.class.getName());
+    final Logger L = Logger.getLogger(ListenerFactory.class.getName());
     final AtomicInteger counter = new AtomicInteger(0);
     return new ListenerFactory<>() {
       @Override
@@ -140,9 +149,13 @@ public interface ListenerFactory<E, K> {
                   try {
                     innerListener.listen(e);
                   } catch (RuntimeException ex) {
-                    L.warning(String.format(
-                        "Listener %s cannot listen() event: %s",
-                        innerListener.getClass().getSimpleName(), ex));
+                    L.warning(
+                        String.format(
+                            "Listener %s cannot listen() event: %s",
+                            innerListener.getClass().getSimpleName(),
+                            ex
+                        )
+                    );
                   } finally {
                     synchronized (counter) {
                       counter.decrementAndGet();
@@ -159,9 +172,13 @@ public interface ListenerFactory<E, K> {
                   try {
                     innerListener.done();
                   } catch (RuntimeException ex) {
-                    L.warning(String.format(
-                        "Listener (from factory) %s cannot done() event: %s",
-                        innerListener.getClass().getSimpleName(), ex));
+                    L.warning(
+                        String.format(
+                            "Listener (from factory) %s cannot done() event: %s",
+                            innerListener.getClass().getSimpleName(),
+                            ex
+                        )
+                    );
                   } finally {
                     synchronized (counter) {
                       counter.decrementAndGet();
@@ -219,5 +236,6 @@ public interface ListenerFactory<E, K> {
     };
   }
 
-  default void shutdown() {}
+  default void shutdown() {
+  }
 }
